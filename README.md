@@ -4,9 +4,14 @@ A PyTorch implementation of bidirectional LSTM-CRF for sequence tagging, adapted
 
 ## Usage
 
+To prepare data:
+```
+python prepare.py training_data
+```
+
 To train:
 ```
-python train.py model tag_to_idx word_to_idx training_data num_epoch
+python train.py model tag_to_idx word_to_idx training_data.csv num_epoch
 ```
 
 To predict:
