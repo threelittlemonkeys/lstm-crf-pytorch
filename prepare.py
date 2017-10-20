@@ -37,7 +37,7 @@ def load_data():
     return data, maxlen, word_to_idx, tag_to_idx
 
 def save_data(data, maxlen):
-    fo = open(sys.argv[1] + ".out", "w")
+    fo = open(sys.argv[1] + ".csv", "w")
     fo.write("%d\n" % maxlen)
     for x in data:
         n = maxlen - len(x[0])
@@ -59,7 +59,7 @@ def save_tag_to_idx(tag_to_idx):
     fo.close()
 
 if __name__ == "__main__":
-    data, maxlen, tag_to_idx, word_to_idx = load_data()
+    data, maxlen, word_to_idx, tag_to_idx = load_data()
     save_data(data, maxlen)
     save_word_to_idx(word_to_idx)
     save_tag_to_idx(tag_to_idx)
