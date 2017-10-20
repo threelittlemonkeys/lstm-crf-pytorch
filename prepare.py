@@ -1,16 +1,15 @@
 import sys
 import re
-from model import NULL, START_TAG, STOP_TAG
+from model import BOS, EOS
 
 def load_data():
     data = []
     maxlen = 0
     word_to_idx = {}
-    word_to_idx[NULL] = len(word_to_idx)
+    word_to_idx[EOS] = len(word_to_idx)
     tag_to_idx = {}
-    tag_to_idx[NULL] = len(tag_to_idx)
-    tag_to_idx[START_TAG] = len(tag_to_idx)
-    tag_to_idx[STOP_TAG] = len(tag_to_idx)
+    tag_to_idx[EOS] = len(tag_to_idx)
+    tag_to_idx[BOS] = len(tag_to_idx)
     fo = open(sys.argv[1])
     for line in fo:
         line = re.sub("\s+", " ", line)
@@ -59,6 +58,8 @@ def save_tag_to_idx(tag_to_idx):
     fo.close()
 
 if __name__ == "__main__":
+    if len(sys.argv) != 2:
+        sys.exit("Usage: %s training_data" % sys.argv[0])
     data, maxlen, word_to_idx, tag_to_idx = load_data()
     save_data(data, maxlen)
     save_word_to_idx(word_to_idx)

@@ -12,9 +12,8 @@ NUM_DIRS = 2 if BIDIRECTIONAL else 1
 LEARNING_RATE = 0.01
 WEIGHT_DECAY = 1e-4
 
-NULL = "<NULL>"
-START_TAG = "<START>"
-STOP_TAG = "<STOP>"
+BOS = "<BOS>"
+EOS = "<EOS>"
 
 torch.manual_seed(1)
 CUDA = torch.cuda.is_available()
@@ -40,8 +39,8 @@ class lstm_crf(nn.Module):
 
         # matrix of transition scores from j to i
         self.trans = nn.Parameter(randn(self.num_tags, self.num_tags))
-        self.trans.data[tag_to_idx[START_TAG], :] = -10000 # no transition to START_TAG
-        self.trans.data[:, tag_to_idx[STOP_TAG]] = -10000 # no transition from STOP_TAG
+        self.trans.data[tag_to_idx[BOS], :] = -10000 # no transition to BOS
+        self.trans.data[:, tag_to_idx[EOS]] = -10000 # no transition from EOS
 
         # optimizer
         self.optim = torch.optim.SGD(self.parameters(), lr = LEARNING_RATE, weight_decay = WEIGHT_DECAY)
@@ -62,7 +61,7 @@ class lstm_crf(nn.Module):
     def crf_forward(self, lstm_out): # forward algorithm for CRF
         # initialize forward variables in log space
         alpha = Tensor(1, self.num_tags).fill_(-10000.)
-        alpha[0][self.tag_to_idx[START_TAG]] = 0.
+        alpha[0][self.tag_to_idx[BOS]] = 0.
         alpha = Var(alpha)
         for feat in lstm_out: # iterate through the sentence
             alpha_t = [] # forward variables at this timestep
@@ -72,23 +71,23 @@ class lstm_crf(nn.Module):
                 sum = alpha + emit_score + trans_score
                 alpha_t.append(log_sum_exp(sum))
             alpha = torch.cat(alpha_t).view(1, -1)
-        alpha += self.trans[self.tag_to_idx[STOP_TAG]]
+        alpha += self.trans[self.tag_to_idx[EOS]]
         alpha = log_sum_exp(alpha) # partition function
         return alpha
 
     def crf_score(self, lstm_out, tags):
         score = Var(Tensor([0]))
-        tags = torch.cat([LongTensor([self.tag_to_idx[START_TAG]]), tags])
+        tags = torch.cat([LongTensor([self.tag_to_idx[BOS]]), tags])
         for i, emit_score in enumerate(lstm_out):
             score += emit_score[tags[i + 1]] + self.trans[tags[i + 1], tags[i]]
-        score += self.trans[self.tag_to_idx[STOP_TAG], tags[-1]]
+        score += self.trans[self.tag_to_idx[EOS], tags[-1]]
         return score
 
     def viterbi(self, lstm_out):
         # initialize backpointers and viterbi variables in log space
         bptr = []
         score = Tensor(1, self.num_tags).fill_(-10000.)
-        score[0][self.tag_to_idx[START_TAG]] = 0
+        score[0][self.tag_to_idx[BOS]] = 0
         score = Var(score)
 
         for feat in lstm_out: # iterate through the sentence
@@ -102,7 +101,7 @@ class lstm_crf(nn.Module):
                 score_t.append(sum[0][best_tag])
             score = (torch.cat(score_t) + feat).view(1, -1)
             bptr.append(bptr_t)
-        score += self.trans[self.tag_to_idx[STOP_TAG]]
+        score += self.trans[self.tag_to_idx[EOS]]
         best_tag = argmax(score)
         best_score = score[0][best_tag]
 
