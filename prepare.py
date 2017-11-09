@@ -1,13 +1,14 @@
 import sys
 import re
-from model import BOS, EOS
+from model import BOS, EOS, PAD
 
 def load_data():
     data = []
-    maxlen = 0
     word_to_idx = {}
+    word_to_idx[PAD] = len(word_to_idx)
     word_to_idx[EOS] = len(word_to_idx)
     tag_to_idx = {}
+    tag_to_idx[PAD] = len(tag_to_idx)
     tag_to_idx[EOS] = len(tag_to_idx)
     tag_to_idx[BOS] = len(tag_to_idx)
     fo = open(sys.argv[1])
@@ -28,21 +29,17 @@ def load_data():
                 tag_to_idx[tag] = len(tag_to_idx)
             sent += list(word)
             tags += [tag] * len(word)
-        if len(sent) > maxlen:
-            maxlen = len(sent)
-        data.append([[word_to_idx[x] for x in sent], [tag_to_idx[x] for x in tags]])
-    data.sort(key = lambda x: len(x[0]), reverse = True)
+        sent += [EOS]
+        tags += [EOS]
+        data.append([word_to_idx[i] for i in sent] + [tag_to_idx[i] for i in tags])
+    data.sort(key = len, reverse = True)
     fo.close()
-    return data, maxlen, word_to_idx, tag_to_idx
+    return data, word_to_idx, tag_to_idx
 
-def save_data(data, maxlen):
+def save_data(data):
     fo = open(sys.argv[1] + ".csv", "w")
-    fo.write("%d\n" % maxlen)
-    for x in data:
-        n = maxlen - len(x[0])
-        padding = [0] * n
-        x = x[0] + padding + x[1] + padding
-        fo.write("%s\n" % " ".join([str(y) for y in x]))
+    for seq in data:
+        fo.write("%s %d\n" % (" ".join([str(i) for i in seq]), len(seq) // 2))
     fo.close()
 
 def save_word_to_idx(word_to_idx):
@@ -60,7 +57,7 @@ def save_tag_to_idx(tag_to_idx):
 if __name__ == "__main__":
     if len(sys.argv) != 2:
         sys.exit("Usage: %s training_data" % sys.argv[0])
-    data, maxlen, word_to_idx, tag_to_idx = load_data()
-    save_data(data, maxlen)
+    data, word_to_idx, tag_to_idx = load_data()
+    save_data(data)
     save_word_to_idx(word_to_idx)
     save_tag_to_idx(tag_to_idx)
