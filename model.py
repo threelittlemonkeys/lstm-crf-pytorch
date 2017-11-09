@@ -138,7 +138,6 @@ class lstm_crf(nn.Module):
                 score_t.append(z[best_tag])
             bptr.append(bptr_t)
             score = torch.cat(score_t) + y[t]
-        # score += self.trans[self.tag_to_idx[EOS]]
         best_tag = argmax(score)
         best_score = score[best_tag]
 
