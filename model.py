@@ -156,7 +156,7 @@ class lstm_crf(nn.Module):
         score = self.crf_score(y, y0)
         Z = self.crf_forward(y)
         '''
-        # minibatch training
+        # mini-batch training
         mask = x.data.gt(0).float()
         y = y * Var(mask.unsqueeze(-1).expand_as(y))
         score = self.crf_score_batch(y, y0, mask)
