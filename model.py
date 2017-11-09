@@ -2,8 +2,8 @@ import torch
 import torch.nn as nn
 from torch.autograd import Variable as Var
 
-BATCH_SIZE = 32
-EMBED_SIZE = 500
+BATCH_SIZE = 16
+EMBED_SIZE = 100
 HIDDEN_SIZE = 1000
 NUM_LAYERS = 2
 DROPOUT = 0.5
@@ -156,7 +156,7 @@ class lstm_crf(nn.Module):
         score = self.crf_score(y, y0)
         Z = self.crf_forward(y)
         '''
-        # mini-batch training
+        # minibatch training
         mask = x.data.gt(0).float()
         y = y * Var(mask.unsqueeze(-1).expand_as(y))
         score = self.crf_score_batch(y, y0, mask)

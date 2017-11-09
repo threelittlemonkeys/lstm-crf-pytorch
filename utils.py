@@ -1,4 +1,10 @@
+import re
 from model import *
+
+def normalize_str(s):
+    s = re.sub("[" + chr(0x3040) + "-" + chr(0x30FF) + "]+", chr(0x3042), s) # Hiragana and Katakana
+    s = re.sub("[" + chr(0x4E00) + "-" + chr(0x9FFF) + "]+", chr(0x6F22), s) # CJK unified ideographs
+    return s
 
 def load_tag_to_idx(filename):
     print("loading tag_to_idx...")
