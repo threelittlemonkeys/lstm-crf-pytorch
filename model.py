@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 from torch.autograd import Variable as Var
 
-BATCH_SIZE = 8
+BATCH_SIZE = 32
 EMBED_SIZE = 500
 HIDDEN_SIZE = 1000
 NUM_LAYERS = 2
@@ -151,6 +151,7 @@ class lstm_crf(nn.Module):
 
     def loss(self, x, y0):
         y = self.lstm_forward(x)
+        '''
         # iterative training
         score = self.crf_score(y, y0)
         Z = self.crf_forward(y)
@@ -160,7 +161,6 @@ class lstm_crf(nn.Module):
         y = y * Var(mask.unsqueeze(-1).expand_as(y))
         score = self.crf_score_batch(y, y0, mask)
         Z = self.crf_forward_batch(y, mask)
-        '''
         L = torch.mean(Z - score) # negative log probability
         return L
 
