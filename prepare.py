@@ -1,6 +1,7 @@
 import sys
 import re
 from model import BOS, EOS, PAD
+from utils import *
 
 def load_data():
     data = []
@@ -17,11 +18,15 @@ def load_data():
         line = re.sub("^ | $", "", line)
         if line == "":
             continue
+        tokens = line.split(" ")
+        if len(tokens) < 10 or len(tokens) > 50:
+            continue
         sent = []
         tags = []
-        for tkn in line.split(" "):
+        for tkn in tokens:
             word = re.sub("/[A-Z]+", "", tkn)
             tag = re.sub(".+/", "", tkn)
+            word = normalize_str(word)
             for c in word:
                 if c not in word_to_idx:
                     word_to_idx[c] = len(word_to_idx)
