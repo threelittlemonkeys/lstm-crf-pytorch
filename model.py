@@ -141,6 +141,7 @@ class lstm_crf(nn.Module):
         best_tag = argmax(score)
         best_score = score[best_tag]
 
+        # back-tracking
         best_path = [best_tag]
         for bptr_t in reversed(bptr):
             best_path.append(bptr_t[best_tag])
@@ -150,7 +151,6 @@ class lstm_crf(nn.Module):
 
     def loss(self, x, y0):
         y = self.lstm_forward(x)
-        '''
         # iterative training
         score = self.crf_score(y, y0)
         Z = self.crf_forward(y)
@@ -160,6 +160,7 @@ class lstm_crf(nn.Module):
         y = y * Var(mask.unsqueeze(-1).expand_as(y))
         score = self.crf_score_batch(y, y0, mask)
         Z = self.crf_forward_batch(y, mask)
+        '''
         L = torch.mean(Z - score) # negative log probability
         return L
 
