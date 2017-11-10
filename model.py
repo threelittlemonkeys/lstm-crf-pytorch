@@ -156,7 +156,7 @@ class lstm_crf(nn.Module):
         score = self.crf_score(y, y0)
         Z = self.crf_forward(y)
         '''
-        # minibatch training
+        # mini-batch training
         mask = x.data.gt(0).float()
         y = y * Var(mask.unsqueeze(-1).expand_as(y))
         score = self.crf_score_batch(y, y0, mask)
@@ -202,7 +202,7 @@ def log_sum_exp(x):
     return max_score + torch.log(torch.sum(torch.exp(x - max_score_broadcast)))
 
 def log_sum_exp_batch1(x):
-    max_score = torch.cat([y[argmax(y)] for y in x])
+    max_score = torch.cat([i[argmax(i)] for i in x])
     max_score_broadcast = max_score.view(-1, 1).expand_as(x)
     z = max_score + torch.log(torch.sum(torch.exp(x - max_score_broadcast), 1))
     return z
