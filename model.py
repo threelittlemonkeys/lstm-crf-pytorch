@@ -12,7 +12,7 @@ NUM_DIRS = 2 if BIDIRECTIONAL else 1
 LEARNING_RATE = 0.01
 WEIGHT_DECAY = 1e-4
 
-BOS = "<BOS>"
+SOS = "<SOS>"
 EOS = "<EOS>"
 PAD = "<PAD>"
 
@@ -42,7 +42,7 @@ class lstm_crf(nn.Module):
 
         # matrix of transition scores from j to i
         self.trans = nn.Parameter(randn(self.tagset_size, self.tagset_size))
-        self.trans.data[tag_to_idx[BOS], :] = -10000. # no transition to BOS
+        self.trans.data[tag_to_idx[SOS], :] = -10000. # no transition to SOS
         self.trans.data[:, tag_to_idx[EOS]] = -10000. # no transition from EOS except to PAD
         self.trans.data[:, tag_to_idx[PAD]] = -10000. # no transition from PAD except to PAD
         self.trans.data[tag_to_idx[PAD], :] = -10000. # no transition to PAD except from EOS
@@ -68,7 +68,7 @@ class lstm_crf(nn.Module):
 
     def crf_score(self, y, y0):
         score = Var(Tensor(BATCH_SIZE).fill_(0.))
-        y0 = torch.cat([LongTensor(BATCH_SIZE, 1).fill_(self.tag_to_idx[BOS]), y0], 1)
+        y0 = torch.cat([LongTensor(BATCH_SIZE, 1).fill_(self.tag_to_idx[SOS]), y0], 1)
         for b in range(len(self.seq_len)):
             for t in range(self.seq_len[b]): # iterate through the sentence
                 emit_score = y[b, t, y0[b, t + 1]]
@@ -78,7 +78,7 @@ class lstm_crf(nn.Module):
 
     def crf_score_batch(self, y, y0, mask):
         score = Var(Tensor(BATCH_SIZE).fill_(0.))
-        y0 = torch.cat([LongTensor(BATCH_SIZE, 1).fill_(self.tag_to_idx[BOS]), y0], 1)
+        y0 = torch.cat([LongTensor(BATCH_SIZE, 1).fill_(self.tag_to_idx[SOS]), y0], 1)
         for t in range(y.size(1)): # iterate through the sentence
             mask_t = Var(mask[:, t])
             emit_score = torch.cat([y[b, t, y0[b, t + 1]] for b in range(BATCH_SIZE)])
@@ -89,7 +89,7 @@ class lstm_crf(nn.Module):
     def crf_forward(self, y): # forward algorithm for CRF
         # initialize forward variables in log space
         score = Tensor(BATCH_SIZE, self.tagset_size).fill_(-10000.)
-        score[:, self.tag_to_idx[BOS]] = 0.
+        score[:, self.tag_to_idx[SOS]] = 0.
         score = Var(score)
         for b in range(len(self.seq_len)):
             for t in range(self.seq_len[b]): # iterate through the sentence
@@ -106,7 +106,7 @@ class lstm_crf(nn.Module):
     def crf_forward_batch(self, y, mask): # forward algorithm for CRF
         # initialize forward variables in log space
         score = Tensor(BATCH_SIZE, self.tagset_size).fill_(-10000.)
-        score[:, self.tag_to_idx[BOS]] = 0.
+        score[:, self.tag_to_idx[SOS]] = 0.
         score = Var(score)
         for t in range(y.size(1)): # iterate through the sentence
             score_t = [] # forward variables at this timestep
@@ -124,7 +124,7 @@ class lstm_crf(nn.Module):
         # initialize backpointers and viterbi variables in log space
         bptr = []
         score = Tensor(self.tagset_size).fill_(-10000.)
-        score[self.tag_to_idx[BOS]] = 0.
+        score[self.tag_to_idx[SOS]] = 0.
         score = Var(score)
 
         for t in range(len(y)): # iterate through the sentence

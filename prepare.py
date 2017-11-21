@@ -1,6 +1,6 @@
 import sys
 import re
-from model import BOS, EOS, PAD
+from model import SOS, EOS, PAD
 from utils import *
 
 def load_data():
@@ -11,7 +11,7 @@ def load_data():
     tag_to_idx = {}
     tag_to_idx[PAD] = len(tag_to_idx)
     tag_to_idx[EOS] = len(tag_to_idx)
-    tag_to_idx[BOS] = len(tag_to_idx)
+    tag_to_idx[SOS] = len(tag_to_idx)
     fo = open(sys.argv[1])
     for line in fo:
         line = re.sub("\s+", " ", line)
