@@ -4,6 +4,13 @@ A PyTorch implementation of bidirectional LSTM-CRF for sequence tagging, adapted
 
 ## Usage
 
+Training data should be formatted as below:
+```
+token/tag token/tag token/tag ...
+token/tag token/tag token/tag ...
+...
+```
+
 To prepare data:
 ```
 python prepare.py training_data
