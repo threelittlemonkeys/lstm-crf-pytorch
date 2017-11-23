@@ -46,3 +46,7 @@ def save_checkpoint(filename, model, epoch, loss):
     checkpoint["loss"] = loss
     torch.save(checkpoint, filename + ".epoch%d" % epoch)
     print("saved model: epoch = %d, loss = %f" % (checkpoint["epoch"], checkpoint["loss"]))
+
+def gpu2cpu(filename):
+    checkpoint = torch.load(filename, map_location = lambda storage, loc: storage)
+    torch.save(checkpoint, filename + ".cpu")
