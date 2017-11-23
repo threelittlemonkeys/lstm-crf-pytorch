@@ -5,13 +5,8 @@ from utils import *
 
 def load_data():
     data = []
-    word_to_idx = {}
-    word_to_idx[PAD] = len(word_to_idx)
-    word_to_idx[EOS] = len(word_to_idx)
-    tag_to_idx = {}
-    tag_to_idx[PAD] = len(tag_to_idx)
-    tag_to_idx[EOS] = len(tag_to_idx)
-    tag_to_idx[SOS] = len(tag_to_idx)
+    word_to_idx = {PAD: 0, EOS: 1}
+    tag_to_idx = {PAD: 0, EOS: 1, SOS: 2}
     fo = open(sys.argv[1])
     for line in fo:
         line = re.sub("\s+", " ", line)
