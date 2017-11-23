@@ -24,10 +24,10 @@ def load_data():
                     word_to_idx[c] = len(word_to_idx)
             if tag not in tag_to_idx:
                 tag_to_idx[tag] = len(tag_to_idx)
-            sent += list(word)
-            tags += [tag] * len(word)
-        sent += [EOS]
-        tags += [EOS]
+            sent.extend(list(word))
+            tags.extend([tag] * len(word))
+        sent.append(EOS)
+        tags.append(EOS)
         data.append([word_to_idx[i] for i in sent] + [tag_to_idx[i] for i in tags])
     data.sort(key = len, reverse = True)
     fo.close()
