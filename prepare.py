@@ -13,10 +13,9 @@ def load_data():
         line = re.sub("^ | $", "", line)
         if line == "":
             continue
-        tokens = line.split(" ")
         sent = []
         tags = []
-        for tkn in tokens:
+        for tkn in line.split(" "):
             word = re.sub("/[A-Z]+", "", tkn)
             tag = re.sub(".+/", "", tkn)
             word = normalize_str(word)
