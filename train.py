@@ -14,13 +14,13 @@ def load_data():
     fo = open(sys.argv[4], "r")
     for line in fo:
         line = line.strip()
-        tokens = [int(i) for i in line.split(" ")]
-        z = tokens.pop()
+        words = [int(i) for i in line.split(" ")]
+        z = words.pop()
         if len(inputs) == 0:
             batch_len = z
         pad = [0] * (batch_len - z)
-        inputs.append(tokens[:z] + pad)
-        outputs.append(tokens[z:] + pad)
+        inputs.append(words[:z] + pad)
+        outputs.append(words[z:] + pad)
         if len(inputs) == BATCH_SIZE:
             data.append((Var(LongTensor(inputs)), LongTensor(outputs)))
             inputs = []
