@@ -14,8 +14,6 @@ def load_data():
         if line == "":
             continue
         tokens = line.split(" ")
-        if len(tokens) < 10 or len(tokens) > 50:
-            continue
         sent = []
         tags = []
         for tkn in tokens:
