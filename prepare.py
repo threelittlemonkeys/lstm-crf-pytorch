@@ -1,7 +1,7 @@
 import sys
 import re
 from model import SOS, EOS, PAD
-from utils import *
+from utils import normalize_word
 
 def load_data():
     data = []
@@ -18,7 +18,7 @@ def load_data():
         for tkn in line.split(" "):
             word = re.sub("/[A-Z]+", "", tkn)
             tag = re.sub(".+/", "", tkn)
-            word = normalize_str(word)
+            word = normalize_word(word)
             for c in word:
                 if c not in word_to_idx:
                     word_to_idx[c] = len(word_to_idx)
