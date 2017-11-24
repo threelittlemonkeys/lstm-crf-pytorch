@@ -1,9 +1,9 @@
 import sys
-import os.path
 import re
 import time
 from model import *
 from utils import *
+from os.path import isfile
 
 def load_data():
     data = []
@@ -38,7 +38,7 @@ def train():
     tag_to_idx = load_tag_to_idx(sys.argv[3])
     model = lstm_crf(len(word_to_idx), tag_to_idx)
     optim = torch.optim.SGD(model.parameters(), lr = LEARNING_RATE, weight_decay = WEIGHT_DECAY)
-    epoch = load_checkpoint(sys.argv[1], model) if os.path.isfile(sys.argv[1]) else 0
+    epoch = load_checkpoint(sys.argv[1], model) if isfile(sys.argv[1]) else 0
     if CUDA:
         model = model.cuda()
     filename = re.sub("\.epoch[0-9]+$", "", sys.argv[1])
