@@ -7,8 +7,8 @@ from os.path import isfile
 
 def load_data():
     data = []
-    inputs = []
-    outputs = []
+    batch_in = []
+    batch_out = []
     batch_len = 0 # maximum sequence length of a mini-batch
     print("loading data...")
     fo = open(sys.argv[4], "r")
@@ -16,15 +16,15 @@ def load_data():
         line = line.strip()
         words = [int(i) for i in line.split(" ")]
         z = words.pop()
-        if len(inputs) == 0: # the first line has the maximum sequence length
+        if len(batch_in) == 0: # the first line has the maximum sequence length
             batch_len = z
         pad = [0] * (batch_len - z)
-        inputs.append(words[:z] + pad)
-        outputs.append(words[z:] + pad)
-        if len(inputs) == BATCH_SIZE:
-            data.append((Var(LongTensor(inputs)), LongTensor(outputs))) # append a mini-batch
-            inputs = []
-            outputs = []
+        batch_in.append(words[:z] + pad)
+        batch_out.append(words[z:] + pad)
+        if len(batch_in) == BATCH_SIZE:
+            data.append((Var(LongTensor(batch_in)), LongTensor(batch_out))) # append a mini-batch
+            batch_in = []
+            batch_out = []
     fo.close()
     print("data size: %d" % (len(data) * BATCH_SIZE))
     print("batch size: %d" % BATCH_SIZE)
