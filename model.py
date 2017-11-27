@@ -201,13 +201,13 @@ def log_sum_exp(x):
     max_score_broadcast = max_score.expand_as(x)
     return max_score + torch.log(torch.sum(torch.exp(x - max_score_broadcast)))
 
-def log_sum_exp_batch1(x):
+def log_sum_exp_batch1(x): # for a single vector
     max_score = torch.cat([i[argmax(i)] for i in x])
     max_score_broadcast = max_score.view(-1, 1).expand_as(x)
     z = max_score + torch.log(torch.sum(torch.exp(x - max_score_broadcast), 1))
     return z
 
-def log_sum_exp_batch2(x, y):
+def log_sum_exp_batch2(x, y): # for two vectors of different sizes
     z = x[:len(y)] + y
     max_score = torch.cat([i[argmax(i)] for i in z])
     max_score_broadcast = max_score.view(-1, 1).expand_as(z)
