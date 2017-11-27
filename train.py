@@ -9,14 +9,14 @@ def load_data():
     data = []
     inputs = []
     outputs = []
-    batch_len = 0
+    batch_len = 0 # maximum sequence length of a mini-batch
     print("loading data...")
     fo = open(sys.argv[4], "r")
     for line in fo:
         line = line.strip()
         words = [int(i) for i in line.split(" ")]
         z = words.pop()
-        if len(inputs) == 0:
+        if len(inputs) == 0: # the first line has the maximum sequence length
             batch_len = z
         pad = [0] * (batch_len - z)
         inputs.append(words[:z] + pad)
