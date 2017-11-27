@@ -3,6 +3,9 @@ import re
 from model import SOS, EOS, PAD
 from utils import normalize_word
 
+MIN_LENGTH = 10
+MAX_LENGTH = 50
+
 def load_data():
     data = []
     word_to_idx = {PAD: 0, EOS: 1}
@@ -11,11 +14,12 @@ def load_data():
     for line in fo:
         line = re.sub("\s+", " ", line)
         line = re.sub("^ | $", "", line)
-        if line == "":
+        tokens = line.split(" ")
+        if len(tokens) < MIN_LENGTH or len(tokens) > MAX_LENGTH: # length constraints
             continue
         sent = []
         tags = []
-        for tkn in line.split(" "):
+        for tkn in tokens:
             word = re.sub("/[A-Z]+", "", tkn)
             tag = re.sub(".+/", "", tkn)
             word = normalize_word(word)
