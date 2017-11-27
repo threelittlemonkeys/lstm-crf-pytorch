@@ -22,7 +22,7 @@ def load_data():
         inputs.append(words[:z] + pad)
         outputs.append(words[z:] + pad)
         if len(inputs) == BATCH_SIZE:
-            data.append((Var(LongTensor(inputs)), LongTensor(outputs)))
+            data.append((Var(LongTensor(inputs)), LongTensor(outputs))) # append a mini-batch
             inputs = []
             outputs = []
     fo.close()
