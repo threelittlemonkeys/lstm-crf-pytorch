@@ -38,7 +38,7 @@ class lstm_crf(nn.Module):
             dropout = DROPOUT, \
             bidirectional = BIDIRECTIONAL \
         )
-        self.hidden_to_tags = nn.Linear(HIDDEN_SIZE, self.tagset_size) # LSTM output to tags
+        self.out = nn.Linear(HIDDEN_SIZE, self.tagset_size) # LSTM output to tag
 
         # matrix of transition scores from j to i
         self.trans = nn.Parameter(randn(self.tagset_size, self.tagset_size))
@@ -62,7 +62,7 @@ class lstm_crf(nn.Module):
         y, self.hidden = self.lstm(embed, self.hidden)
         y, _ = nn.utils.rnn.pad_packed_sequence(y, batch_first = True)
         # y = y.contiguous().view(-1, HIDDEN_SIZE)
-        y = self.hidden_to_tags(y)
+        y = self.out(y)
         # y = y.view(BATCH_SIZE, -1, self.tagset_size)
         return y
 
