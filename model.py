@@ -59,7 +59,7 @@ class lstm_crf(nn.Module):
         self.seq_len = [len_unpadded(seq) for seq in x]
         embed = self.embed(x)
         embed = nn.utils.rnn.pack_padded_sequence(embed, self.seq_len, batch_first = True)
-        y, self.hidden = self.lstm(embed, self.hidden)
+        y, _ = self.lstm(embed, self.hidden)
         y, _ = nn.utils.rnn.pad_packed_sequence(y, batch_first = True)
         # y = y.contiguous().view(-1, HIDDEN_SIZE)
         y = self.out(y)
