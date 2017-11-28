@@ -29,14 +29,14 @@ class lstm_crf(nn.Module):
 
         # architecture
         self.embed = nn.Embedding(vocab_size, EMBED_SIZE, padding_idx = 0)
-        self.lstm = nn.LSTM( \
-            input_size = EMBED_SIZE, \
-            hidden_size = HIDDEN_SIZE // NUM_DIRS, \
-            num_layers = NUM_LAYERS, \
-            bias = True, \
-            batch_first = True, \
-            dropout = DROPOUT, \
-            bidirectional = BIDIRECTIONAL \
+        self.lstm = nn.LSTM(
+            input_size = EMBED_SIZE,
+            hidden_size = HIDDEN_SIZE // NUM_DIRS,
+            num_layers = NUM_LAYERS,
+            bias = True,
+            batch_first = True,
+            dropout = DROPOUT,
+            bidirectional = BIDIRECTIONAL
         )
         self.out = nn.Linear(HIDDEN_SIZE, self.tagset_size) # LSTM output to tag
 
@@ -50,9 +50,9 @@ class lstm_crf(nn.Module):
         self.trans.data[tag_to_idx[PAD], tag_to_idx[PAD]] = 0.
 
     def init_hidden(self): # initialize hidden states
-        h1 = Var(randn(NUM_LAYERS * NUM_DIRS, BATCH_SIZE, HIDDEN_SIZE // NUM_DIRS))
-        h2 = Var(randn(NUM_LAYERS * NUM_DIRS, BATCH_SIZE, HIDDEN_SIZE // NUM_DIRS))
-        return (h1, h2)
+        h = Var(randn(NUM_LAYERS * NUM_DIRS, BATCH_SIZE, HIDDEN_SIZE // NUM_DIRS)) # hidden states
+        c = Var(randn(NUM_LAYERS * NUM_DIRS, BATCH_SIZE, HIDDEN_SIZE // NUM_DIRS)) # cell states
+        return (h, c)
 
     def lstm_forward(self, x): # LSTM forward pass
         self.hidden = self.init_hidden()
