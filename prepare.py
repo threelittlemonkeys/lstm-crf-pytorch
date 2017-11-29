@@ -30,8 +30,6 @@ def load_data():
                 tag_to_idx[tag] = len(tag_to_idx)
             sent.extend([word_to_idx[c] for c in list(word)])
             tags.extend([tag_to_idx[tag]] * len(word))
-        sent.append(word_to_idx[EOS])
-        tags.append(tag_to_idx[EOS])
         data.append(sent + tags)
     data.sort(key = len, reverse = True)
     fo.close()
