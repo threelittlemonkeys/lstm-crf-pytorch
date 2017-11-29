@@ -16,6 +16,9 @@ SOS = "<SOS>"
 EOS = "<EOS>"
 PAD = "<PAD>"
 
+PAD_IDX = 0
+EOS_IDX = 1
+
 torch.manual_seed(1)
 CUDA = torch.cuda.is_available()
 
@@ -25,7 +28,7 @@ class lstm_crf(nn.Module):
         super(lstm_crf, self).__init__()
         self.tag_to_idx = tag_to_idx
         self.tagset_size = len(tag_to_idx)
-        self.seq_len = [] # sequence lengths
+        self.lengths = [] # sequence lengths
 
         # architecture
         self.embed = nn.Embedding(vocab_size, EMBED_SIZE, padding_idx = 0)
@@ -56,9 +59,9 @@ class lstm_crf(nn.Module):
 
     def lstm_forward(self, x): # LSTM forward pass
         self.hidden = self.init_hidden()
-        self.seq_len = [len_unpadded(seq) for seq in x]
+        self.lengths = [len_unpadded(seq) for seq in x]
         embed = self.embed(x)
-        embed = nn.utils.rnn.pack_padded_sequence(embed, self.seq_len, batch_first = True)
+        embed = nn.utils.rnn.pack_padded_sequence(embed, self.lengths, batch_first = True)
         y, _ = self.lstm(embed, self.hidden)
         y, _ = nn.utils.rnn.pad_packed_sequence(y, batch_first = True)
         # y = y.contiguous().view(-1, HIDDEN_SIZE)
@@ -69,8 +72,8 @@ class lstm_crf(nn.Module):
     def crf_score(self, y, y0):
         score = Var(Tensor(BATCH_SIZE).fill_(0.))
         y0 = torch.cat([LongTensor(BATCH_SIZE, 1).fill_(self.tag_to_idx[SOS]), y0], 1)
-        for b in range(len(self.seq_len)):
-            for t in range(self.seq_len[b]): # iterate through the sentence
+        for b in range(len(self.lengths)):
+            for t in range(self.lengths[b]): # iterate through the sequence
                 emit_score = y[b, t, y0[b, t + 1]]
                 trans_score = self.trans[y0[b, t + 1], y0[b, t]]
                 score[b] = score[b] + emit_score + trans_score
@@ -79,7 +82,7 @@ class lstm_crf(nn.Module):
     def crf_score_batch(self, y, y0, mask):
         score = Var(Tensor(BATCH_SIZE).fill_(0.))
         y0 = torch.cat([LongTensor(BATCH_SIZE, 1).fill_(self.tag_to_idx[SOS]), y0], 1)
-        for t in range(y.size(1)): # iterate through the sentence
+        for t in range(y.size(1)): # iterate through the sequence
             mask_t = Var(mask[:, t])
             emit_score = torch.cat([y[b, t, y0[b, t + 1]] for b in range(BATCH_SIZE)])
             trans_score = torch.cat([self.trans[seq[t + 1], seq[t]] for seq in y0]) * mask_t
@@ -91,8 +94,8 @@ class lstm_crf(nn.Module):
         score = Tensor(BATCH_SIZE, self.tagset_size).fill_(-10000.)
         score[:, self.tag_to_idx[SOS]] = 0.
         score = Var(score)
-        for b in range(len(self.seq_len)):
-            for t in range(self.seq_len[b]): # iterate through the sentence
+        for b in range(len(self.lengths)):
+            for t in range(self.lengths[b]): # iterate through the sequence
                 score_t = [] # forward variables at this timestep
                 for f in range(self.tagset_size): # for each next tag
                     emit_score = y[b, t, f].expand(self.tagset_size)
@@ -108,7 +111,7 @@ class lstm_crf(nn.Module):
         score = Tensor(BATCH_SIZE, self.tagset_size).fill_(-10000.)
         score[:, self.tag_to_idx[SOS]] = 0.
         score = Var(score)
-        for t in range(y.size(1)): # iterate through the sentence
+        for t in range(y.size(1)): # iterate through the sequence
             score_t = [] # forward variables at this timestep
             len_t = int(torch.sum(mask[:, t])) # masked batch length
             for f in range(self.tagset_size): # for each next tag
@@ -127,7 +130,7 @@ class lstm_crf(nn.Module):
         score[self.tag_to_idx[SOS]] = 0.
         score = Var(score)
 
-        for t in range(len(y)): # iterate through the sentence
+        for t in range(len(y)): # iterate through the sequence
             # backpointers and viterbi variables at this timestep
             bptr_t = []
             score_t = []
@@ -167,9 +170,9 @@ class lstm_crf(nn.Module):
     def forward(self, x): # LSTM-CRF forward for prediction
         result = []
         y = self.lstm_forward(x)
-        for i in range(len(self.seq_len)):
-            if self.seq_len[i] > 1:
-                best_path = self.viterbi(y[i][:self.seq_len[i]])
+        for i in range(len(self.lengths)):
+            if self.lengths[i] > 1:
+                best_path = self.viterbi(y[i][:self.lengths[i]])
             else:
                 best_path = []
             result.append(best_path)

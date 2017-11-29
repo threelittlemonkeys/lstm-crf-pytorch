@@ -17,7 +17,7 @@ def load_data():
         tokens = line.split(" ")
         if len(tokens) < MIN_LENGTH or len(tokens) > MAX_LENGTH: # length constraints
             continue
-        sent = []
+        seq = []
         tags = []
         for tkn in tokens:
             word = re.sub("/[A-Z]+", "", tkn)
@@ -28,9 +28,9 @@ def load_data():
                     word_to_idx[c] = len(word_to_idx)
             if tag not in tag_to_idx:
                 tag_to_idx[tag] = len(tag_to_idx)
-            sent.extend([word_to_idx[c] for c in list(word)])
+            seq.extend([word_to_idx[c] for c in list(word)])
             tags.extend([tag_to_idx[tag]] * len(word))
-        data.append(sent + tags)
+        data.append(seq + tags)
     data.sort(key = len, reverse = True)
     fo.close()
     return data, word_to_idx, tag_to_idx
