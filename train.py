@@ -11,6 +11,8 @@ def load_data():
     batch_y = []
     batch_len = 0 # maximum sequence length of a mini-batch
     print("loading data...")
+    word_to_idx = load_word_to_idx(sys.argv[2])
+    tag_to_idx = load_tag_to_idx(sys.argv[3])
     fo = open(sys.argv[4], "r")
     for line in fo:
         line = line.strip()
@@ -19,8 +21,8 @@ def load_data():
         if len(batch_x) == 0: # the first line has the maximum sequence length
             batch_len = z
         pad = [0] * (batch_len - z)
-        batch_x.append(words[:z] + pad)
-        batch_y.append(words[z:] + pad)
+        batch_x.append(words[:z] + [word_to_idx[EOS]] + pad)
+        batch_y.append(words[z:] + [tag_to_idx[EOS]] + pad)
         if len(batch_x) == BATCH_SIZE:
             data.append((Var(LongTensor(batch_x)), LongTensor(batch_y))) # append a mini-batch
             batch_x = []
@@ -28,7 +30,7 @@ def load_data():
     fo.close()
     print("data size: %d" % (len(data) * BATCH_SIZE))
     print("batch size: %d" % BATCH_SIZE)
-    return data, load_word_to_idx(sys.argv[2]), load_tag_to_idx(sys.argv[3])
+    return data, word_to_idx, tag_to_idx
 
 def train():
     print("cuda: %s" % CUDA)
