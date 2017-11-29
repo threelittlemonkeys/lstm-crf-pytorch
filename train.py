@@ -17,10 +17,10 @@ def load_data():
     for line in fo:
         line = line.strip()
         words = [int(i) for i in line.split(" ")]
-        z = words.pop()
+        seq_len = words.pop()
         if len(batch_x) == 0: # the first line has the maximum sequence length
-            batch_len = z
-        pad = [0] * (batch_len - z)
+            batch_len = seq_len
+        pad = [PAD_IDX] * (batch_len - z)
         batch_x.append(words[:z] + [word_to_idx[EOS]] + pad)
         batch_y.append(words[z:] + [tag_to_idx[EOS]] + pad)
         if len(batch_x) == BATCH_SIZE:
