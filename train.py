@@ -20,9 +20,9 @@ def load_data():
         seq_len = words.pop()
         if len(batch_x) == 0: # the first line has the maximum sequence length
             batch_len = seq_len
-        pad = [PAD_IDX] * (batch_len - z)
-        batch_x.append(words[:z] + [word_to_idx[EOS]] + pad)
-        batch_y.append(words[z:] + [tag_to_idx[EOS]] + pad)
+        pad = [PAD_IDX] * (batch_len - seq_len)
+        batch_x.append(words[:seq_len] + [EOS_IDX] + pad)
+        batch_y.append(words[seq_len:] + [EOS_IDX] + pad)
         if len(batch_x) == BATCH_SIZE:
             data.append((Var(LongTensor(batch_x)), LongTensor(batch_y))) # append a mini-batch
             batch_x = []

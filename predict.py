@@ -14,24 +14,6 @@ def load_model():
     load_checkpoint(sys.argv[1], model)
     return model, word_to_idx, tag_to_idx, idx_to_tag
 
-def predict():
-    data = []
-    model, word_to_idx, tag_to_idx, idx_to_tag = load_model()
-    fo = open(sys.argv[4])
-    for line in fo:
-        line = re.sub("\s+", "", line)
-        data.append((line, [word_to_idx[i] for i in line] + [word_to_idx[EOS]]))
-        if len(data) == BATCH_SIZE:
-            result = run_model(model, idx_to_tag, data)
-            for x in result:
-                print(x)
-            data = []
-    fo.close()
-    if len(data):
-        result = run_model(model, idx_to_tag, data)
-        for x in result:
-            print(x)
-
 def run_model(model, idx_to_tag, data):
     line = []
     pred = []
@@ -47,6 +29,24 @@ def run_model(model, idx_to_tag, data):
     for out in model(batch):
         pred.append([idx_to_tag[i] for i in out])
     return [(x, y[:-1]) for x, y in zip(line, pred) if len(x) > 0]
+
+def predict():
+    data = []
+    model, word_to_idx, tag_to_idx, idx_to_tag = load_model()
+    fo = open(sys.argv[4])
+    for line in fo:
+        line = re.sub("\s+", "", line)
+        data.append((line, [word_to_idx[i] for i in line] + [EOS_IDX]))
+        if len(data) == BATCH_SIZE:
+            result = run_model(model, idx_to_tag, data)
+            for x in result:
+                print(x)
+            data = []
+    fo.close()
+    if len(data):
+        result = run_model(model, idx_to_tag, data)
+        for x in result:
+            print(x)
 
 if __name__ == "__main__":
     if len(sys.argv) != 5:

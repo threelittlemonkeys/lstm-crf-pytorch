@@ -12,12 +12,13 @@ NUM_DIRS = 2 if BIDIRECTIONAL else 1
 LEARNING_RATE = 0.01
 WEIGHT_DECAY = 1e-4
 
-SOS = "<SOS>"
-EOS = "<EOS>"
 PAD = "<PAD>"
+EOS = "<EOS>"
+SOS = "<SOS>"
 
 PAD_IDX = 0
 EOS_IDX = 1
+SOS_IDX = 2
 
 torch.manual_seed(1)
 CUDA = torch.cuda.is_available()
@@ -45,12 +46,12 @@ class lstm_crf(nn.Module):
 
         # matrix of transition scores from j to i
         self.trans = nn.Parameter(randn(self.tagset_size, self.tagset_size))
-        self.trans.data[tag_to_idx[SOS], :] = -10000. # no transition to SOS
-        self.trans.data[:, tag_to_idx[EOS]] = -10000. # no transition from EOS except to PAD
-        self.trans.data[:, tag_to_idx[PAD]] = -10000. # no transition from PAD except to PAD
-        self.trans.data[tag_to_idx[PAD], :] = -10000. # no transition to PAD except from EOS
-        self.trans.data[tag_to_idx[PAD], tag_to_idx[EOS]] = 0.
-        self.trans.data[tag_to_idx[PAD], tag_to_idx[PAD]] = 0.
+        self.trans.data[SOS_IDX, :] = -10000. # no transition to SOS
+        self.trans.data[:, EOS_IDX] = -10000. # no transition from EOS except to PAD
+        self.trans.data[:, PAD_IDX] = -10000. # no transition from PAD except to PAD
+        self.trans.data[PAD_IDX, :] = -10000. # no transition to PAD except from EOS
+        self.trans.data[PAD_IDX, EOS_IDX] = 0.
+        self.trans.data[PAD_IDX, PAD_IDX] = 0.
 
     def init_hidden(self): # initialize hidden states
         h = Var(randn(NUM_LAYERS * NUM_DIRS, BATCH_SIZE, HIDDEN_SIZE // NUM_DIRS)) # hidden states
@@ -71,7 +72,7 @@ class lstm_crf(nn.Module):
 
     def crf_score(self, y, y0):
         score = Var(Tensor(BATCH_SIZE).fill_(0.))
-        y0 = torch.cat([LongTensor(BATCH_SIZE, 1).fill_(self.tag_to_idx[SOS]), y0], 1)
+        y0 = torch.cat([LongTensor(BATCH_SIZE, 1).fill_(SOS_IDX), y0], 1)
         for b in range(len(self.lengths)):
             for t in range(self.lengths[b]): # iterate through the sequence
                 emit_score = y[b, t, y0[b, t + 1]]
@@ -81,7 +82,7 @@ class lstm_crf(nn.Module):
 
     def crf_score_batch(self, y, y0, mask):
         score = Var(Tensor(BATCH_SIZE).fill_(0.))
-        y0 = torch.cat([LongTensor(BATCH_SIZE, 1).fill_(self.tag_to_idx[SOS]), y0], 1)
+        y0 = torch.cat([LongTensor(BATCH_SIZE, 1).fill_(SOS_IDX), y0], 1)
         for t in range(y.size(1)): # iterate through the sequence
             mask_t = Var(mask[:, t])
             emit_score = torch.cat([y[b, t, y0[b, t + 1]] for b in range(BATCH_SIZE)])
@@ -92,7 +93,7 @@ class lstm_crf(nn.Module):
     def crf_forward(self, y): # forward algorithm for CRF
         # initialize forward variables in log space
         score = Tensor(BATCH_SIZE, self.tagset_size).fill_(-10000.)
-        score[:, self.tag_to_idx[SOS]] = 0.
+        score[:, SOS_IDX] = 0.
         score = Var(score)
         for b in range(len(self.lengths)):
             for t in range(self.lengths[b]): # iterate through the sequence
@@ -109,7 +110,7 @@ class lstm_crf(nn.Module):
     def crf_forward_batch(self, y, mask): # forward algorithm for CRF
         # initialize forward variables in log space
         score = Tensor(BATCH_SIZE, self.tagset_size).fill_(-10000.)
-        score[:, self.tag_to_idx[SOS]] = 0.
+        score[:, SOS_IDX] = 0.
         score = Var(score)
         for t in range(y.size(1)): # iterate through the sequence
             score_t = [] # forward variables at this timestep
@@ -127,7 +128,7 @@ class lstm_crf(nn.Module):
         # initialize backpointers and viterbi variables in log space
         bptr = []
         score = Tensor(self.tagset_size).fill_(-10000.)
-        score[self.tag_to_idx[SOS]] = 0.
+        score[SOS_IDX] = 0.
         score = Var(score)
 
         for t in range(len(y)): # iterate through the sequence
