@@ -32,7 +32,7 @@ class lstm_crf(nn.Module):
         self.lengths = [] # sequence lengths
 
         # architecture
-        self.embed = nn.Embedding(vocab_size, EMBED_SIZE, padding_idx = 0)
+        self.embed = nn.Embedding(vocab_size, EMBED_SIZE, padding_idx = PAD_IDX)
         self.lstm = nn.LSTM(
             input_size = EMBED_SIZE,
             hidden_size = HIDDEN_SIZE // NUM_DIRS,
@@ -54,8 +54,8 @@ class lstm_crf(nn.Module):
         self.trans.data[PAD_IDX, PAD_IDX] = 0.
 
     def init_hidden(self): # initialize hidden states
-        h = Var(randn(NUM_LAYERS * NUM_DIRS, BATCH_SIZE, HIDDEN_SIZE // NUM_DIRS)) # hidden states
-        c = Var(randn(NUM_LAYERS * NUM_DIRS, BATCH_SIZE, HIDDEN_SIZE // NUM_DIRS)) # cell states
+        h = Var(zeros(NUM_LAYERS * NUM_DIRS, BATCH_SIZE, HIDDEN_SIZE // NUM_DIRS)) # hidden states
+        c = Var(zeros(NUM_LAYERS * NUM_DIRS, BATCH_SIZE, HIDDEN_SIZE // NUM_DIRS)) # cell states
         return (h, c)
 
     def lstm_forward(self, x): # LSTM forward pass
@@ -189,6 +189,10 @@ def LongTensor(*args):
 
 def randn(*args):
     x = torch.randn(*args)
+    return x.cuda() if CUDA else x
+
+def zeros(*args):
+    x = torch.zeros(*args)
     return x.cuda() if CUDA else x
 
 def len_unpadded(x): # get unpadded sequence length
