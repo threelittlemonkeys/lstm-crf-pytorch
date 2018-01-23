@@ -166,7 +166,7 @@ class lstm_crf(nn.Module):
         y = y * Var(mask.unsqueeze(-1).expand_as(y))
         score = self.crf_score_batch(y, y0, mask)
         Z = self.crf_forward_batch(y, mask)
-        L = torch.mean(Z - score) # negative log probability
+        L = torch.mean(Z - score) # negative log likelihood
         return L
 
     def forward(self, x): # LSTM-CRF forward for prediction
