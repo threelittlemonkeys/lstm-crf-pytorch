@@ -54,7 +54,8 @@ def train():
             loss = scalar(loss)
             loss_sum += loss
             print("epoch = %d, iteration = %d, loss = %f" % (i, j + 1, loss))
-        save_checkpoint(filename, model, i, loss_sum / len(data))
+        if i % SAVE_EVERY == 0:
+            save_checkpoint(filename, model, i, loss_sum / len(data))
 
 if __name__ == "__main__":
     if len(sys.argv) != 6:
