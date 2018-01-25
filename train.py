@@ -46,16 +46,17 @@ def train():
     print("training model...")
     for i in range(epoch + 1, epoch + num_epochs + 1):
         loss_sum = 0
-        for j, (x, y) in enumerate(data):
+        for x, y in enumerate(data):
             model.zero_grad()
             loss = model.loss(x, y) # forward pass and compute loss
             loss.backward() # compute gradients
             optim.step() # update parameters
             loss = scalar(loss)
             loss_sum += loss
-            print("epoch = %d, iteration = %d, loss = %f" % (i, j + 1, loss))
-        if i % SAVE_EVERY == 0 or i == epoch + num_epochs:
+        if i % SAVE_EVERY and i != epoch + num_epochs:
             save_checkpoint(filename, model, i, loss_sum / len(data))
+        else:
+            print("epoch = %d, loss = %f" % (i, loss_sum / len(data)))
 
 if __name__ == "__main__":
     if len(sys.argv) != 6:
