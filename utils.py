@@ -2,8 +2,8 @@ import re
 from model import *
 
 def normalize_word(s):
-    s = re.sub("[" + chr(0x3040) + "-" + chr(0x30FF) + "]+", chr(0x3042), s) # convert Hiragana and Katakana to あ
-    s = re.sub("[" + chr(0x4E00) + "-" + chr(0x9FFF) + "]+", chr(0x6F22), s) # convert CJK unified ideographs to 漢
+    s = re.sub("[\u3040-\u30FF]+", "\u3042", s) # convert Hiragana and Katakana to あ
+    s = re.sub("[\u4E00-\u9FFF]+", "\u6F22", s) # convert CJK unified ideographs to 漢
     return s
 
 def load_tag_to_idx(filename):
