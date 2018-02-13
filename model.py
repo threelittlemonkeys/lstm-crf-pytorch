@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 from torch.autograd import Variable as Var
 
-BATCH_SIZE = 16
+BATCH_SIZE = 64
 EMBED_SIZE = 100
 HIDDEN_SIZE = 1000
 NUM_LAYERS = 2

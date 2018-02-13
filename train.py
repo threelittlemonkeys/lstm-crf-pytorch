@@ -46,7 +46,7 @@ def train():
     print("training model...")
     for i in range(epoch + 1, epoch + num_epochs + 1):
         loss_sum = 0
-        for x, y in enumerate(data):
+        for x, y in data:
             model.zero_grad()
             loss = model.loss(x, y) # forward pass and compute loss
             loss.backward() # compute gradients
