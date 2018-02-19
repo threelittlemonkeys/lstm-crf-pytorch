@@ -1,7 +1,7 @@
 import re
 from model import *
 
-def normalize_word(s):
+def normalize(s):
     s = re.sub("[\u3040-\u30FF]+", "\u3042", s) # convert Hiragana and Katakana to あ
     s = re.sub("[\u4E00-\u9FFF]+", "\u6F22", s) # convert CJK unified ideographs to 漢
     return s
