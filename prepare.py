@@ -1,15 +1,15 @@
 import sys
 import re
-from model import SOS, EOS, PAD
-from utils import normalize_word
+from model import SOS, EOS, PAD, SOS_IDX, EOS_IDX, PAD_IDX
+from utils import normalize
 
 MIN_LENGTH = 10
 MAX_LENGTH = 50
 
 def load_data():
     data = []
-    word_to_idx = {PAD: 0, EOS: 1}
-    tag_to_idx = {PAD: 0, EOS: 1, SOS: 2}
+    word_to_idx = {PAD: PAD_IDX, EOS: EOS_IDX}
+    tag_to_idx = {PAD: PAD_IDX, EOS: EOS_IDX, SOS: SOS_IDX}
     fo = open(sys.argv[1])
     for line in fo:
         line = re.sub("\s+", " ", line)
@@ -22,7 +22,7 @@ def load_data():
         for tkn in tokens:
             word = re.sub("/[A-Z]+", "", tkn)
             tag = re.sub(".+/", "", tkn)
-            word = normalize_word(word)
+            word = normalize(word)
             for c in word:
                 if c not in word_to_idx:
                     word_to_idx[c] = len(word_to_idx)
