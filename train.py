@@ -32,7 +32,6 @@ def load_data():
     return data, word_to_idx, tag_to_idx
 
 def train():
-    print("cuda: %s" % CUDA)
     num_epochs = int(sys.argv[5])
     data, word_to_idx, tag_to_idx = load_data()
     model = lstm_crf(len(word_to_idx), tag_to_idx)
@@ -60,4 +59,5 @@ def train():
 if __name__ == "__main__":
     if len(sys.argv) != 6:
         sys.exit("Usage: %s model word_to_idx tag_to_idx training_data num_epoch" % sys.argv[0])
+    print("cuda: %s" % CUDA)
     train()

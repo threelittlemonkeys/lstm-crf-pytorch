@@ -51,4 +51,5 @@ def predict():
 if __name__ == "__main__":
     if len(sys.argv) != 5:
         sys.exit("Usage: %s model word_to_idx tag_to_idx test_data" % sys.argv[0])
+    print("cuda: %s" % CUDA)
     predict()
