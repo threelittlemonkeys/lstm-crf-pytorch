@@ -44,7 +44,6 @@ class lstm_crf(nn.Module):
         y = y * Var(mask.unsqueeze(-1).expand_as(y))
         Z = self.crf.forward(y, mask)
         score = self.crf.score(y, y0, mask)
-
         return Z - score # negative log likelihood
 
     def decode(self, x):
@@ -117,10 +116,9 @@ class crf(nn.Module):
             score_t = [] # forward variables at this timestep
             len_t = int(torch.sum(mask[:, t])) # masked batch length
             for f in range(self.num_tags): # for each next tag
-                emit = torch.cat([y[b, t, f].expand(1, self.num_tags) for b in range(len_t)])
+                emit = y[:len_t, t, f].unsqueeze(1).expand(-1, self.num_tags)
                 trans = self.trans[f].expand(len_t, self.num_tags)
-                z = log_sum_exp_batch2(Z, emit + trans)
-                score_t.append(z)
+                score_t.append(log_sum_exp_batch2(Z, emit + trans))
             Z = torch.cat(score_t, 1)
         Z = log_sum_exp_batch1(Z).view(BATCH_SIZE) # partition function
         return Z
@@ -146,8 +144,7 @@ class crf(nn.Module):
                 for f in range(self.num_tags): # for each next tag
                     emit = y[b, t, f].expand(self.num_tags)
                     trans = self.trans[f].expand(self.num_tags)
-                    z = log_sum_exp(Z[b] + emit + trans)
-                    score_t.append(z)
+                    score_t.append(log_sum_exp(Z[b] + emit + trans))
                 Z[b] = torch.cat(score_t)
         Z = torch.cat([log_sum_exp(i) for i in Z]) # partition function
         return Z
@@ -213,22 +210,22 @@ def len_unpadded(x): # get unpadded sequence length
 def scalar(x):
     return x.view(-1).data.tolist()[0]
 
-def argmax(x):
-    return scalar(torch.max(x, 0)[1]) # for 1D tensor
+def argmax(x): # for 1D tensor
+    return scalar(torch.max(x, 0)[1])
 
-def log_sum_exp(x):
+def log_sum_exp(x): # on [num_tags] for iterative training
     max_score = x[argmax(x)]
     max_score_broadcast = max_score.expand_as(x)
     return max_score + torch.log(torch.sum(torch.exp(x - max_score_broadcast)))
 
-def log_sum_exp_batch1(x): # for a single vector
+def log_sum_exp_batch1(x): # on [BATCH_SIZE, num_tags] for mini-batch training
     max_score = torch.cat([i[argmax(i)] for i in x])
     max_score_broadcast = max_score.view(-1, 1).expand_as(x)
     z = max_score + torch.log(torch.sum(torch.exp(x - max_score_broadcast), 1))
     return z
 
-def log_sum_exp_batch2(x, y): # for two vectors of different sizes
-    z = x[:len(y)] + y
+def log_sum_exp_batch2(x, y): # on [BATCH_SIZE, num_tags] of different batch sizes
+    z = x[:len(y)] + y # len(x) >= len(y)
     max_score = torch.cat([i[argmax(i)] for i in z])
     max_score_broadcast = max_score.view(-1, 1).expand_as(z)
     z = max_score + torch.log(torch.sum(torch.exp(z - max_score_broadcast), 1))
