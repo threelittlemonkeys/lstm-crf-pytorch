@@ -49,10 +49,10 @@ class lstm_crf(nn.Module):
 
     def decode(self, x):
         result = []
-        y = self.lstm(x)
-        for i in range(len(self.lstm.lens)):
-            if self.lstm.lens[i] > 1:
-                best_path = self.crf.decode(y[i][:self.lstm.lens[i]])
+        y, lens = self.lstm(x)
+        for i in range(len(lens)):
+            if lens[i] > 1:
+                best_path = self.crf.decode(y[i][:lens[i]])
             else:
                 best_path = []
             result.append(best_path)
@@ -134,7 +134,7 @@ class crf(nn.Module):
             trans = torch.cat([self.trans[seq[t + 1], seq[t]] for seq in y0]) * mask_t
             score = score + emit + trans
         return score
-    '''
+
     def forward_iter(self, y, lens): # forward algorithm for iterative training
         # initialize forward variables in log space
         Z = Tensor(BATCH_SIZE, self.num_tags).fill_(-10000.)
@@ -161,7 +161,7 @@ class crf(nn.Module):
                 trans = self.trans[y0[b, t + 1], y0[b, t]]
                 score[b] = score[b] + emit + trans
         return score
-    '''
+
     def decode(self, y): # Viterbi decoding
         # initialize backpointers and viterbi variables in log space
         bptr = []
