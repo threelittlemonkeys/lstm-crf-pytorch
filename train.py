@@ -1,5 +1,6 @@
 import sys
 import re
+import time
 from model import *
 from utils import *
 from os.path import isfile
@@ -34,7 +35,7 @@ def load_data():
 def train():
     num_epochs = int(sys.argv[5])
     data, word_to_idx, tag_to_idx = load_data()
-    model = lstm_crf(len(word_to_idx), tag_to_idx)
+    model = lstm_crf(len(word_to_idx), len(tag_to_idx))
     optim = torch.optim.SGD(model.parameters(), lr = LEARNING_RATE, weight_decay = WEIGHT_DECAY)
     epoch = load_checkpoint(sys.argv[1], model) if isfile(sys.argv[1]) else 0
     if CUDA:
@@ -44,17 +45,20 @@ def train():
     print("training model...")
     for i in range(epoch + 1, epoch + num_epochs + 1):
         loss_sum = 0
+        t = time.time()
         for x, y in data:
             model.zero_grad()
-            loss = model.loss(x, y) # forward pass and compute loss
+            loss = torch.mean(model(x, y)) # forward pass and compute loss
             loss.backward() # compute gradients
             optim.step() # update parameters
             loss = scalar(loss)
             loss_sum += loss
+        t = time.time() - t
+        loss_sum /= len(data)
         if i % SAVE_EVERY and i != epoch + num_epochs:
-            print("epoch = %d, loss = %f" % (i, loss_sum / len(data)))
+            save_checkpoint("", "", i, loss_sum, t)
         else:
-            save_checkpoint(filename, model, i, loss_sum / len(data))
+            save_checkpoint(filename, model, i, loss_sum, t)
 
 if __name__ == "__main__":
     if len(sys.argv) != 6:
