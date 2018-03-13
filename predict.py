@@ -7,7 +7,7 @@ def load_model():
     word_to_idx = load_word_to_idx(sys.argv[2])
     tag_to_idx = load_tag_to_idx(sys.argv[3])
     idx_to_tag = [tag for tag, _ in sorted(tag_to_idx.items(), key = lambda x: x[1])]
-    model = lstm_crf(len(word_to_idx), tag_to_idx)
+    model = lstm_crf(len(word_to_idx), len(tag_to_idx))
     if CUDA:
         model = model.cuda()
     print(model)
@@ -26,7 +26,7 @@ def run_model(model, idx_to_tag, data):
         line.append(x)
         batch.append(y + [PAD_IDX] * (batch_len - len(y)))
     batch = Var(LongTensor(batch))
-    for out in model(batch):
+    for out in model.decode(batch):
         pred.append([idx_to_tag[i] for i in out])
     return [(x, y[:-1]) for x, y in zip(line, pred) if len(x) > 0]
 
