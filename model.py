@@ -34,12 +34,6 @@ class lstm_crf(nn.Module):
 
     def forward(self, x, y0):
         y, lens = self.lstm(x)
-        '''
-        # iterative training
-        Z = self.crf.forward_iter(y, lens)
-        score = self.crf.score_iter(y, y0, lens)
-        '''
-        # mini-batch training
         mask = x.data.gt(0).float()
         y = y * Var(mask.unsqueeze(-1).expand_as(y))
         Z = self.crf.forward(y, mask)
@@ -107,23 +101,22 @@ class crf(nn.Module):
         self.trans.data[PAD_IDX, EOS_IDX] = 0.
         self.trans.data[PAD_IDX, PAD_IDX] = 0.
 
-    def forward(self, y, mask): # forward algorithm for mini-batch training
+    def forward(self, y, mask): # forward algorithm
         # initialize forward variables in log space
-        Z = Tensor(BATCH_SIZE, self.num_tags).fill_(-10000.)
-        Z[:, SOS_IDX] = 0.
-        Z = Var(Z)
+        score = Tensor(BATCH_SIZE, self.num_tags).fill_(-10000.)
+        score[:, SOS_IDX] = 0.
+        score = Var(score)
         for t in range(y.size(1)): # iterate through the sequence
-            score_t = [] # forward variables at this timestep
-            len_t = int(torch.sum(mask[:, t])) # masked batch length
-            for f in range(self.num_tags): # for each next tag
-                emit = y[:len_t, t, f].unsqueeze(1).expand(-1, self.num_tags)
-                trans = self.trans[f].expand(len_t, self.num_tags)
-                score_t.append(log_sum_exp_batch2(Z, emit + trans))
-            Z = torch.cat(score_t, 1)
-        Z = log_sum_exp_batch1(Z).view(BATCH_SIZE) # partition function
-        return Z
+            mask_t = Var(mask[:, t].unsqueeze(-1).expand_as(score))
+            score_t = score.unsqueeze(-1).expand(-1, *self.trans.size()).transpose(1, 2)
+            emit = y[:, t].unsqueeze(-1).expand_as(score_t)
+            trans = self.trans.unsqueeze(0).expand_as(score_t)
+            score_t = lse(score_t + emit + trans, 2)
+            score = score_t * mask_t + score * (1 - mask_t)
+        score = lse(score, 1)
+        return score # partition function
 
-    def score(self, y, y0, mask): # scoring a label for mini-batch training
+    def score(self, y, y0, mask): # calculate the score of a given sequence
         score = Var(Tensor(BATCH_SIZE).fill_(0.))
         y0 = torch.cat([LongTensor(BATCH_SIZE, 1).fill_(SOS_IDX), y0], 1)
         for t in range(y.size(1)): # iterate through the sequence
@@ -131,32 +124,6 @@ class crf(nn.Module):
             emit = torch.cat([y[b, t, y0[b, t + 1]] for b in range(BATCH_SIZE)])
             trans = torch.cat([self.trans[seq[t + 1], seq[t]] for seq in y0]) * mask_t
             score = score + emit + trans
-        return score
-
-    def forward_iter(self, y, lens): # forward algorithm for iterative training
-        # initialize forward variables in log space
-        Z = Tensor(BATCH_SIZE, self.num_tags).fill_(-10000.)
-        Z[:, SOS_IDX] = 0.
-        Z = Var(Z)
-        for b in range(len(lens)):
-            for t in range(lens[b]): # iterate through the sequence
-                score_t = [] # forward variables at this timestep
-                for f in range(self.num_tags): # for each next tag
-                    emit = y[b, t, f].expand(self.num_tags)
-                    trans = self.trans[f].expand(self.num_tags)
-                    score_t.append(log_sum_exp(Z[b] + emit + trans))
-                Z[b] = torch.cat(score_t)
-        Z = torch.cat([log_sum_exp(i) for i in Z]) # partition function
-        return Z
-
-    def score_iter(self, y, y0, lens): # scoring a label for iterative training
-        score = Var(Tensor(BATCH_SIZE).fill_(0.))
-        y0 = torch.cat([LongTensor(BATCH_SIZE, 1).fill_(SOS_IDX), y0], 1)
-        for b in range(len(lens)):
-            for t in range(lens[b]): # iterate through the sequence
-                emit = y[b, t, y0[b, t + 1]]
-                trans = self.trans[y0[b, t + 1], y0[b, t]]
-                score[b] = score[b] + emit + trans
         return score
 
     def decode(self, y): # Viterbi decoding
@@ -213,22 +180,7 @@ def scalar(x):
 def argmax(x): # for 1D tensor
     return scalar(torch.max(x, 0)[1])
 
-def log_sum_exp(x): # on [num_tags] for iterative training
-    max_score = x[argmax(x)]
-    max_score_broadcast = max_score.expand_as(x)
-    return max_score + torch.log(torch.sum(torch.exp(x - max_score_broadcast)))
-
-def log_sum_exp_batch1(x): # on [BATCH_SIZE, num_tags] for mini-batch training
-    max_score = torch.cat([i[argmax(i)] for i in x])
-    max_score_broadcast = max_score.view(-1, 1).expand_as(x)
-    z = max_score + torch.log(torch.sum(torch.exp(x - max_score_broadcast), 1))
-    return z
-
-def log_sum_exp_batch2(x, y): # on [BATCH_SIZE, num_tags] of different batch sizes
-    z = x[:len(y)] + y # len(x) >= len(y)
-    max_score = torch.cat([i[argmax(i)] for i in z])
-    max_score_broadcast = max_score.view(-1, 1).expand_as(z)
-    z = max_score + torch.log(torch.sum(torch.exp(z - max_score_broadcast), 1))
-    if len(x) > len(z):
-        z = torch.cat((z, torch.cat([i[argmax(i)] for i in x[len(y):]])))
-    return z.view(len(x), 1)
+def lse(x, dim): # log sum of exponentials
+    max_score, _ = torch.max(x, dim)
+    max_score_broadcast = max_score.unsqueeze(-1).expand_as(x)
+    return max_score + torch.log(torch.sum(torch.exp(x - max_score_broadcast), dim))
