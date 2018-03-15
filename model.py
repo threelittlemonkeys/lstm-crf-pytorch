@@ -108,7 +108,7 @@ class crf(nn.Module):
         score = Var(score)
         for t in range(y.size(1)): # iterate through the sequence
             mask_t = Var(mask[:, t].unsqueeze(-1).expand_as(score))
-            score_t = score.unsqueeze(-1).expand(-1, *self.trans.size()).transpose(1, 2)
+            score_t = score.unsqueeze(1).expand(-1, *self.trans.size())
             emit = y[:, t].unsqueeze(-1).expand_as(score_t)
             trans = self.trans.unsqueeze(0).expand_as(score_t)
             score_t = lse(score_t + emit + trans, 2)
