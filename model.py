@@ -32,7 +32,7 @@ class lstm_crf(nn.Module):
         self.lstm = lstm(vocab_size, num_tags)
         self.crf = crf(num_tags)
 
-    def forward(self, x, y0):
+    def forward(self, x, y0): # for training
         y, lens = self.lstm(x)
         mask = x.data.gt(0).float()
         y = y * Var(mask.unsqueeze(-1).expand_as(y))
@@ -40,7 +40,7 @@ class lstm_crf(nn.Module):
         score = self.crf.score(y, y0, mask)
         return Z - score # negative log likelihood
 
-    def decode(self, x):
+    def decode(self, x): # for prediction
         result = []
         y, lens = self.lstm(x)
         for i in range(len(lens)):
@@ -52,7 +52,6 @@ class lstm_crf(nn.Module):
         return result
 
 class lstm(nn.Module):
-
     def __init__(self, vocab_size, num_tags):
         super().__init__()
         # self.num_tags = num_tags # Python 2
