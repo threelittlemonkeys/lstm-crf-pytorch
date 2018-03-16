@@ -111,9 +111,9 @@ class crf(nn.Module):
             score_t = score.unsqueeze(1).expand(-1, *self.trans.size())
             emit = y[:, t].unsqueeze(-1).expand_as(score_t)
             trans = self.trans.unsqueeze(0).expand_as(score_t)
-            score_t = lse(score_t + emit + trans, 2)
+            score_t = log_sum_exp(score_t + emit + trans)
             score = score_t * mask_t + score * (1 - mask_t)
-        score = lse(score, 1)
+        score = log_sum_exp(score)
         return score # partition function
 
     def score(self, y, y0, mask): # calculate the score of a given sequence
@@ -180,7 +180,7 @@ def scalar(x):
 def argmax(x): # for 1D tensor
     return scalar(torch.max(x, 0)[1])
 
-def lse(x, dim): # log sum of exponentials
-    max_score, _ = torch.max(x, dim)
+def log_sum_exp(x):
+    max_score, _ = torch.max(x, -1)
     max_score_broadcast = max_score.unsqueeze(-1).expand_as(x)
-    return max_score + torch.log(torch.sum(torch.exp(x - max_score_broadcast), dim))
+    return max_score + torch.log(torch.sum(torch.exp(x - max_score_broadcast), -1))
