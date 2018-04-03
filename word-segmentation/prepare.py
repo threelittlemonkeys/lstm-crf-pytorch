@@ -1,5 +1,6 @@
 import sys
 import re
+sys.path.append("..")
 from model import SOS, EOS, PAD, UNK, SOS_IDX, EOS_IDX, PAD_IDX, UNK_IDX
 
 MIN_LENGTH = 2
@@ -40,13 +41,13 @@ def save_data(data):
     fo.close()
 
 def save_word_to_idx(word_to_idx):
-    fo = open("word_to_idx", "w")
+    fo = open(sys.argv[1] + ".word_to_idx", "w")
     for word, _ in sorted(word_to_idx.items(), key = lambda x: x[1]):
         fo.write("%s\n" % word)
     fo.close()
 
 def save_tag_to_idx(tag_to_idx):
-    fo = open("tag_to_idx", "w")
+    fo = open(sys.argv[1] + ".tag_to_idx", "w")
     for tag, _ in sorted(tag_to_idx.items(), key = lambda x: x[1]):
         fo.write("%s\n" % tag)
     fo.close()
