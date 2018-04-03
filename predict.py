@@ -36,7 +36,7 @@ def predict():
     fo = open(sys.argv[4])
     for line in fo:
         line = re.sub("\s+", "", line)
-        data.append((line, [word_to_idx[i] for i in line] + [EOS_IDX]))
+        data.append((line, [word_to_idx[c] if c in word_to_idx else UNK_IDX for c in line] + [EOS_IDX]))
         if len(data) == BATCH_SIZE:
             result = run_model(model, idx_to_tag, data)
             for x in result:
