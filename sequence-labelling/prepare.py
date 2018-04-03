@@ -1,5 +1,6 @@
 import sys
 import re
+sys.path.append("..")
 from model import SOS, EOS, PAD, UNK, SOS_IDX, EOS_IDX, PAD_IDX, UNK_IDX
 from utils import normalize
 
@@ -21,8 +22,8 @@ def load_data():
         tags = []
         for tkn in tokens:
             word = re.sub("/[A-Z]+", "", tkn)
-            tag = re.sub(".+/", "", tkn)
             word = normalize(word)
+            tag = re.sub(".+/", "", tkn)
             for c in word:
                 if c not in word_to_idx:
                     word_to_idx[c] = len(word_to_idx)

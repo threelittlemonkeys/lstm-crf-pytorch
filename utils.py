@@ -1,6 +1,11 @@
 import re
 from model import *
 
+def normalize(s):
+    s = re.sub("[\u3040-\u30FF]+", "\u3042", s) # convert Hiragana and Katakana to あ
+    s = re.sub("[\u4E00-\u9FFF]+", "\u6F22", s) # convert CJK unified ideographs to 漢
+    return s
+
 def load_tag_to_idx(filename):
     print("loading tag_to_idx...")
     tag_to_idx = {}
