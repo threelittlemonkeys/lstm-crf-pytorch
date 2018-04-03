@@ -1,6 +1,6 @@
 import sys
 import re
-from model import SOS, EOS, PAD, SOS_IDX, EOS_IDX, PAD_IDX
+from model import SOS, EOS, PAD, UNK, SOS_IDX, EOS_IDX, PAD_IDX, UNK_IDX
 from utils import normalize
 
 MIN_LENGTH = 10
@@ -8,7 +8,7 @@ MAX_LENGTH = 50
 
 def load_data():
     data = []
-    word_to_idx = {PAD: PAD_IDX, EOS: EOS_IDX}
+    word_to_idx = {PAD: PAD_IDX, EOS: EOS_IDX, UNK: UNK_IDX}
     tag_to_idx = {PAD: PAD_IDX, EOS: EOS_IDX, SOS: SOS_IDX}
     fo = open(sys.argv[1])
     for line in fo:

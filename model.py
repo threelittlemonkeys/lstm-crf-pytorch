@@ -3,8 +3,8 @@ import torch.nn as nn
 from torch.autograd import Variable as Var
 
 BATCH_SIZE = 64
-EMBED_SIZE = 50
-HIDDEN_SIZE = 300
+EMBED_SIZE = 300
+HIDDEN_SIZE = 1000
 NUM_LAYERS = 2
 DROPOUT = 0.5
 BIDIRECTIONAL = True
@@ -16,10 +16,12 @@ SAVE_EVERY = 10
 PAD = "<PAD>" # padding
 EOS = "<EOS>" # end of sequence
 SOS = "<SOS>" # start of sequence
+UNK = "<UNK>" # unknown token
 
 PAD_IDX = 0
 EOS_IDX = 1
 SOS_IDX = 2
+UNK_IDX = 2
 
 torch.manual_seed(1)
 CUDA = torch.cuda.is_available()
