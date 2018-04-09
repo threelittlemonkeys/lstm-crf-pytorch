@@ -13,8 +13,7 @@ def load_data():
     tag_to_idx = {PAD: PAD_IDX, EOS: EOS_IDX, SOS: SOS_IDX}
     fo = open(sys.argv[1])
     for line in fo:
-        line = re.sub("\s+", " ", line)
-        line = re.sub("^ | $", "", line)
+        line = line.strip()
         tokens = line.split(" ")
         if len(tokens) < MIN_LENGTH or len(tokens) > MAX_LENGTH: # length constraints
             continue
