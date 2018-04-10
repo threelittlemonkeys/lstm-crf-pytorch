@@ -16,13 +16,13 @@ def load_data():
     fo = open(sys.argv[4], "r")
     for line in fo:
         line = line.strip()
-        words = [int(i) for i in line.split(" ")]
-        seq_len = words.pop()
+        tokens = [int(i) for i in line.split(" ")]
+        seq_len = len(tokens) // 2
         if len(batch_x) == 0: # the first line has the maximum sequence length
             batch_len = seq_len
         pad = [PAD_IDX] * (batch_len - seq_len)
-        batch_x.append(words[:seq_len] + [EOS_IDX] + pad)
-        batch_y.append(words[seq_len:] + [EOS_IDX] + pad)
+        batch_x.append(tokens[:seq_len] + [EOS_IDX] + pad)
+        batch_y.append(tokens[seq_len:] + [EOS_IDX] + pad)
         if len(batch_x) == BATCH_SIZE:
             data.append((Var(LongTensor(batch_x)), LongTensor(batch_y))) # append a mini-batch
             batch_x = []
