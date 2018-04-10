@@ -26,8 +26,8 @@ def load_data():
                 if c not in word_to_idx:
                     word_to_idx[c] = len(word_to_idx)
             ctags = ["B" if i == 0 else "I" for i in range(len(word))]
-            seq.extend([word_to_idx[c] for c in list(word)])
-            tags.extend([tag_to_idx[t] for t in ctags])
+            seq.extend([str(word_to_idx[c]) for c in word])
+            tags.extend([str(tag_to_idx[t]) for t in ctags])
         data.append(seq + tags)
     data.sort(key = len, reverse = True)
     fo.close()
@@ -36,7 +36,7 @@ def load_data():
 def save_data(data):
     fo = open(sys.argv[1] + ".csv", "w")
     for seq in data:
-        fo.write("%s %d\n" % (" ".join([str(i) for i in seq]), len(seq) // 2))
+        fo.write(" ".join(seq) + "\n")
     fo.close()
 
 def save_word_to_idx(word_to_idx):
