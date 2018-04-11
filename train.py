@@ -45,7 +45,7 @@ def train():
     print("training model...")
     for i in range(epoch + 1, epoch + num_epochs + 1):
         loss_sum = 0
-        t = time.time()
+        timer = time.time()
         for x, y in data:
             model.zero_grad()
             loss = torch.mean(model(x, y)) # forward pass and compute loss
@@ -53,12 +53,12 @@ def train():
             optim.step() # update parameters
             loss = scalar(loss) / len(x)
             loss_sum += loss
-        t = time.time() - t
+        timer = time.time() - timer
         loss_sum /= len(data)
         if i % SAVE_EVERY and i != epoch + num_epochs:
-            save_checkpoint("", "", i, loss_sum, t)
+            save_checkpoint("", "", i, loss_sum, timer)
         else:
-            save_checkpoint(filename, model, i, loss_sum, t)
+            save_checkpoint(filename, model, i, loss_sum, timer)
 
 if __name__ == "__main__":
     if len(sys.argv) != 6:
