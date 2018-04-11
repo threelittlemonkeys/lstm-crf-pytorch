@@ -137,7 +137,7 @@ class crf(nn.Module):
         score[SOS_IDX] = 0.
         score = Var(score)
 
-        for t in range(len(y)): # iterate through the sequence
+        for emit in y: # iterate through the sequence
             # backpointers and viterbi variables at this timestep
             bptr_t = []
             score_t = []
@@ -147,7 +147,7 @@ class crf(nn.Module):
                 bptr_t.append(best_tag)
                 score_t.append(z[best_tag])
             bptr.append(bptr_t)
-            score = torch.cat(score_t) + y[t]
+            score = torch.cat(score_t) + emit
         best_tag = argmax(score)
         best_score = score[best_tag]
 
