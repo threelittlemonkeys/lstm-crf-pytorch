@@ -38,8 +38,6 @@ def train():
     model = lstm_crf(len(word_to_idx), len(tag_to_idx))
     optim = torch.optim.SGD(model.parameters(), lr = LEARNING_RATE, weight_decay = WEIGHT_DECAY)
     epoch = load_checkpoint(sys.argv[1], model) if isfile(sys.argv[1]) else 0
-    if CUDA:
-        model = model.cuda()
     filename = re.sub("\.epoch[0-9]+$", "", sys.argv[1])
     print(model)
     print("training model...")

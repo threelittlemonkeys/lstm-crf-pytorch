@@ -34,6 +34,9 @@ class lstm_crf(nn.Module):
         self.lstm = lstm(vocab_size, num_tags)
         self.crf = crf(num_tags)
 
+        if CUDA:
+            self = self.cuda()
+
     def forward(self, x, y0): # for training
         y, lens = self.lstm(x)
         mask = x.data.gt(0).float()
