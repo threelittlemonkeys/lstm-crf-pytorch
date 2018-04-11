@@ -27,7 +27,7 @@ def load_data():
                     word_to_idx[c] = len(word_to_idx)
             if tag not in tag_to_idx:
                 tag_to_idx[tag] = len(tag_to_idx)
-            seq.extend([str(word_to_idx[c]) for c in list(word)])
+            seq.extend([str(word_to_idx[c]) for c in word])
             tags.extend([str(tag_to_idx[tag])] * len(word))
         data.append(seq + tags)
     data.sort(key = len, reverse = True)
