@@ -1,6 +1,10 @@
 # LSTM-CRF in PyTorch
 
-A PyTorch implementation of bidirectional LSTM-CRF for sequence tagging, adapted from [the PyTorch tutorial](http://pytorch.org/tutorials/beginner/nlp/advanced_tutorial.html). It supports mini-batch training with CUDA.
+A PyTorch implementation of bidirectional LSTM-CRF for sequence tagging, adapted from [the PyTorch tutorial](http://pytorch.org/tutorials/beginner/nlp/advanced_tutorial.html).
+
+Supported features:
+- Mini-batch training with CUDA
+- Vectorized computation of CRF loss
 
 ## Usage
 
