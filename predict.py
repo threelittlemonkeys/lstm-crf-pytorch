@@ -15,20 +15,18 @@ def load_model():
     return model, word_to_idx, tag_to_idx, idx_to_tag
 
 def run_model(model, idx_to_tag, data):
-    line = []
-    pred = []
     batch = []
+    z = len(data)
     while len(data) < BATCH_SIZE:
-        data.append(("", [EOS_IDX]))
+        data.append(["", [EOS_IDX]])
     data.sort(key = lambda x: len(x[1]), reverse = True)
     batch_len = len(data[0][1])
-    for x, y in data:
-        line.append(x)
-        batch.append(y + [PAD_IDX] * (batch_len - len(y)))
+    batch = [x + [PAD_IDX] * (batch_len - len(x)) for _, x in data]
     batch = Var(LongTensor(batch))
-    for out in model.decode(batch):
-        pred.append([idx_to_tag[i] for i in out])
-    return [(x, y[:-1]) for x, y in zip(line, pred) if len(x) > 0]
+    result = model.decode(batch)
+    for i in range(z):
+        data[i].append([idx_to_tag[j] for j in result[i]])
+    return data[:z]
 
 def predict():
     data = []
@@ -36,7 +34,8 @@ def predict():
     fo = open(sys.argv[4])
     for line in fo:
         line = re.sub("\s+", "", line)
-        data.append((line, [word_to_idx[c] if c in word_to_idx else UNK_IDX for c in line] + [EOS_IDX]))
+        x = [word_to_idx[c] if c in word_to_idx else UNK_IDX for c in line] + [EOS_IDX]
+        data.append([line, x])
         if len(data) == BATCH_SIZE:
             result = run_model(model, idx_to_tag, data)
             for x in result:
