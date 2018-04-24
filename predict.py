@@ -33,8 +33,9 @@ def predict():
     model, word_to_idx, tag_to_idx, idx_to_tag = load_model()
     fo = open(sys.argv[4])
     for line in fo:
-        line = re.sub("\s+", "", line)
-        x = [word_to_idx[c] if c in word_to_idx else UNK_IDX for c in line] + [EOS_IDX]
+        line = line.strip()
+        tokens = tokenize(line, "char")
+        x = [word_to_idx[i] if i in word_to_idx else UNK_IDX for i in tokens] + [EOS_IDX]
         data.append([line, x])
         if len(data) == BATCH_SIZE:
             result = run_model(model, idx_to_tag, data)
