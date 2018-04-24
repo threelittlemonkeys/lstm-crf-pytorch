@@ -17,7 +17,7 @@ def load_data():
     for line in fo:
         line = line.strip() 
         tokens = line.split(" ")
-        if len(tokens) < MIN_LENGTH or len(tokens) > MAX_LENGTH: # length constraints
+        if len(tokens) < MIN_LENGTH or len(tokens) > MAX_LENGTH:
             continue
         seq = []
         tags = []

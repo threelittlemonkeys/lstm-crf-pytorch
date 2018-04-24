@@ -1,10 +1,22 @@
 import re
 from model import *
 
-def normalize(s):
-    # s = re.sub("[\u3040-\u30FF]+", "\u3042", s) # convert Hiragana and Katakana to あ
-    # s = re.sub("[\u4E00-\u9FFF]+", "\u6F22", s) # convert CJK unified ideographs to 漢
-    return s
+def normalize(x):
+    x = re.sub("[^ a-zA-Z0-9\uAC00-\uD7A3]+", " ", x)
+    # x = re.sub("[\u3040-\u30FF]+", "\u3042", x) # convert Hiragana and Katakana to あ
+    # x = re.sub("[\u4E00-\u9FFF]+", "\u6F22", x) # convert CJK unified ideographs to 漢
+    x = re.sub("\s+", " ", x)
+    x = re.sub("^ | $", "", x)
+    x = x.lower()
+    return x
+
+def tokenize(x, unit):
+    x = normalize(x)
+    if unit == "char":
+        x = re.sub(" ", "", x)
+        return list(x)
+    elif unit == "word":
+        return x.split(" ")
 
 def load_tag_to_idx(filename):
     print("loading tag_to_idx...")
