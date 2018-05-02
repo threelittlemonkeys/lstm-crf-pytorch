@@ -43,7 +43,7 @@ class lstm_crf(nn.Module):
         y = y * Var(mask.unsqueeze(-1).expand_as(y))
         Z = self.crf.forward(y, mask)
         score = self.crf.score(y, y0, mask)
-        return Z - score # negative log likelihood
+        return Z - score # NLL loss
 
     def decode(self, x): # for prediction
         result = []
