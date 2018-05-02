@@ -49,7 +49,7 @@ def train():
             loss = torch.mean(model(x, y)) # forward pass and compute loss
             loss.backward() # compute gradients
             optim.step() # update parameters
-            loss = scalar(loss) / len(x)
+            loss = scalar(loss)
             loss_sum += loss
         timer = time.time() - timer
         loss_sum /= len(data)
