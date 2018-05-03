@@ -41,7 +41,7 @@ def train():
     filename = re.sub("\.epoch[0-9]+$", "", sys.argv[1])
     print(model)
     print("training model...")
-    for i in range(epoch + 1, epoch + num_epochs + 1):
+    for ei in range(epoch + 1, epoch + num_epochs + 1):
         loss_sum = 0
         timer = time.time()
         for x, y in data:
@@ -53,10 +53,10 @@ def train():
             loss_sum += loss
         timer = time.time() - timer
         loss_sum /= len(data)
-        if i % SAVE_EVERY and i != epoch + num_epochs:
-            save_checkpoint("", "", i, loss_sum, timer)
+        if ei % SAVE_EVERY and ei != epoch + num_epochs:
+            save_checkpoint("", "", ei, loss_sum, timer)
         else:
-            save_checkpoint(filename, model, i, loss_sum, timer)
+            save_checkpoint(filename, model, ei, loss_sum, timer)
 
 if __name__ == "__main__":
     if len(sys.argv) != 6:
