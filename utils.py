@@ -2,7 +2,7 @@ import re
 from model import *
 
 def normalize(x):
-    x = re.sub("[^ a-zA-Z0-9\uAC00-\uD7A3]+", " ", x)
+    # x = re.sub("[^ a-zA-Z0-9\uAC00-\uD7A3]+", " ", x)
     # x = re.sub("[\u3040-\u30FF]+", "\u3042", x) # convert Hiragana and Katakana to あ
     # x = re.sub("[\u4E00-\u9FFF]+", "\u6F22", x) # convert CJK unified ideographs to 漢
     x = re.sub("\s+", " ", x)
