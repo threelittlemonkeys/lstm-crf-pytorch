@@ -154,7 +154,8 @@ class crf(nn.Module):
         # back-tracking
         best_path = [best_tag]
         for bptr_t in reversed(bptr):
-            best_path.append(bptr_t[best_tag])
+            best_tag = bptr_t[best_tag]
+            best_path.append(best_tag)
         best_path = reversed(best_path[:-1])
 
         return best_path
