@@ -3,8 +3,10 @@
 A PyTorch implementation of bidirectional LSTM-CRF for sequence tagging, adapted from [the PyTorch tutorial](http://pytorch.org/tutorials/beginner/nlp/advanced_tutorial.html).
 
 Supported features:
-- Mini-batch training with CUDA
+- A PyTorch implementation of conditional random field (CRF)
 - Vectorized computation of CRF loss
+- Vectorized Viterbi decoding (TODO)
+- Mini-batch training with CUDA
 
 ## Usage
 
