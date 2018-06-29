@@ -125,8 +125,8 @@ class crf(nn.Module):
         y0 = torch.cat([LongTensor(BATCH_SIZE, 1).fill_(SOS_IDX), y0], 1)
         for t in range(y.size(1)): # iterate through the sequence
             mask_t = Var(mask[:, t])
-            emit = torch.cat([y[b, t, y0[b, t + 1]] for b in range(BATCH_SIZE)])
-            trans = torch.cat([self.trans[seq[t + 1], seq[t]] for seq in y0]) * mask_t
+            emit = torch.cat([y[b, t, y0[b, t + 1]].unsqueeze(0) for b in range(BATCH_SIZE)])
+            trans = torch.cat([self.trans[seq[t + 1], seq[t]].unsqueeze(0) for seq in y0]) * mask_t
             score = score + emit + trans
         return score
 
@@ -147,7 +147,7 @@ class crf(nn.Module):
                 bptr_t.append(best_tag)
                 score_t.append(z[best_tag])
             bptr.append(bptr_t)
-            score = torch.cat(score_t) + emit
+            score = torch.cat([x.unsqueeze(0) for x in score_t]) + emit
         best_tag = argmax(score)
         best_score = score[best_tag]
 
