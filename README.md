@@ -5,7 +5,7 @@ A PyTorch implementation of bidirectional LSTM-CRF for sequence tagging, adapted
 Supported features:
 - A PyTorch implementation of conditional random field (CRF)
 - Vectorized computation of CRF loss
-- Vectorized Viterbi decoding (TODO)
+- Vectorized Viterbi decoding
 - Mini-batch training with CUDA
 
 ## Usage
