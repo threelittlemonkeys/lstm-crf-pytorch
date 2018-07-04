@@ -38,23 +38,18 @@ class lstm_crf(nn.Module):
             self = self.cuda()
 
     def forward(self, x, y0): # for training
-        y, lens = self.lstm(x)
         mask = x.data.gt(0).float()
+        y = self.lstm(x, mask)
         y = y * Var(mask.unsqueeze(-1).expand_as(y))
         Z = self.crf.forward(y, mask)
         score = self.crf.score(y, y0, mask)
         return Z - score # NLL loss
 
     def decode(self, x): # for prediction
-        result = []
-        y, lens = self.lstm(x)
-        for i in range(len(lens)):
-            if lens[i] > 1:
-                best_path = self.crf.decode(y[i][:lens[i]])
-            else:
-                best_path = []
-            result.append(best_path)
-        return result
+        mask = x.data.gt(0).float()
+        y = self.lstm(x, mask)
+        y = y * Var(mask.unsqueeze(-1).expand_as(y))
+        return self.crf.decode(y, mask)
 
 class lstm(nn.Module):
     def __init__(self, vocab_size, num_tags):
@@ -79,17 +74,17 @@ class lstm(nn.Module):
         c = Var(zeros(NUM_LAYERS * NUM_DIRS, BATCH_SIZE, HIDDEN_SIZE // NUM_DIRS)) # cell states
         return (h, c)
 
-    def forward(self, x):
+    def forward(self, x, mask):
         self.hidden = self.init_hidden()
-        self.lens = [len_unpadded(seq) for seq in x]
+        lens = [int(scalar(seq.sum())) for seq in mask]
         embed = self.embed(x)
-        embed = nn.utils.rnn.pack_padded_sequence(embed, self.lens, batch_first = True)
+        embed = nn.utils.rnn.pack_padded_sequence(embed, lens, batch_first = True)
         y, _ = self.lstm(embed, self.hidden)
         y, _ = nn.utils.rnn.pad_packed_sequence(y, batch_first = True)
         # y = y.contiguous().view(-1, HIDDEN_SIZE) # Python 2
         y = self.out(y)
         # y = y.view(BATCH_SIZE, -1, self.num_tags) # Python 2
-        return y, self.lens
+        return y
 
 class crf(nn.Module):
     def __init__(self, num_tags):
@@ -130,33 +125,36 @@ class crf(nn.Module):
             score = score + emit + trans
         return score
 
-    def decode(self, y): # Viterbi decoding
+    def decode(self, y, mask): # Viterbi decoding
         # initialize backpointers and viterbi variables in log space
-        bptr = []
-        score = Tensor(self.num_tags).fill_(-10000.)
-        score[SOS_IDX] = 0.
+        bptr = LongTensor()
+        score = Tensor(BATCH_SIZE, self.num_tags).fill_(-10000.)
+        score[:, SOS_IDX] = 0.
         score = Var(score)
 
-        for emit in y: # iterate through the sequence
+        for t in range(y.size(1)): # iterate through the sequence
             # backpointers and viterbi variables at this timestep
-            bptr_t = []
-            score_t = []
+            bptr_t = LongTensor()
+            score_t = Tensor()
             for i in range(self.num_tags): # for each next tag
-                z = score + self.trans[i]
-                best_tag = argmax(z) # find the best previous tag
-                bptr_t.append(best_tag)
-                score_t.append(z[best_tag])
-            bptr.append(bptr_t)
-            score = torch.cat([x.unsqueeze(0) for x in score_t]) + emit
-        best_tag = argmax(score)
-        best_score = score[best_tag]
+                m = [e.unsqueeze(1) for e in torch.max(score + self.trans[i], 1)]
+                bptr_t = torch.cat((bptr_t, m[1]), 1) # best previous tags
+                score_t = torch.cat((score_t, m[0]), 1) # best transition scores
+            bptr = torch.cat((bptr, bptr_t.unsqueeze(1)), 1)
+            score = score_t + y[:, t] # plus emission scores
+        best_score, best_tag = torch.max(score, 1)
 
         # back-tracking
-        best_path = [best_tag]
-        for bptr_t in reversed(bptr):
-            best_tag = bptr_t[best_tag]
-            best_path.append(best_tag)
-        best_path = reversed(best_path[:-1])
+        bptr = bptr.tolist()
+        best_path = [[i] for i in best_tag.tolist()]
+        for b in range(BATCH_SIZE):
+            x = best_tag[b] # best tag
+            l = int(scalar(mask[b].sum()))
+            for bptr_t in reversed(bptr[b][:l]):
+                x = bptr_t[x]
+                best_path[b].append(x)
+            best_path[b].pop()
+            best_path[b].reverse()
 
         return best_path
 
@@ -175,9 +173,6 @@ def randn(*args):
 def zeros(*args):
     x = torch.zeros(*args)
     return x.cuda() if CUDA else x
-
-def len_unpadded(x): # get unpadded sequence length
-    return next((i for i, j in enumerate(x) if scalar(j) == 0), len(x))
 
 def scalar(x):
     return x.view(-1).data.tolist()[0]
