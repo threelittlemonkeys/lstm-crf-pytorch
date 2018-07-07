@@ -21,7 +21,7 @@ UNK = "<UNK>" # unknown token
 PAD_IDX = 0
 EOS_IDX = 1
 SOS_IDX = 2
-UNK_IDX = 2
+UNK_IDX = 3
 
 torch.manual_seed(1)
 CUDA = torch.cuda.is_available()
