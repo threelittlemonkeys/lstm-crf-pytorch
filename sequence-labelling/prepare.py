@@ -20,7 +20,7 @@ def load_data():
         seq = []
         tags = []
         for tkn in tokens:
-            word, tag = re.split("(?<=.)/", tkn)
+            word, tag = re.split("/(?=[^/]+$)", tkn)
             word = normalize(word)
             for c in word:
                 if c not in word_to_idx:
