@@ -1,6 +1,5 @@
 import sys
 import re
-sys.path.append("..")
 from model import SOS, EOS, PAD, UNK, SOS_IDX, EOS_IDX, PAD_IDX, UNK_IDX
 
 MIN_LENGTH = 2
