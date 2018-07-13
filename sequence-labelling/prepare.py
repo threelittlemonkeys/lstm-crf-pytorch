@@ -1,10 +1,9 @@
 import sys
 import re
-sys.path.append("..")
 from model import SOS, EOS, PAD, UNK, SOS_IDX, EOS_IDX, PAD_IDX, UNK_IDX
 from utils import normalize
 
-MIN_LENGTH = 10
+MIN_LENGTH = 2
 MAX_LENGTH = 50
 
 def load_data():
