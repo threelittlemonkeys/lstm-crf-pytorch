@@ -9,8 +9,6 @@ def load_model():
     idx_to_tag = [tag for tag, _ in sorted(tag_to_idx.items(), key = lambda x: x[1])]
     model = lstm_crf(len(word_to_idx), len(tag_to_idx))
     model.eval()
-    if CUDA:
-        model = model.cuda()
     print(model)
     load_checkpoint(sys.argv[1], model)
     return model, word_to_idx, tag_to_idx, idx_to_tag
