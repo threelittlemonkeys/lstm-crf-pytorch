@@ -1,6 +1,5 @@
 import torch
 import torch.nn as nn
-from torch.autograd import Variable as Var
 
 BATCH_SIZE = 64
 EMBED_SIZE = 300
@@ -40,7 +39,7 @@ class lstm_crf(nn.Module):
     def forward(self, x, y0): # for training
         mask = x.data.gt(0).float()
         y = self.lstm(x, mask)
-        y = y * Var(mask.unsqueeze(-1).expand_as(y))
+        y = y * mask.unsqueeze(-1).expand_as(y)
         Z = self.crf.forward(y, mask)
         score = self.crf.score(y, y0, mask)
         return Z - score # NLL loss
@@ -48,7 +47,7 @@ class lstm_crf(nn.Module):
     def decode(self, x): # for prediction
         mask = x.data.gt(0).float()
         y = self.lstm(x, mask)
-        y = y * Var(mask.unsqueeze(-1).expand_as(y))
+        y = y * mask.unsqueeze(-1).expand_as(y)
         return self.crf.decode(y, mask)
 
 class lstm(nn.Module):
@@ -70,8 +69,8 @@ class lstm(nn.Module):
         self.out = nn.Linear(HIDDEN_SIZE, num_tags) # LSTM output to tag
 
     def init_hidden(self): # initialize hidden states
-        h = Var(zeros(NUM_LAYERS * NUM_DIRS, BATCH_SIZE, HIDDEN_SIZE // NUM_DIRS)) # hidden states
-        c = Var(zeros(NUM_LAYERS * NUM_DIRS, BATCH_SIZE, HIDDEN_SIZE // NUM_DIRS)) # cell states
+        h = zeros(NUM_LAYERS * NUM_DIRS, BATCH_SIZE, HIDDEN_SIZE // NUM_DIRS) # hidden states
+        c = zeros(NUM_LAYERS * NUM_DIRS, BATCH_SIZE, HIDDEN_SIZE // NUM_DIRS) # cell states
         return (h, c)
 
     def forward(self, x, mask):
@@ -104,9 +103,8 @@ class crf(nn.Module):
         # initialize forward variables in log space
         score = Tensor(BATCH_SIZE, self.num_tags).fill_(-10000.)
         score[:, SOS_IDX] = 0.
-        score = Var(score)
         for t in range(y.size(1)): # iterate through the sequence
-            mask_t = Var(mask[:, t].unsqueeze(-1).expand_as(score))
+            mask_t = mask[:, t].unsqueeze(-1).expand_as(score)
             score_t = score.unsqueeze(1).expand(-1, *self.trans.size())
             emit = y[:, t].unsqueeze(-1).expand_as(score_t)
             trans = self.trans.unsqueeze(0).expand_as(score_t)
@@ -116,10 +114,10 @@ class crf(nn.Module):
         return score # partition function
 
     def score(self, y, y0, mask): # calculate the score of a given sequence
-        score = Var(Tensor(BATCH_SIZE).fill_(0.))
+        score = Tensor(BATCH_SIZE).fill_(0.)
         y0 = torch.cat([LongTensor(BATCH_SIZE, 1).fill_(SOS_IDX), y0], 1)
         for t in range(y.size(1)): # iterate through the sequence
-            mask_t = Var(mask[:, t])
+            mask_t = mask[:, t]
             emit = torch.cat([y[b, t, y0[b, t + 1]].unsqueeze(0) for b in range(BATCH_SIZE)])
             trans = torch.cat([self.trans[seq[t + 1], seq[t]].unsqueeze(0) for seq in y0]) * mask_t
             score = score + emit + trans
@@ -130,7 +128,6 @@ class crf(nn.Module):
         bptr = LongTensor()
         score = Tensor(BATCH_SIZE, self.num_tags).fill_(-10000.)
         score[:, SOS_IDX] = 0.
-        score = Var(score)
 
         for t in range(y.size(1)): # iterate through the sequence
             # backpointers and viterbi variables at this timestep
