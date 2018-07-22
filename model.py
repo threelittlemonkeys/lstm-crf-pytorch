@@ -53,7 +53,6 @@ class lstm_crf(nn.Module):
 class lstm(nn.Module):
     def __init__(self, vocab_size, num_tags):
         super().__init__()
-        # self.num_tags = num_tags # Python 2
 
         # architecture
         self.embed = nn.Embedding(vocab_size, EMBED_SIZE, padding_idx = PAD_IDX)
@@ -78,11 +77,11 @@ class lstm(nn.Module):
         lens = [int(scalar(seq.sum())) for seq in mask]
         embed = self.embed(x)
         embed = nn.utils.rnn.pack_padded_sequence(embed, lens, batch_first = True)
-        y, _ = self.lstm(embed, self.hidden)
-        y, _ = nn.utils.rnn.pad_packed_sequence(y, batch_first = True)
-        # y = y.contiguous().view(-1, HIDDEN_SIZE) # Python 2
-        y = self.out(y)
-        # y = y.view(BATCH_SIZE, -1, self.num_tags) # Python 2
+        h, _ = self.lstm(embed, self.hidden)
+        h, _ = nn.utils.rnn.pad_packed_sequence(h, batch_first = True)
+        # h = h.contiguous().view(-1, HIDDEN_SIZE) # Python 2
+        y = self.out(h)
+        # y = y.view(BATCH_SIZE, -1, self.out.out_features) # Python 2
         return y
 
 class crf(nn.Module):
