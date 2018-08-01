@@ -3,8 +3,8 @@ import re
 from model import SOS, EOS, PAD, UNK, SOS_IDX, EOS_IDX, PAD_IDX, UNK_IDX
 from utils import normalize
 
-MIN_LENGTH = 2
-MAX_LENGTH = 50
+MIN_LEN = 2
+MAX_LEN = 50
 
 def load_data():
     data = []
@@ -14,7 +14,7 @@ def load_data():
     for line in fo:
         line = line.strip()
         tokens = line.split(" ")
-        if len(tokens) < MIN_LENGTH or len(tokens) > MAX_LENGTH:
+        if len(tokens) < MIN_LEN or len(tokens) > MAX_LEN:
             continue
         seq = []
         tags = []
