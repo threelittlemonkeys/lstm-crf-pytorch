@@ -39,7 +39,6 @@ class lstm_crf(nn.Module):
     def forward(self, x, y0): # for training
         mask = x.data.gt(0).float()
         y = self.lstm(x, mask)
-        y = y * mask.unsqueeze(-1).expand_as(y)
         Z = self.crf.forward(y, mask)
         score = self.crf.score(y, y0, mask)
         return Z - score # NLL loss
@@ -47,7 +46,6 @@ class lstm_crf(nn.Module):
     def decode(self, x): # for prediction
         mask = x.data.gt(0).float()
         y = self.lstm(x, mask)
-        y = y * mask.unsqueeze(-1).expand_as(y)
         return self.crf.decode(y, mask)
 
 class lstm(nn.Module):
@@ -78,9 +76,8 @@ class lstm(nn.Module):
         embed = nn.utils.rnn.pack_padded_sequence(embed, mask.sum(1).int(), batch_first = True)
         h, _ = self.lstm(embed, self.hidden)
         h, _ = nn.utils.rnn.pad_packed_sequence(h, batch_first = True)
-        # h = h.contiguous().view(-1, HIDDEN_SIZE) # Python 2
         y = self.out(h)
-        # y = y.view(BATCH_SIZE, -1, self.out.out_features) # Python 2
+        y *= mask.unsqueeze(-1).expand_as(y)
         return y
 
 class crf(nn.Module):
