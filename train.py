@@ -54,7 +54,7 @@ def train():
         timer = time.time() - timer
         loss_sum /= len(data)
         if ei % SAVE_EVERY and ei != epoch + num_epochs:
-            save_checkpoint("", "", ei, loss_sum, timer)
+            save_checkpoint("", None, ei, loss_sum, timer)
         else:
             save_checkpoint(filename, model, ei, loss_sum, timer)
 
