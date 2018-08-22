@@ -32,8 +32,8 @@ def predict():
     fo = open(sys.argv[4])
     for line in fo:
         line = line.strip()
-        tokens = tokenize(line, "char")
-        x = [word_to_idx[i] if i in word_to_idx else UNK_IDX for i in tokens] + [EOS_IDX]
+        x = tokenize(line, "char")
+        x = [word_to_idx[i] if i in word_to_idx else UNK_IDX for i in x] + [EOS_IDX]
         data.append([line, x])
         if len(data) == BATCH_SIZE:
             result = run_model(model, idx_to_tag, data)
