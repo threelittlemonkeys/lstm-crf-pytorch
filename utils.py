@@ -57,3 +57,8 @@ def save_checkpoint(filename, model, epoch, loss, time):
         checkpoint["loss"] = loss
         torch.save(checkpoint, filename + ".epoch%d" % epoch)
         print("saved model at epoch %d" % epoch)
+
+def f1(p, r):
+    if p + r:
+        return 2 * p * r / (p + r)
+    return 0
