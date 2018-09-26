@@ -18,7 +18,7 @@ def load_data():
         line = line.strip()
         tokens = [int(i) for i in line.split(" ")]
         seq_len = len(tokens) // 2
-        if len(batch_x) == 0: # the first line has the maximum sequence length
+        if len(batch_x) == 0: # the first line is the longest in its mini-batch
             batch_len = seq_len
         pad = [PAD_IDX] * (batch_len - seq_len)
         batch_x.append(tokens[:seq_len] + [EOS_IDX] + pad)
