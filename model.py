@@ -72,9 +72,9 @@ class lstm(nn.Module):
 
     def forward(self, x, mask):
         self.hidden = self.init_hidden()
-        embed = self.embed(x)
-        embed = nn.utils.rnn.pack_padded_sequence(embed, mask.sum(1).int(), batch_first = True)
-        h, _ = self.lstm(embed, self.hidden)
+        x = self.embed(x)
+        x = nn.utils.rnn.pack_padded_sequence(x, mask.sum(1).int(), batch_first = True)
+        h, _ = self.lstm(x, self.hidden)
         h, _ = nn.utils.rnn.pad_packed_sequence(h, batch_first = True)
         y = self.out(h)
         y *= mask.unsqueeze(-1).expand_as(y)
