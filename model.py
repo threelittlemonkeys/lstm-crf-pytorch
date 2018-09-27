@@ -28,13 +28,9 @@ CUDA = torch.cuda.is_available()
 class lstm_crf(nn.Module):
     def __init__(self, vocab_size, num_tags):
         super().__init__()
-
-        # architecture
         self.lstm = lstm(vocab_size, num_tags)
         self.crf = crf(num_tags)
-
-        if CUDA:
-            self = self.cuda()
+        self = self.cuda() if CUDA else self
 
     def forward(self, x, y0): # for training
         mask = x.data.gt(0).float()
@@ -77,7 +73,7 @@ class lstm(nn.Module):
         h, _ = self.lstm(x, self.hidden)
         h, _ = nn.utils.rnn.pad_packed_sequence(h, batch_first = True)
         y = self.out(h)
-        y *= mask.unsqueeze(-1).expand_as(y)
+        y *= mask.unsqueeze(-1)
         return y
 
 class crf(nn.Module):
@@ -96,14 +92,13 @@ class crf(nn.Module):
 
     def forward(self, y, mask): # forward algorithm
         # initialize forward variables in log space
-        score = Tensor(BATCH_SIZE, self.num_tags).fill_(-10000.)
+        score = Tensor(BATCH_SIZE, self.num_tags).fill_(-10000.) # [B, num_tags (C)]
         score[:, SOS_IDX] = 0.
         for t in range(y.size(1)): # iterate through the sequence
-            mask_t = mask[:, t].unsqueeze(-1).expand_as(score)
-            score_t = score.unsqueeze(1).expand(-1, *self.trans.size())
-            emit = y[:, t].unsqueeze(-1).expand_as(score_t)
-            trans = self.trans.unsqueeze(0).expand_as(score_t)
-            score_t = log_sum_exp(score_t + emit + trans)
+            mask_t = mask[:, t].unsqueeze(-1)
+            emit = y[:, t].unsqueeze(1) # [B, 1, C]
+            trans = self.trans.unsqueeze(0) # [1, C, C]
+            score_t = log_sum_exp(score.unsqueeze(1) + emit + trans) # [B, C, C] -> [B, C]
             score = score_t * mask_t + score * (1 - mask_t)
         score = log_sum_exp(score)
         return score # partition function
@@ -169,10 +164,6 @@ def zeros(*args):
 def scalar(x):
     return x.view(-1).data.tolist()[0]
 
-def argmax(x): # for 1D tensor
-    return scalar(torch.max(x, 0)[1])
-
 def log_sum_exp(x):
-    max_score, _ = torch.max(x, -1)
-    max_score_broadcast = max_score.unsqueeze(-1).expand_as(x)
-    return max_score + torch.log(torch.sum(torch.exp(x - max_score_broadcast), -1))
+    m = torch.max(x, -1)[0]
+    return m + torch.log(torch.sum(torch.exp(x - m.unsqueeze(-1)), -1))
