@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 
-BATCH_SIZE = 128
+BATCH_SIZE = 64
 EMBED_SIZE = 300
 HIDDEN_SIZE = 1000
 NUM_LAYERS = 2
@@ -73,7 +73,7 @@ class lstm(nn.Module):
         h, _ = self.lstm(x, self.hidden)
         h, _ = nn.utils.rnn.pad_packed_sequence(h, batch_first = True)
         y = self.out(h)
-        y *= mask.unsqueeze(-1)
+        y *= mask.unsqueeze(-1).expand_as(y)
         return y
 
 class crf(nn.Module):
@@ -94,11 +94,12 @@ class crf(nn.Module):
         # initialize forward variables in log space
         score = Tensor(BATCH_SIZE, self.num_tags).fill_(-10000.) # [B, C]
         score[:, SOS_IDX] = 0.
-        trans = self.trans.unsqueeze(0) # [1, C, C]
         for t in range(y.size(1)): # iterate through the sequence
-            mask_t = mask[:, t].unsqueeze(1)
-            emit = y[:, t].unsqueeze(1) # [B, 1, C]
-            score_t = log_sum_exp(score.unsqueeze(1) + emit + trans) # [B, 1, C] -> [B, C, C] -> [B, C]
+            mask_t = mask[:, t].unsqueeze(-1).expand_as(score)
+            score_t = score.unsqueeze(1).expand(-1, *self.trans.size())
+            emit = y[:, t].unsqueeze(-1).expand_as(score_t)
+            trans = self.trans.unsqueeze(0).expand_as(score_t)
+            score_t = log_sum_exp(score_t + emit + trans)
             score = score_t * mask_t + score * (1 - mask_t)
         score = log_sum_exp(score)
         return score # partition function
@@ -109,8 +110,8 @@ class crf(nn.Module):
         for t in range(y.size(1)): # iterate through the sequence
             mask_t = mask[:, t]
             emit = torch.cat([y[b, t, y0[b, t + 1]].unsqueeze(0) for b in range(BATCH_SIZE)])
-            trans = torch.cat([self.trans[seq[t + 1], seq[t]].unsqueeze(0) for seq in y0])
-            score += (emit + trans) * mask_t
+            trans = torch.cat([self.trans[seq[t + 1], seq[t]].unsqueeze(0) for seq in y0]) * mask_t
+            score = score + emit + trans
         return score
 
     def decode(self, y, mask): # Viterbi decoding
@@ -165,5 +166,6 @@ def scalar(x):
     return x.view(-1).data.tolist()[0]
 
 def log_sum_exp(x):
-    m = torch.max(x, -1)[0]
-    return m + torch.log(torch.sum(torch.exp(x - m.unsqueeze(-1)), -1))
+    max_score, _ = torch.max(x, -1)
+    max_score_broadcast = max_score.unsqueeze(-1).expand_as(x)
+    return max_score + torch.log(torch.sum(torch.exp(x - max_score_broadcast), -1))
