@@ -22,7 +22,7 @@ def load_data():
             batch_len = seq_len
         pad = [PAD_IDX] * (batch_len - seq_len)
         batch_x.append(tokens[:seq_len] + [EOS_IDX] + pad)
-        batch_y.append(tokens[seq_len:] + [EOS_IDX] + pad)
+        batch_y.append([SOS_IDX] + tokens[seq_len:] + [EOS_IDX] + pad)
         if len(batch_x) == BATCH_SIZE:
             data.append((LongTensor(batch_x), LongTensor(batch_y))) # append a mini-batch
             batch_x = []
