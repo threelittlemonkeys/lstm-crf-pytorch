@@ -105,14 +105,13 @@ class crf(nn.Module):
 
     def score(self, y, y0, mask): # calculate the score of a given sequence
         score = Tensor(BATCH_SIZE).fill_(0.)
-        y0 = torch.cat([LongTensor(BATCH_SIZE, 1).fill_(SOS_IDX), y0], 1)
-        emit = y.unsqueeze(3)
+        y = y.unsqueeze(3)
         trans = self.trans.unsqueeze(2)
         for t in range(y.size(1)): # iterate through the sequence
             mask_t = mask[:, t]
-            emit_t = torch.cat([emit[b, t, y0[b, t + 1]] for b in range(BATCH_SIZE)])
+            emit = torch.cat([y[b, t, y0[b, t + 1]] for b in range(BATCH_SIZE)])
             trans_t = torch.cat([trans[seq[t + 1], seq[t]] for seq in y0])
-            score += (emit_t + trans_t) * mask_t
+            score += (emit + trans_t) * mask_t
         return score
 
     def decode(self, y, mask): # Viterbi decoding
