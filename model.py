@@ -92,13 +92,13 @@ class crf(nn.Module):
 
     def forward(self, y, mask): # forward algorithm
         # initialize forward variables in log space
-        score = Tensor(BATCH_SIZE, self.num_tags).fill_(-10000.) # [B, num_tags (C)]
+        score = Tensor(BATCH_SIZE, self.num_tags).fill_(-10000.) # [B, C]
         score[:, SOS_IDX] = 0.
+        trans = self.trans.unsqueeze(0) # [1, C, C]
         for t in range(y.size(1)): # iterate through the sequence
-            mask_t = mask[:, t].unsqueeze(-1)
+            mask_t = mask[:, t].unsqueeze(1)
             emit = y[:, t].unsqueeze(1) # [B, 1, C]
-            trans = self.trans.unsqueeze(0) # [1, C, C]
-            score_t = log_sum_exp(score.unsqueeze(1) + emit + trans) # [B, C, C] -> [B, C]
+            score_t = log_sum_exp(score.unsqueeze(1) + emit + trans) # [B, 1, C] -> [B, C, C] -> [B, C]
             score = score_t * mask_t + score * (1 - mask_t)
         score = log_sum_exp(score)
         return score # partition function
@@ -109,8 +109,8 @@ class crf(nn.Module):
         for t in range(y.size(1)): # iterate through the sequence
             mask_t = mask[:, t]
             emit = torch.cat([y[b, t, y0[b, t + 1]].unsqueeze(0) for b in range(BATCH_SIZE)])
-            trans = torch.cat([self.trans[seq[t + 1], seq[t]].unsqueeze(0) for seq in y0]) * mask_t
-            score = score + emit + trans
+            trans = torch.cat([self.trans[seq[t + 1], seq[t]].unsqueeze(0) for seq in y0])
+            score += (emit + trans) * mask_t
         return score
 
     def decode(self, y, mask): # Viterbi decoding
