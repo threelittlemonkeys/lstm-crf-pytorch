@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 
-BATCH_SIZE = 64
+BATCH_SIZE = 128
 EMBED_SIZE = 300
 HIDDEN_SIZE = 1000
 NUM_LAYERS = 2
