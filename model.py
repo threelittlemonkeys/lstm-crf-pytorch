@@ -94,12 +94,11 @@ class crf(nn.Module):
         # initialize forward variables in log space
         score = Tensor(BATCH_SIZE, self.num_tags).fill_(-10000.) # [B, C]
         score[:, SOS_IDX] = 0.
+        trans = self.trans.unsqueeze(0) # [1, C, C]
         for t in range(y.size(1)): # iterate through the sequence
-            mask_t = mask[:, t].unsqueeze(-1).expand_as(score)
-            score_t = score.unsqueeze(1).expand(-1, *self.trans.size())
-            emit = y[:, t].unsqueeze(-1).expand_as(score_t)
-            trans = self.trans.unsqueeze(0).expand_as(score_t)
-            score_t = log_sum_exp(score_t + emit + trans)
+            mask_t = mask[:, t].unsqueeze(1)
+            emit = y[:, t].unsqueeze(2) # [B, C, 1]
+            score_t = log_sum_exp(score.unsqueeze(1) + emit + trans) # [B, 1, C] -> [B, C, C] -> [B, C]
             score = score_t * mask_t + score * (1 - mask_t)
         score = log_sum_exp(score)
         return score # partition function
@@ -166,6 +165,5 @@ def scalar(x):
     return x.view(-1).data.tolist()[0]
 
 def log_sum_exp(x):
-    max_score, _ = torch.max(x, -1)
-    max_score_broadcast = max_score.unsqueeze(-1).expand_as(x)
-    return max_score + torch.log(torch.sum(torch.exp(x - max_score_broadcast), -1))
+    m = torch.max(x, -1)[0]
+    return m + torch.log(torch.sum(torch.exp(x - m.unsqueeze(-1)), -1))
