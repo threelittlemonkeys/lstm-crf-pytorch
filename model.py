@@ -73,7 +73,7 @@ class lstm(nn.Module):
         h, _ = self.lstm(x, self.hidden)
         h, _ = nn.utils.rnn.pad_packed_sequence(h, batch_first = True)
         y = self.out(h)
-        y *= mask.unsqueeze(-1).expand_as(y)
+        y *= mask.unsqueeze(-1)
         return y
 
 class crf(nn.Module):
@@ -106,11 +106,13 @@ class crf(nn.Module):
     def score(self, y, y0, mask): # calculate the score of a given sequence
         score = Tensor(BATCH_SIZE).fill_(0.)
         y0 = torch.cat([LongTensor(BATCH_SIZE, 1).fill_(SOS_IDX), y0], 1)
+        emit = y.unsqueeze(3)
+        trans = self.trans.unsqueeze(2)
         for t in range(y.size(1)): # iterate through the sequence
             mask_t = mask[:, t]
-            emit = torch.cat([y[b, t, y0[b, t + 1]].unsqueeze(0) for b in range(BATCH_SIZE)])
-            trans = torch.cat([self.trans[seq[t + 1], seq[t]].unsqueeze(0) for seq in y0]) * mask_t
-            score = score + emit + trans
+            emit_t = torch.cat([emit[b, t, y0[b, t + 1]] for b in range(BATCH_SIZE)])
+            trans_t = torch.cat([trans[seq[t + 1], seq[t]] for seq in y0])
+            score += (emit_t + trans_t) * mask_t
         return score
 
     def decode(self, y, mask): # Viterbi decoding
@@ -124,7 +126,7 @@ class crf(nn.Module):
             bptr_t = LongTensor()
             score_t = Tensor()
             for i in range(self.num_tags): # for each next tag
-                m = [e.unsqueeze(1) for e in torch.max(score + self.trans[i], 1)]
+                m = [j.unsqueeze(1) for j in torch.max(score + self.trans[i], 1)]
                 bptr_t = torch.cat((bptr_t, m[1]), 1) # best previous tags
                 score_t = torch.cat((score_t, m[0]), 1) # best transition scores
             bptr = torch.cat((bptr, bptr_t.unsqueeze(1)), 1)
