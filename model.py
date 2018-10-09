@@ -32,11 +32,11 @@ class lstm_crf(nn.Module):
         self.crf = crf(num_tags)
         self = self.cuda() if CUDA else self
 
-    def forward(self, x, y0): # for training
+    def forward(self, x, y): # for training
         mask = x.data.gt(0).float()
-        y = self.lstm(x, mask)
-        Z = self.crf.forward(y, mask)
-        score = self.crf.score(y, y0, mask)
+        h = self.lstm(x, mask)
+        Z = self.crf.forward(h, mask)
+        score = self.crf.score(h, y, mask)
         return Z - score # NLL loss
 
     def decode(self, x): # for prediction
@@ -72,9 +72,9 @@ class lstm(nn.Module):
         x = nn.utils.rnn.pack_padded_sequence(x, mask.sum(1).int(), batch_first = True)
         h, _ = self.lstm(x, self.hidden)
         h, _ = nn.utils.rnn.pad_packed_sequence(h, batch_first = True)
-        y = self.out(h)
-        y *= mask.unsqueeze(-1)
-        return y
+        h = self.out(h)
+        h *= mask.unsqueeze(-1)
+        return h
 
 class crf(nn.Module):
     def __init__(self, num_tags):
@@ -90,27 +90,28 @@ class crf(nn.Module):
         self.trans.data[PAD_IDX, EOS_IDX] = 0.
         self.trans.data[PAD_IDX, PAD_IDX] = 0.
 
-    def forward(self, y, mask): # forward algorithm
+    def forward(self, h, mask): # forward algorithm
         # initialize forward variables in log space
         score = Tensor(BATCH_SIZE, self.num_tags).fill_(-10000.) # [B, C]
         score[:, SOS_IDX] = 0.
         trans = self.trans.unsqueeze(0) # [1, C, C]
-        for t in range(y.size(1)): # iterate through the sequence
+        for t in range(h.size(1)): # iterate through the sequence
             mask_t = mask[:, t].unsqueeze(1)
-            emit = y[:, t].unsqueeze(2) # [B, C, 1]
-            score_t = log_sum_exp(score.unsqueeze(1) + emit + trans) # [B, 1, C] -> [B, C, C] -> [B, C]
+            emit = h[:, t].unsqueeze(2) # [B, C, 1]
+            score_t = score.unsqueeze(1) + emit + trans # [B, 1, C] -> [B, C, C]
+            score_t = log_sum_exp(score.unsqueeze(1) + emit + trans) # [B, C]
             score = score_t * mask_t + score * (1 - mask_t)
         score = log_sum_exp(score)
         return score # partition function
 
-    def score(self, y, y0, mask): # calculate the score of a given sequence
+    def score(self, h, y, mask): # calculate the score of a given sequence
         score = Tensor(BATCH_SIZE).fill_(0.)
-        y = y.unsqueeze(3)
+        h = h.unsqueeze(3)
         trans = self.trans.unsqueeze(2)
-        for t in range(y.size(1)): # iterate through the sequence
+        for t in range(h.size(1)): # iterate through the sequence
             mask_t = mask[:, t]
-            emit = torch.cat([y[b, t, y0[b, t + 1]] for b in range(BATCH_SIZE)])
-            trans_t = torch.cat([trans[seq[t + 1], seq[t]] for seq in y0])
+            emit = torch.cat([h[b, t, y[b, t + 1]] for b in range(BATCH_SIZE)])
+            trans_t = torch.cat([trans[seq[t + 1], seq[t]] for seq in y])
             score += (emit + trans_t) * mask_t
         return score
 
