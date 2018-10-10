@@ -41,8 +41,8 @@ class lstm_crf(nn.Module):
 
     def decode(self, x): # for prediction
         mask = x.data.gt(0).float()
-        y = self.lstm(x, mask)
-        return self.crf.decode(y, mask)
+        h = self.lstm(x, mask)
+        return self.crf.decode(h, mask)
 
 class lstm(nn.Module):
     def __init__(self, vocab_size, num_tags):
@@ -115,13 +115,13 @@ class crf(nn.Module):
             score += (emit + trans_t) * mask_t
         return score
 
-    def decode(self, y, mask): # Viterbi decoding
+    def decode(self, h, mask): # Viterbi decoding
         # initialize backpointers and viterbi variables in log space
         bptr = LongTensor()
         score = Tensor(BATCH_SIZE, self.num_tags).fill_(-10000.)
         score[:, SOS_IDX] = 0.
 
-        for t in range(y.size(1)): # iterate through the sequence
+        for t in range(h.size(1)): # iterate through the sequence
             # backpointers and viterbi variables at this timestep
             bptr_t = LongTensor()
             score_t = Tensor()
@@ -130,7 +130,7 @@ class crf(nn.Module):
                 bptr_t = torch.cat((bptr_t, m[1]), 1) # best previous tags
                 score_t = torch.cat((score_t, m[0]), 1) # best transition scores
             bptr = torch.cat((bptr, bptr_t.unsqueeze(1)), 1)
-            score = score_t + y[:, t] # plus emission scores
+            score = score_t + h[:, t] # plus emission scores
         best_score, best_tag = torch.max(score, 1)
 
         # back-tracking
