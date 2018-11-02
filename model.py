@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 
+UNIT = "char" # unit for tokenization (char, word)
 BATCH_SIZE = 64
 EMBED_SIZE = 300
 HIDDEN_SIZE = 1000
@@ -13,8 +14,8 @@ WEIGHT_DECAY = 1e-4
 SAVE_EVERY = 10
 
 PAD = "<PAD>" # padding
-EOS = "<EOS>" # end of sequence
 SOS = "<SOS>" # start of sequence
+EOS = "<EOS>" # end of sequence
 UNK = "<UNK>" # unknown token
 
 PAD_IDX = 0
@@ -138,7 +139,7 @@ class crf(nn.Module):
         best_path = [[i] for i in best_tag.tolist()]
         for b in range(BATCH_SIZE):
             x = best_tag[b] # best tag
-            l = int(scalar(mask[b].sum()))
+            l = mask[b].sum().int().tolist()
             for bptr_t in reversed(bptr[b][:l]):
                 x = bptr_t[x]
                 best_path[b].append(x)
@@ -162,9 +163,6 @@ def randn(*args):
 def zeros(*args):
     x = torch.zeros(*args)
     return x.cuda() if CUDA else x
-
-def scalar(x):
-    return x.view(-1).data.tolist()[0]
 
 def log_sum_exp(x):
     m = torch.max(x, -1)[0]

@@ -23,7 +23,7 @@ def run_model(model, idx_to_tag, data):
     batch = [x + [PAD_IDX] * (batch_len - len(x)) for _, _, x in data]
     result = model.decode(LongTensor(batch))
     for i in range(z):
-        data[i] = data[i][:-1] + [idx_to_tag[j] for j in result[i]]
+        data[i] = data[i][:-1] + [tuple([idx_to_tag[j] for j in result[i] if j > EOS_IDX])]
     return [(x[1], x[2]) for x in sorted(data[:z])]
 
 def predict():
@@ -33,7 +33,7 @@ def predict():
     fo = open(sys.argv[4])
     for line in fo:
         line = line.strip()
-        x = tokenize(line, "char")
+        x = tokenize(line, UNIT)
         x = [word_to_idx[i] if i in word_to_idx else UNK_IDX for i in x] + [EOS_IDX]
         data.append([idx, line, x])
         if len(data) == BATCH_SIZE:

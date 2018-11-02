@@ -8,8 +8,8 @@ MAX_LEN = 50
 
 def load_data():
     data = []
-    word_to_idx = {PAD: PAD_IDX, EOS: EOS_IDX, UNK: UNK_IDX}
-    tag_to_idx = {PAD: PAD_IDX, EOS: EOS_IDX, SOS: SOS_IDX}
+    word_to_idx = {PAD: PAD_IDX, SOS: SOS_IDX, EOS: EOS_IDX, UNK: UNK_IDX}
+    tag_to_idx = {PAD: PAD_IDX, SOS: SOS_IDX, EOS: EOS_IDX}
     fo = open(sys.argv[1])
     for line in fo:
         line = line.strip()

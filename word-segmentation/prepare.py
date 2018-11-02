@@ -1,14 +1,14 @@
 import sys
 import re
-from model import SOS, EOS, PAD, UNK, SOS_IDX, EOS_IDX, PAD_IDX, UNK_IDX
+from model import PAD, EOS, SOS, UNK, PAD_IDX, EOS_IDX, SOS_IDX, UNK_IDX
 
 MIN_LEN = 2
 MAX_LEN = 50
 
 def load_data():
     data = []
-    word_to_idx = {PAD: PAD_IDX, EOS: EOS_IDX, UNK: UNK_IDX}
-    tag_to_idx = {PAD: PAD_IDX, EOS: EOS_IDX, SOS: SOS_IDX}
+    word_to_idx = {PAD: PAD_IDX, EOS: EOS_IDX, SOS: SOS_IDX, UNK: UNK_IDX}
+    tag_to_idx = {PAD: PAD_IDX, EOS: EOS_IDX}
     # IOB tags
     tag_to_idx["B"] = len(tag_to_idx)
     tag_to_idx["I"] = len(tag_to_idx)
