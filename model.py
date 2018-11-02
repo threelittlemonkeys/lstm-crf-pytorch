@@ -99,8 +99,7 @@ class crf(nn.Module):
         for t in range(h.size(1)): # iterate through the sequence
             mask_t = mask[:, t].unsqueeze(1)
             emit_t = h[:, t].unsqueeze(2) # [B, C, 1]
-            score_t = score.unsqueeze(1) + emit_t + trans # [B, 1, C] -> [B, C, C]
-            score_t = log_sum_exp(score.unsqueeze(1) + emit_t + trans) # [B, C]
+            score_t = log_sum_exp(score.unsqueeze(1) + emit_t + trans) # [B, 1, C] -> [B, C, C] -> [B, C]
             score = score_t * mask_t + score * (1 - mask_t)
         score = log_sum_exp(score)
         return score # partition function
