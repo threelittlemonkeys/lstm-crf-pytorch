@@ -98,9 +98,9 @@ class crf(nn.Module):
         trans = self.trans.unsqueeze(0) # [1, C, C]
         for t in range(h.size(1)): # iterate through the sequence
             mask_t = mask[:, t].unsqueeze(1)
-            emit = h[:, t].unsqueeze(2) # [B, C, 1]
-            score_t = score.unsqueeze(1) + emit + trans # [B, 1, C] -> [B, C, C]
-            score_t = log_sum_exp(score.unsqueeze(1) + emit + trans) # [B, C]
+            emit_t = h[:, t].unsqueeze(2) # [B, C, 1]
+            score_t = score.unsqueeze(1) + emit_t + trans # [B, 1, C] -> [B, C, C]
+            score_t = log_sum_exp(score.unsqueeze(1) + emit_t + trans) # [B, C]
             score = score_t * mask_t + score * (1 - mask_t)
         score = log_sum_exp(score)
         return score # partition function
@@ -111,9 +111,9 @@ class crf(nn.Module):
         trans = self.trans.unsqueeze(2)
         for t in range(h.size(1)): # iterate through the sequence
             mask_t = mask[:, t]
-            emit = torch.cat([h[b, t, y[b, t + 1]] for b in range(BATCH_SIZE)])
+            emit_t = torch.cat([h[b, t, y[b, t + 1]] for b in range(BATCH_SIZE)])
             trans_t = torch.cat([trans[seq[t + 1], seq[t]] for seq in y])
-            score += (emit + trans_t) * mask_t
+            score += (emit_t + trans_t) * mask_t
         return score
 
     def decode(self, h, mask): # Viterbi decoding
