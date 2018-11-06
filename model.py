@@ -96,19 +96,20 @@ class crf(nn.Module):
         score = Tensor(BATCH_SIZE, self.num_tags).fill_(-10000.) # [B, C]
         score[:, SOS_IDX] = 0.
         trans = self.trans.unsqueeze(0) # [1, C, C]
-        for t in range(h.size(1)): # iterate through the sequence
+        for t in range(h.size(1)): # recursion through the sequence
             mask_t = mask[:, t].unsqueeze(1)
             emit_t = h[:, t].unsqueeze(2) # [B, C, 1]
-            score_t = log_sum_exp(score.unsqueeze(1) + emit_t + trans) # [B, 1, C] -> [B, C, C] -> [B, C]
+            score_t = score.unsqueeze(1) + emit_t + trans # [B, 1, C] -> [B, C, C]
+            score_t = log_sum_exp(score_t) # [B, C, C] -> [B, C]
             score = score_t * mask_t + score * (1 - mask_t)
-        score = log_sum_exp(score)
+        score = log_sum_exp(score + self.trans[EOS_IDX]) # termination
         return score # partition function
 
     def score(self, h, y, mask): # calculate the score of a given sequence
         score = Tensor(BATCH_SIZE).fill_(0.)
         h = h.unsqueeze(3)
         trans = self.trans.unsqueeze(2)
-        for t in range(h.size(1)): # iterate through the sequence
+        for t in range(h.size(1)): # recursion through the sequence
             mask_t = mask[:, t]
             emit_t = torch.cat([h[b, t, y[b, t + 1]] for b in range(BATCH_SIZE)])
             trans_t = torch.cat([trans[seq[t + 1], seq[t]] for seq in y])
@@ -121,7 +122,7 @@ class crf(nn.Module):
         score = Tensor(BATCH_SIZE, self.num_tags).fill_(-10000.)
         score[:, SOS_IDX] = 0.
 
-        for t in range(h.size(1)): # iterate through the sequence
+        for t in range(h.size(1)): # recursion through the sequence
             # backpointers and viterbi variables at this timestep
             bptr_t = LongTensor()
             score_t = Tensor()
