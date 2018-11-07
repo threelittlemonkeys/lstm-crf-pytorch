@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 
 UNIT = "char" # unit for tokenization (char, word)
-BATCH_SIZE = 64
+BATCH_SIZE = 128
 EMBED_SIZE = 300
 HIDDEN_SIZE = 1000
 NUM_LAYERS = 2
@@ -126,14 +126,14 @@ class crf(nn.Module):
 
         for t in range(h.size(1)): # recursion through the sequence
             # backpointers and viterbi variables at this timestep
-            bptr_t = LongTensor()
-            score_t = Tensor()
-            for i in range(self.num_tags): # for each next tag
-                m = [j.unsqueeze(1) for j in torch.max(score + self.trans[i], 1)]
-                bptr_t = torch.cat((bptr_t, m[1]), 1) # best previous tags
-                score_t = torch.cat((score_t, m[0]), 1) # best transition scores
+            mask_t = mask[:, t].unsqueeze(1)
+            score_t = score.unsqueeze(1) + self.trans # [B, 1, C] -> [B, C, C]
+            score_t, bptr_t = score_t.max(2) # best previous scores and tags
             bptr = torch.cat((bptr, bptr_t.unsqueeze(1)), 1)
-            score = score_t + h[:, t] # plus emission scores
+            score_t += h[:, t] # plus emission scores
+            score = score_t * mask_t + score * (1 - mask_t)
+            print(bptr)
+            exit()
         best_score, best_tag = torch.max(score, 1)
 
         # back-tracking
