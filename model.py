@@ -74,7 +74,7 @@ class lstm(nn.Module):
         h, _ = self.lstm(x, self.hidden)
         h, _ = nn.utils.rnn.pad_packed_sequence(h, batch_first = True)
         h = self.out(h)
-        h *= mask.unsqueeze(-1)
+        h *= mask.unsqueeze(2)
         return h
 
 class crf(nn.Module):
@@ -102,7 +102,7 @@ class crf(nn.Module):
             score_t = score.unsqueeze(1) + emit_t + trans # [B, 1, C] -> [B, C, C]
             score_t = log_sum_exp(score_t) # [B, C, C] -> [B, C]
             score = score_t * mask_t + score * (1 - mask_t)
-        score = log_sum_exp(score + self.trans[EOS_IDX]) # termination
+        score = log_sum_exp(score + self.trans[EOS_IDX])
         return score # partition function
 
     def score(self, h, y, mask): # calculate the score of a given sequence
@@ -114,6 +114,8 @@ class crf(nn.Module):
             emit_t = torch.cat([h[b, t, y[b, t + 1]] for b in range(BATCH_SIZE)])
             trans_t = torch.cat([trans[seq[t + 1], seq[t]] for seq in y])
             score += (emit_t + trans_t) * mask_t
+        last_tag = y.gather(1, mask.sum(1).long().unsqueeze(1)).squeeze(1)
+        score += self.trans[EOS_IDX, last_tag]
         return score
 
     def decode(self, h, mask): # Viterbi decoding
