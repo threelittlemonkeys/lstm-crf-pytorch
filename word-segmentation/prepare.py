@@ -7,8 +7,8 @@ MAX_LEN = 50
 
 def load_data():
     data = []
-    word_to_idx = {PAD: PAD_IDX, EOS: EOS_IDX, SOS: SOS_IDX, UNK: UNK_IDX}
-    tag_to_idx = {PAD: PAD_IDX, EOS: EOS_IDX}
+    word_to_idx = {PAD: PAD_IDX, SOS: SOS_IDX, EOS: EOS_IDX, UNK: UNK_IDX}
+    tag_to_idx = {PAD: PAD_IDX, SOS: SOS_IDX, EOS: EOS_IDX}
     # IOB tags
     tag_to_idx["B"] = len(tag_to_idx)
     tag_to_idx["I"] = len(tag_to_idx)
