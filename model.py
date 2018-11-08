@@ -19,8 +19,8 @@ EOS = "<EOS>" # end of sequence
 UNK = "<UNK>" # unknown token
 
 PAD_IDX = 0
-EOS_IDX = 1
-SOS_IDX = 2
+SOS_IDX = 1
+EOS_IDX = 2
 UNK_IDX = 3
 
 torch.manual_seed(1)
@@ -111,8 +111,8 @@ class crf(nn.Module):
         trans = self.trans.unsqueeze(2)
         for t in range(h.size(1)): # recursion through the sequence
             mask_t = mask[:, t]
-            emit_t = torch.cat([h[b, t, y[b, t + 1]] for b in range(BATCH_SIZE)])
-            trans_t = torch.cat([trans[seq[t + 1], seq[t]] for seq in y])
+            emit_t = torch.cat([h[t, y[t + 1]] for h, y in zip(h, y)])
+            trans_t = torch.cat([trans[y[t + 1], y[t]] for y in y])
             score += (emit_t + trans_t) * mask_t
         last_tag = y.gather(1, mask.sum(1).long().unsqueeze(1)).squeeze(1)
         score += self.trans[EOS_IDX, last_tag]
@@ -125,15 +125,13 @@ class crf(nn.Module):
         score[:, SOS_IDX] = 0.
 
         for t in range(h.size(1)): # recursion through the sequence
-            # backpointers and viterbi variables at this timestep
             mask_t = mask[:, t].unsqueeze(1)
             score_t = score.unsqueeze(1) + self.trans # [B, 1, C] -> [B, C, C]
             score_t, bptr_t = score_t.max(2) # best previous scores and tags
-            bptr = torch.cat((bptr, bptr_t.unsqueeze(1)), 1)
             score_t += h[:, t] # plus emission scores
+            bptr = torch.cat((bptr, bptr_t.unsqueeze(1)), 1)
             score = score_t * mask_t + score * (1 - mask_t)
-            print(bptr)
-            exit()
+        score += self.trans[EOS_IDX]
         best_score, best_tag = torch.max(score, 1)
 
         # back-tracking
@@ -141,8 +139,8 @@ class crf(nn.Module):
         best_path = [[i] for i in best_tag.tolist()]
         for b in range(BATCH_SIZE):
             x = best_tag[b] # best tag
-            l = mask[b].sum().int().tolist()
-            for bptr_t in reversed(bptr[b][:l]):
+            y = mask[b].sum().int().tolist()
+            for bptr_t in reversed(bptr[b][:y]):
                 x = bptr_t[x]
                 best_path[b].append(x)
             best_path[b].pop()
