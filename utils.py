@@ -41,7 +41,8 @@ def load_word_to_idx(filename):
 def load_checkpoint(filename, model = None):
     print("loading model...")
     checkpoint = torch.load(filename)
-    model.load_state_dict(checkpoint["state_dict"])
+    if model:
+        model.load_state_dict(checkpoint["state_dict"])
     epoch = checkpoint["epoch"]
     loss = checkpoint["loss"]
     print("saved model: epoch = %d, loss = %f" % (checkpoint["epoch"], checkpoint["loss"]))
