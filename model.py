@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 
 UNIT = "char" # unit for tokenization (char, word)
-BATCH_SIZE = 128
+BATCH_SIZE = 256
 EMBED_SIZE = 300
 HIDDEN_SIZE = 1000
 NUM_LAYERS = 2
@@ -11,7 +11,7 @@ BIDIRECTIONAL = True
 NUM_DIRS = 2 if BIDIRECTIONAL else 1
 LEARNING_RATE = 0.01
 WEIGHT_DECAY = 1e-4
-SAVE_EVERY = 10
+SAVE_EVERY = 1
 
 PAD = "<PAD>" # padding
 SOS = "<SOS>" # start of sequence
