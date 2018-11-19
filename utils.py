@@ -1,4 +1,3 @@
-import sys
 import re
 from model import *
 
@@ -28,8 +27,8 @@ def load_word_to_idx(filename):
     fo.close()
     return word_to_idx
 
-def save_word_to_idx(word_to_idx):
-    fo = open(sys.argv[1] + ".word_to_idx", "w")
+def save_word_to_idx(filename, word_to_idx):
+    fo = open(filename + ".word_to_idx", "w")
     for word, _ in sorted(word_to_idx.items(), key = lambda x: x[1]):
         fo.write("%s\n" % word)
     fo.close()
@@ -44,8 +43,8 @@ def load_tag_to_idx(filename):
     fo.close()
     return tag_to_idx
 
-def save_tag_to_idx(tag_to_idx):
-    fo = open(sys.argv[1] + ".tag_to_idx", "w")
+def save_tag_to_idx(filename, tag_to_idx):
+    fo = open(filename + ".tag_to_idx", "w")
     for tag, _ in sorted(tag_to_idx.items(), key = lambda x: x[1]):
         fo.write("%s\n" % tag)
     fo.close()
