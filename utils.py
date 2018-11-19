@@ -13,8 +13,7 @@ def normalize(x):
 def tokenize(x, unit):
     x = normalize(x)
     if unit == "char":
-        x = re.sub(" ", "", x)
-        return list(x)
+        return re.sub(" ", "", x)
     if unit == "word":
         return x.split(" ")
 
@@ -63,3 +62,12 @@ def f1(p, r):
     if p + r:
         return 2 * p * r / (p + r)
     return 0
+
+def iob_to_txt(txt, tags, unit):
+    y = ""
+    txt = tokenize(txt, unit)
+    for i, j in enumerate(tags):
+        if i != 0 and j[0] == "B":
+            y += " "
+        y += txt[i]
+    return y
