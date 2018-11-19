@@ -1,3 +1,4 @@
+import sys
 import re
 from model import *
 
@@ -17,6 +18,22 @@ def tokenize(x, unit):
     if unit == "word":
         return x.split(" ")
 
+def load_word_to_idx(filename):
+    print("loading word_to_idx...")
+    word_to_idx = {}
+    fo = open(filename)
+    for line in fo:
+        line = line.strip()
+        word_to_idx[line] = len(word_to_idx)
+    fo.close()
+    return word_to_idx
+
+def save_word_to_idx(word_to_idx):
+    fo = open(sys.argv[1] + ".word_to_idx", "w")
+    for word, _ in sorted(word_to_idx.items(), key = lambda x: x[1]):
+        fo.write("%s\n" % word)
+    fo.close()
+
 def load_tag_to_idx(filename):
     print("loading tag_to_idx...")
     tag_to_idx = {}
@@ -27,15 +44,11 @@ def load_tag_to_idx(filename):
     fo.close()
     return tag_to_idx
 
-def load_word_to_idx(filename):
-    print("loading word_to_idx...")
-    word_to_idx = {}
-    fo = open(filename)
-    for line in fo:
-        line = line.strip()
-        word_to_idx[line] = len(word_to_idx)
+def save_tag_to_idx(tag_to_idx):
+    fo = open(sys.argv[1] + ".tag_to_idx", "w")
+    for tag, _ in sorted(tag_to_idx.items(), key = lambda x: x[1]):
+        fo.write("%s\n" % tag)
     fo.close()
-    return word_to_idx
 
 def load_checkpoint(filename, model = None):
     print("loading model...")
@@ -58,16 +71,16 @@ def save_checkpoint(filename, model, epoch, loss, time):
         torch.save(checkpoint, filename + ".epoch%d" % epoch)
         print("saved model at epoch %d" % epoch)
 
-def f1(p, r):
-    if p + r:
-        return 2 * p * r / (p + r)
-    return 0
-
 def iob_to_txt(txt, tags, unit):
     y = ""
     txt = tokenize(txt, unit)
     for i, j in enumerate(tags):
-        if i != 0 and j[0] == "B":
+        if i and j[0] == "B":
             y += " "
         y += txt[i]
     return y
+
+def f1(p, r):
+    if p + r:
+        return 2 * p * r / (p + r)
+    return 0
