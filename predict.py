@@ -1,6 +1,3 @@
-import sys
-import re
-from model import *
 from utils import *
 
 def load_model():
