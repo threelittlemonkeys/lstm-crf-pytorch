@@ -37,12 +37,6 @@ def load_data():
     fo.close()
     return data, word_to_idx, tag_to_idx
 
-def save_data(filename, data):
-    fo = open(filename + ".csv", "w")
-    for seq in data:
-        fo.write(" ".join(seq) + "\n")
-    fo.close()
-
 if __name__ == "__main__":
     if len(sys.argv) != 2:
         sys.exit("Usage: %s training_data" % sys.argv[0])

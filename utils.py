@@ -17,6 +17,12 @@ def tokenize(x, unit):
     if unit == "word":
         return x.split(" ")
 
+def save_data(filename, data):
+    fo = open(filename + ".csv", "w")
+    for seq in data:
+        fo.write(" ".join(seq) + "\n")
+    fo.close()
+
 def load_word_to_idx(filename):
     print("loading word_to_idx...")
     word_to_idx = {}
