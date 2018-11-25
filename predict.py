@@ -21,9 +21,8 @@ def run_model(model, idx_to_tag, data):
     batch = [x + [PAD_IDX] * (batch_len - len(x)) for _, _, x in data]
     result = model.decode(LongTensor(batch))
     for i in range(z):
-        data[i].pop()
         data[i].append([idx_to_tag[j] for j in result[i]])
-    return [(x[1], x[2]) for x in sorted(data[:z])]
+    return [(x[1], x[3]) for x in sorted(data[:z])]
 
 def predict():
     idx = 0
@@ -38,8 +37,8 @@ def predict():
         if len(data) == BATCH_SIZE:
             result = run_model(model, idx_to_tag, data)
             for x in result:
-                print(x)
-                # print(iob_to_txt(*x, UNIT))
+                # print(x)
+                print(iob_to_txt(*x, UNIT))
             idx = 0
             data = []
         idx += 1
@@ -47,8 +46,8 @@ def predict():
     if len(data):
         result = run_model(model, idx_to_tag, data)
         for x in result:
-            print(x)
-            # print(iob_to_txt(*x, UNIT))
+            # print(x)
+            print(iob_to_txt(*x, UNIT))
 
 if __name__ == "__main__":
     if len(sys.argv) != 5:
