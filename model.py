@@ -139,7 +139,7 @@ class crf(nn.Module):
         best_path = [[i] for i in best_tag.tolist()]
         for b in range(BATCH_SIZE):
             x = best_tag[b] # best tag
-            y = mask[b].sum().int().tolist()
+            y = int(mask[b].sum().item())
             for bptr_t in reversed(bptr[b][:y]):
                 x = bptr_t[x]
                 best_path[b].append(x)
