@@ -37,8 +37,8 @@ def predict():
         if len(data) == BATCH_SIZE:
             result = run_model(model, idx_to_tag, data)
             for x in result:
-                # print(x)
-                print(iob_to_txt(*x, UNIT))
+                print(x)
+                # print(iob_to_txt(*x, UNIT))
             idx = 0
             data = []
         idx += 1
@@ -46,8 +46,8 @@ def predict():
     if len(data):
         result = run_model(model, idx_to_tag, data)
         for x in result:
-            # print(x)
-            print(iob_to_txt(*x, UNIT))
+            print(x)
+            # print(iob_to_txt(*x, UNIT))
 
 if __name__ == "__main__":
     if len(sys.argv) != 5:
