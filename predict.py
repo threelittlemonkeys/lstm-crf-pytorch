@@ -39,7 +39,6 @@ def predict():
             for x in result:
                 print(x)
                 # print(iob_to_txt(*x, UNIT))
-            idx = 0
             data = []
         idx += 1
     fo.close()
