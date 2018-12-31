@@ -12,7 +12,6 @@ def load_model():
     return model, word_to_idx, tag_to_idx, idx_to_tag
 
 def run_model(model, idx_to_tag, data):
-    batch = []
     z = len(data)
     while len(data) < BATCH_SIZE:
         data.append([-1, "", [EOS_IDX]])
