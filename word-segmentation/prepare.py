@@ -33,7 +33,7 @@ def load_data():
             seq.extend([str(word_to_idx[c]) if c in word_to_idx else str(UNK_IDX) for c in word])
             tags.extend([str(tag_to_idx[t]) for t in ctags])
         data.append(seq + tags)
-    data.sort(key = len, reverse = True)
+    data.sort(key = lambda x: -len(x))
     fo.close()
     return data, word_to_idx, tag_to_idx
 

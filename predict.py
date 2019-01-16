@@ -15,7 +15,7 @@ def run_model(model, idx_to_tag, data):
     z = len(data)
     while len(data) < BATCH_SIZE:
         data.append([-1, "", [EOS_IDX]])
-    data.sort(key = lambda x: len(x[2]), reverse = True)
+    data.sort(key = lambda x: -len(x[2]))
     batch_len = len(data[0][2])
     batch = [x + [PAD_IDX] * (batch_len - len(x)) for _, _, x in data]
     result = model.decode(LongTensor(batch))
