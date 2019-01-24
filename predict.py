@@ -43,9 +43,9 @@ def predict():
     fo.close()
     if len(data):
         result = run_model(model, idx_to_tag, data)
-        for x in result:
-            print(x)
-            # print(iob_to_txt(*x, UNIT))
+    for x in result:
+        print(x)
+        # print(iob_to_txt(*x, UNIT))
 
 if __name__ == "__main__":
     if len(sys.argv) != 5:
