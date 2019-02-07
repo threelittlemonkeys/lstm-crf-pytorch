@@ -35,7 +35,7 @@ def train():
     data, word_to_idx, tag_to_idx = load_data()
     model = lstm_crf(len(word_to_idx), len(tag_to_idx))
     print(model)
-    optim = torch.optim.SGD(model.parameters(), lr = LEARNING_RATE, weight_decay = WEIGHT_DECAY)
+    optim = torch.optim.Adam(model.parameters(), lr = LEARNING_RATE)
     epoch = load_checkpoint(sys.argv[1], model) if isfile(sys.argv[1]) else 0
     filename = re.sub("\.epoch[0-9]+$", "", sys.argv[1])
     print("training model...")
