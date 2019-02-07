@@ -1,10 +1,6 @@
 import sys
 from utils import *
 
-MIN_LEN = 2
-MAX_LEN = 50
-KEEP_IDX = False # use the existing indices
-
 def load_data():
     data = []
     if KEEP_IDX:
@@ -24,13 +20,15 @@ def load_data():
         for tkn in tokens:
             word, tag = re.split("/(?=[^/]+$)", tkn)
             word = normalize(word)
+            if UNIT == "word":
+                word = [word]
             if not KEEP_IDX:
-                for c in word:
-                    if c not in word_to_idx:
-                        word_to_idx[c] = len(word_to_idx)
+                for x in word:
+                    if x not in word_to_idx:
+                        word_to_idx[x] = len(word_to_idx)
                 if tag not in tag_to_idx:
                     tag_to_idx[tag] = len(tag_to_idx)
-            seq.extend([str(word_to_idx[c]) if c in word_to_idx else str(UNK_IX) for c in word])
+            seq.extend([str(word_to_idx[x]) if x in word_to_idx else str(UNK_IDX) for x in word])
             tags.extend([str(tag_to_idx[tag])] * len(word))
         data.append(seq + tags)
     data.sort(key = lambda x: -len(x))
