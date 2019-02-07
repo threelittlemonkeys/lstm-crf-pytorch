@@ -1,10 +1,6 @@
 import sys
 from utils import *
 
-MIN_LEN = 2
-MAX_LEN = 50
-KEEP_IDX = False # use the existing indices
-
 def load_data():
     data = []
     if KEEP_IDX:
