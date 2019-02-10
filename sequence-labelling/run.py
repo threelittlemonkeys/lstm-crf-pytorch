@@ -10,5 +10,17 @@ for line in sys.stdin:
         # out.append(word + "/" + tag)
         # continue
         if re.search("'s", word):
-            print(word, tag)
+            if tag.count("+") > 0:
+                continue
+                tags = tag.split("+")
+                print(word[:-2], tags[0])
+                print(word[-2:], tags[1])
+            else:
+                if tag[-1] != "$":
+                    print(word, tag)
+                    pass
+                else:
+                    # print(word[:-2], tag[:-1])
+                    # print(word[-2:], "POS")
+                    pass
     # print(" ".join(out))
