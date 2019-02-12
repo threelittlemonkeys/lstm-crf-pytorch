@@ -9,7 +9,15 @@ for line in sys.stdin:
         # tag = re.sub("AT", "DT", tag)
         # out.append(word + "/" + tag)
         # continue
+        # if tag.count("+") > 0:
+        if tag[-1] == "*":
+            # tag = "NNP$"
+            print(word, tag)
+        # out.append(word + "/" + tag)
+        continue
         if re.search("'s", word):
+            print(word, tag)
+            continue
             if tag.count("+") > 0:
                 continue
                 tags = tag.split("+")
