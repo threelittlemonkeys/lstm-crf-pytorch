@@ -7,7 +7,9 @@ for line in fo:
     tkn = line.split()
     out = []
     for word, tag in [re.split("/(?=[^/]+$)", x) for x in tkn]:
-        if tag == sys.argv[1]:
+        if len(sys.argv) == 1:
+            print(tag)
+        elif tag == sys.argv[1]:
             print(word, tag)
         continue
         if re.search("'s", word):
