@@ -1,8 +1,7 @@
 import sys
 import re
 
-fo = open("brown.tagged.merged.uniq")
-for line in fo:
+for line in sys.stdin:
     line = line.strip()
     tkn = line.split()
     out = []
@@ -23,4 +22,3 @@ for line in fo:
                 else:
                     print(word[:-2], tag[:-1], end = " ")
                     print(word[-2:], "POS")
-fo.close()
