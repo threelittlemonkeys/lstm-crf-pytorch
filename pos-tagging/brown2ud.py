@@ -7,7 +7,9 @@ for line in fo:
     tkn = line.split()
     out = []
     for word, tag in [re.split("/(?=[^/]+$)", x) for x in tkn]:
+        if tag == "ABL": tag = "RB"
         if tag == "AP": tag = "JJ"
+        if tag == "AT": tag = "DT"
         if tag == "BE": tag = "VB"
         if tag == "BED": tag = "VBD"
         if tag == "BEG": tag = "VBG"
