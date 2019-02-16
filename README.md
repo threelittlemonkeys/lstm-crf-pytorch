@@ -1,6 +1,6 @@
 # LSTM-CRF in PyTorch
 
-A minimal PyTorch implementation of bidirectional LSTM-CRF for sequence tagging.
+A minimal PyTorch implementation of bidirectional LSTM-CRF for sequence labelling.
 
 Supported features:
 - A PyTorch implementation of conditional random field (CRF)

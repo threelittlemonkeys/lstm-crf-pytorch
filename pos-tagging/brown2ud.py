@@ -8,15 +8,20 @@ for line in fo:
     out = []
     for word, tag in [re.split("/(?=[^/]+$)", x) for x in tkn]:
         if tag == "ABL": tag = "RB"
+        # ABN
+        # ABX
         if tag == "AP": tag = "JJ"
         if tag == "AT": tag = "DT"
         if tag == "BE": tag = "VB"
         if tag == "BED": tag = "VBD"
+        if tag == "BEDZ": tag = "VBD"
         if tag == "BEG": tag = "VBG"
         if tag == "BEM": tag = "VBP"
         if tag == "BEN": tag = "VBN"
         if tag == "BER": tag = "VBP"
         if tag == "BEZ": tag = "VBZ"
+        # CC
+        # CD
         if tag == "HV": tag = "VB"
         if tag == "HVD": tag = "VBD"
         if tag == "HVG": tag = "VBG"
@@ -50,7 +55,7 @@ Brown Corpus Tagset
 ,    comma
 :    colon
 ABL  pre-qualifier (quite, rather)
-ABN  pre-quantifier (half, all)
+ABN  pre-quantifier (all, half, many)
 ABX  pre-quantifier (both)
 AP   post-determiner (many, several, next)
 AT   article (a, the, no)
@@ -63,7 +68,7 @@ BEN  been
 BER  are, art
 BEZ  is
 CC   coordinating conjunction (and, or)
-CD   cardinal numeral (one, two, 2, etc.)
+CD   cardinal numeral (one, two, 3, etc.)
 CS   subordinating conjunction (if, although)
 DO   do
 DOD  did
