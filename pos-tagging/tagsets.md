@@ -1,16 +1,17 @@
-# Part-of-Speech Tagsets
+# Part-of-Speech (POS) Tagsets
 
 ## Brown Corpus POS Tagset
 
 | Tag | Definition | Examples |
 | --- | --- | --- |
 | . | sentence terminator | . ; ? * |
-| ( | left parenthesis | |
-| ) | right parenthesis | |
-| * | negation particle | not, n't |
+| ( | left parenthesis | ( [ |
+| ) | right parenthesis | ) ] |
 | -- | dash | |
 | , | comma | |
 | : | colon | |
+| * | negation particle | not, n't |
+| $ | possessive ending | 's |
 | ABL | pre-qualifier | quite, rather |
 | ABN | pre-quantifier | all, half, many |
 | ABX | pre-quantifier | both |
@@ -63,8 +64,8 @@
 | PPL | reflexive pronoun, sg | myself |
 | PPLS | reflexive pronoun, pl | ourselves |
 | PPO | objective pronoun | me, him, it, them |
-| PPS | nominative pronoun, 3rd sg | he, she, it, one |
-| PPSS | nominative pronoun, other | I, we, they, you |
+| PPS | nominative pronoun, 3rd person sg | he, she, it, one |
+| PPSS | nominative pronoun, non 3rd person sg | I, we, they, you |
 | QL | qualifier | very, fairly |
 | QLP | post-qualifier | enough, indeed |
 | RB | adverb | |
@@ -77,13 +78,17 @@
 | UH | interjection, exclamation | |
 | VB | verb, base form | |
 | VBD | verb, past tense | |
-| VBG | verb, present participle/gerund | |
+| VBG | verb, present participle or gerund | |
 | VBN | verb, past participle | |
-| VBP | verb, non 3rd sg present | |
-| VBZ | verb, 3rd sg present | |
+| VBP | verb, non 3rd person sg present | |
+| VBZ | verb, 3rd person sg present | |
 | WDT | wh-determiner | what, which |
 | WP$ | wh-pronoun, poss | whose |
 | WPO | wh-pronoun, obj | whom, which, that |
 | WPS | wh-pronoun, nom | who, which, that |
 | WQL | wh-qualifier | how |
 | WRB | wh-adverb | how, where, when |
+
+## Universal POS Tagset
+
+## Penn Treebank POS Tagset
