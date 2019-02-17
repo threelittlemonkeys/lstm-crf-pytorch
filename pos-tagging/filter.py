@@ -2,6 +2,7 @@ import sys
 import re
 
 pl = {}
+# fo = open("brown.tagged.merged.uniq")
 fo = open("brown.tagged.merged.uniq.ptb")
 for line in fo:
     line = line.strip()
