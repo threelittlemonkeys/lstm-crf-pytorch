@@ -1,8 +1,9 @@
 import sys
 import re
 
-fo = open("brown.tagged.merged.uniq")
-for line in fo:
+fin = open("brown.tagged.merged.uniq", "r")
+fout = open("brown.tagged.merged.uniq.ptb", "w")
+for line in fin:
     line = line.strip()
     tkn = line.split()
     out = []
@@ -53,8 +54,9 @@ for line in fo:
             if poss:
                 tags.append("POSS")
         out.append(word + "/" + "+".join(tags))
-    print(" ".join(out))
-fo.close()
+    fout.write(" ".join(out) + "\n")
+fin.close()
+fout.close()
 
 '''
 ===================
@@ -149,21 +151,21 @@ WRB  wh-adverb (how, where, when)
 Universal POS tagset
 ====================
 
-ADJ  ADJ   adjective
-ADP  ADP   adposition
-ADV  ADV   adverb
-AUX  AUX   auxiliary
-CONJ CCONJ coordinating conjunction
-DET  DET   determiner
-INTJ INTJ  interjection
-NOUN NOUN  noun
-NUM  NUM   numeral
-PART PART  particle
-PRON PRON  pronoun
-CONJ PROPN proper noun
-PUNC PUNCT punctuation
-CONJ SCONJ subordinating conjunction
-SYM  SYM   symbol
-VERB VERB  verb
-UNK  X     other
+ADJ   adjective
+ADP   adposition
+ADV   adverb
+AUX   auxiliary
+CCONJ coordinating conjunction
+DET   determiner
+INTJ  interjection
+NOUN  noun
+NUM   numeral
+PART  particle
+PRON  pronoun
+PROPN proper noun
+PUNCT punctuation
+SCONJ subordinating conjunction
+SYM   symbol
+VERB  verb
+X     other
 '''
