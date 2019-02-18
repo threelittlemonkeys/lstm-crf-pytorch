@@ -45,7 +45,7 @@ for line in fin:
             if re.match("P(N|P[LOS]S?)$", x): tags.append("PN")
             if re.match("QLP?$", x): tags.append("RB")
             if re.match("RB[RT]?$", x): tags.append("RB")
-            if x == "RN": tags.append("RN")
+            if x == "RN": tags.append("RB")
             if x == "RP": tags.append("RP")
             if x == "TO": tags.append("RP")
             if x == "UH": tags.append("UH")

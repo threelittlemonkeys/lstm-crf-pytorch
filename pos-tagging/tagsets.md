@@ -56,7 +56,7 @@
 | NP | proper noun, sg or part of name phrase | |
 | NPS | proper noun, pl | |
 | NR | adverbial noun, sg | home, today, west |
-| NRS | adverbial noun, pl | home, today, west |
+| NRS | adverbial noun, pl | Sundays |
 | OD | ordinal numeral | first, 2nd |
 | PN | nominal pronoun | everybody, nothing |
 | PP$ | possessive pronoun | my, our |
