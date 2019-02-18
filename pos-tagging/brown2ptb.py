@@ -21,7 +21,8 @@ for line in fin:
             if len(x) and x[-1] == "*":
                 x = x[:-1]
                 neg = True
-            if re.match("[PW]P\$$", x): tags.append("DT")
+            if x == "PP$": tags.append("DT")
+            if x == "WP$": tags.append("DT")
             if x == "PP$$": tags.append("PN")
             if len(x) and x[-1] == "$":
                 x = x[:-1]
@@ -31,7 +32,7 @@ for line in fin:
             if re.match("BE(DZ?|[GMNRZ])?$", x): tags.append("VB")
             if x == "CC": tags.append("CC")
             if x == "CS": tags.append("CS")
-            if x == "CD": tags.append("JJ")
+            if x == "CD": tags.append("CD")
             if x == "OD": tags.append("JJ")
             if re.match("DO[DZ]?$", x): tags.append("VB")
             if re.match("DT[ISX]?$", x): tags.append("DT")
