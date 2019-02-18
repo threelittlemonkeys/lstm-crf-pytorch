@@ -18,13 +18,13 @@
 | AP | post-determiner | many, several, next |
 | AT | article | a, the, no |
 | BE | | be |
-| BED | | were |
-| BEDZ | | was |
-| BEG | | being |
-| BEM | | am |
-| BEN | | been |
-| BER | | are, art |
-| BEZ | | is |
+| BED | verb be | were |
+| BEDZ | verb be | was |
+| BEG | verb be | being |
+| BEM | verb be | am |
+| BEN | verb be | been |
+| BER | verb be | are, art |
+| BEZ | verb be | is |
 | CC | coordinating conjunction | and, or |
 | CD | cardinal numeral | one, two, 3 |
 | CS | subordinating conjunction | if, although |
@@ -38,11 +38,11 @@
 | EX | existential there | |
 | FW | foreign word (hyphenated before regular tag) | |
 | HL | headline (hyphenated after regular tag) | |
-| HV | | have |
-| HVD | past | had |
-| HVG | | having |
-| HVN | past participle | had |
-| HVZ | | has |
+| HV | verb have | have |
+| HVD | verb have, past | had |
+| HVG | verb have | having |
+| HVN | verb have, past participle | had |
+| HVZ | verb have | has |
 | IN | preposition | |
 | JJ | adjective | |
 | JJR | comparative adjective | |
@@ -77,7 +77,7 @@
 | TO | infinitive marker to | |
 | UH | interjection, exclamation | |
 | VB | verb, base form | |
-| VBD | verb, past tense | |
+| VBD | verb, past | |
 | VBG | verb, present participle or gerund | |
 | VBN | verb, past participle | |
 | VBP | verb, non 3rd person sg present | |

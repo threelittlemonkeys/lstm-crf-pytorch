@@ -29,7 +29,10 @@ for line in fin:
                 pos = True
             if re.match("[^A-Z]+$", x): tags.append(x) # other special characters
             if re.match("A(B[LNX]|[PT])$", x): tags.append("DT")
-            if re.match("BE(DZ?|[GMNRZ])?$", x): tags.append("VB")
+            if x == "BE": tags.append("VB")
+            if re.match("BEDZ?$", x): tags.append("VBD")
+            if re.match("BE[GNZ]$", x): tags.append("VB" + x[-1])
+            if re.match("BE[MR]$", x): tags.append("VBP")
             if x == "CC": tags.append("CC")
             if x == "CS": tags.append("CS")
             if x == "CD": tags.append("CD")
@@ -37,7 +40,8 @@ for line in fin:
             if re.match("DO[DZ]?$", x): tags.append("VB")
             if re.match("DT[ISX]?$", x): tags.append("DT")
             if x == "EX": tags.append("RB")
-            if re.match("HV[DGNZ]?$", x): tags.append("VB")
+            if x == "HV": tags.append("VB")
+            if re.match("HV[DGNZ]$", x): tags.append("VB" + x[-1])
             if x == "IN": tags.append("IN")
             if re.match("JJ[RST]?$", x): tags.append("JJ")
             if x == "MD": tags.append("MD")
@@ -50,12 +54,12 @@ for line in fin:
             if x == "RP": tags.append("RP")
             if x == "TO": tags.append("RP")
             if x == "UH": tags.append("UH")
-            if re.match("VB[DGNPZ]?$", x): tags.append("VB")
+            if re.match("VB[DGNZ]?$", x): tags.append(x)
             if x == "WDT": tags.append("DT")
             if re.match("WP[OS]?$", x): tags.append("PN")
             if re.match("W(QL|RB)$", x): tags.append("RB")
             if neg:
-                tags.append("RP")
+                tags.append("NEG")
             if pos:
                 tags.append("POS")
         out.append(word + "/" + "+".join(tags))
