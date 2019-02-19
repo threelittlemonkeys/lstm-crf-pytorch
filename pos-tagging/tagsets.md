@@ -1,5 +1,32 @@
 # Part-of-Speech (POS) Tagsets
 
+## POS Tagset
+
+| Tag | Definition | Examples |
+| --- | --- | --- |
+| . | sentence terminator | . ; ? * |
+| ( | left parenthesis | ( [ |
+| ) | right parenthesis | ) ] |
+| -- | dash | |
+| , | comma | |
+| : | colon | |
+| AUX | auxiliary | can, should, will |
+| NEG | negation particle | not, n't |
+| POS | possessive ending | 's |
+| DT | determiner | a, the, no |
+| CC | conjunction | and, or |
+| CD | cardinal numeral | one, two, 3 |
+| FW | foreign word (hyphenated before regular tag) | |
+| JJ | adjective | |
+| UNK | unknown | |
+| NN | noun | |
+| PRO | pronoun | everybody, nothing |
+| RB | adverb | |
+| RP | adverbial particle | about, off, up |
+| UH | interjection, exclamation | |
+| VB | verb, base form | |
+| WH | wh word | what, which |
+
 ## Brown Corpus POS Tagset
 
 | Tag | Definition | Examples |
@@ -88,7 +115,3 @@
 | WPS | wh-pronoun, nom | who, which, that |
 | WQL | wh-qualifier | how |
 | WRB | wh-adverb | how, where, when |
-
-## Universal POS Tagset
-
-## Penn Treebank POS Tagset

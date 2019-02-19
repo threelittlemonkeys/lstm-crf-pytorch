@@ -1,6 +1,9 @@
 import sys
 import re
 
+if len(sys.argv) not in [2, 3]:
+    sys.exit("Usage: %s brown|ptb word|tag|word/tag" % sys.argv[0])
+
 pl = {}
 
 if sys.argv[1] == "brown":
@@ -31,4 +34,4 @@ for line in fo:
             print(" ".join(["/".join(x) for x in out]))
 fo.close()
 
-print(len(pl))
+print("%d in total" % len(pl))
