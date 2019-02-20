@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 
-UNIT = "char" # unit for tokenization (char, word)
+UNIT = "char" # unit of tokenization (char, word)
 MIN_LEN = 1 # minimum sequence length for training
 MAX_LEN = 50 # maximum sequence length for decoding
 KEEP_IDX = False # use the existing indices
