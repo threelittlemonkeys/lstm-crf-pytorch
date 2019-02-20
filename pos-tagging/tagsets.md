@@ -5,12 +5,15 @@
 | Tag | Definition | Examples |
 | --- | --- | --- |
 | . | sentence terminator | . ; ? * |
+| `` | opening double quotation mark | |
+| '' | closing double quotation mark | |
+| ' | single quotation mark | |
 | ( | left parenthesis | ( [ |
 | ) | right parenthesis | ) ] |
 | -- | dash | |
 | , | comma | |
 | : | colon | |
-| AUX | auxiliary | can, should, will |
+| AUX | auxiliary verb | can, should, will |
 | NEG | negation particle | not, n't |
 | POS | possessive ending | 's |
 | DT | determiner | a, the, no |

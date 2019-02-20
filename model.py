@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 
-UNIT = "char" # unit of tokenization (char, word)
+UNIT = "word" # unit of tokenization (char, word)
 MIN_LEN = 1 # minimum sequence length for training
 MAX_LEN = 50 # maximum sequence length for decoding
 KEEP_IDX = False # use the existing indices
@@ -13,7 +13,7 @@ DROPOUT = 0.5
 BIDIRECTIONAL = True
 NUM_DIRS = 2 if BIDIRECTIONAL else 1
 LEARNING_RATE = 1e-4
-SAVE_EVERY = 1
+SAVE_EVERY = 10
 
 PAD = "<PAD>" # padding
 SOS = "<SOS>" # start of sequence
