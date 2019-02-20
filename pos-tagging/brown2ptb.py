@@ -25,7 +25,8 @@ def convert(tkn):
                     x = x[:-1]
                     pos = True
             if re.match("[^A-Z]+$", x): tags.append(x) # other special characters
-            if re.match("A(B[LNX]|[PT])$", x): tags.append("DT")
+            if x == "ABL": tags.append("RB")
+            if re.match("A(B[NX]|[PT])$", x): tags.append("DT")
             if x == "BE": tags.append("VB")
             if re.match("BEDZ?$", x): tags.append("VB")
             if re.match("BE[GN]$", x): tags.append("VB")
