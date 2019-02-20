@@ -21,7 +21,7 @@ for line in fo:
         if len(sys.argv) == 2:
             pl[tag] += 1
         elif word == sys.argv[2] or tag == sys.argv[2]:
-            pl[word, tag] += 1
+            pl[word + " " + tag] += 1
         elif sys.argv[2] == word + "/" + tag:
             out = tkn[max(0, i - 2):i]
             out += [tkn[i]]
