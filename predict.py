@@ -26,6 +26,7 @@ def run_model(model, idx_to_tag, data):
 def predict(lb = False):
     idx = 0
     data = []
+    result = []
     model, word_to_idx, tag_to_idx, idx_to_tag = load_model()
     fo = open(sys.argv[4])
     for line in fo:
@@ -38,18 +39,18 @@ def predict(lb = False):
         x = [word_to_idx[i] if i in word_to_idx else UNK_IDX for i in x]
         data.append([idx, line, x, y])
         if len(data) == BATCH_SIZE:
-            result = run_model(model, idx_to_tag, data)
-            for x in result:
-                print(x)
-                # print(iob_to_txt(*x, UNIT))
+            result.extend(run_model(model, idx_to_tag, data))
             data = []
         idx += 1
     fo.close()
     if len(data):
-        result = run_model(model, idx_to_tag, data)
-    for x in result:
-        print(x)
-        # print(iob_to_txt(*x, UNIT))
+        result.extend(run_model(model, idx_to_tag, data))
+    if lb:
+        return result
+    else:
+        for x, _, y in result:
+            print((x, y))
+            # print(iob_to_txt(*x, UNIT))
 
 if __name__ == "__main__":
     if len(sys.argv) != 5:
