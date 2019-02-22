@@ -2,7 +2,7 @@ from predict import *
 from collections import defaultdict
 
 def evaluate(result):
-    a = [0, 0] # average precision, recall
+    a = defaultdict(float) # average
     s = defaultdict(int) # entire set
     p = defaultdict(int) # positive
     t = defaultdict(int) # true positive
@@ -13,18 +13,26 @@ def evaluate(result):
             if y0 == y1:
                 t[y0] += 1
     for y in sorted(s.keys()):
-        prec = t[y] / p[y] if p[y] else 0
-        rec = t[y] / s[y]
-        a[0] += prec
-        a[1] += rec
+        pr = t[y] / p[y] if p[y] else 0
+        rc = t[y] / s[y]
+        a["macro_pr"] += pr
+        a["macro_rc"] += rc
         print("\nlabel = %s" % y)
-        print("precision = %f (%d/%d)" % (prec, t[y], p[y]))
-        print("recall = %f (%d/%d)" % (rec, t[y], s[y]))
-        print("f1 = %f" % f1(prec, rec))
-    a = [x / len(s) for x in a]
-    print("\nprecision = %f" % a[0])
-    print("recall = %f" % a[1])
-    print("f1 = %f" % f1(*a))
+        print("precision = %f (%d/%d)" % (pr, t[y], p[y]))
+        print("recall = %f (%d/%d)" % (rc, t[y], s[y]))
+        print("f1 = %f" % f1(pr, rc))
+    a["macro_pr"] /= len(s)
+    a["macro_rc"] /= len(s)
+    a["micro_pr"] = sum(t.values()) / sum(p.values())
+    a["micro_rc"] = sum(t.values()) / sum(s.values())
+    print()
+    print("macro precision = %f" % a["macro_pr"])
+    print("macro recall = %f" % a["macro_rc"])
+    print("macro f1 = %f" % f1(a["macro_pr"], a["macro_rc"]))
+    print()
+    print("micro precision = %f" % a["micro_pr"])
+    print("micro recall = %f" % a["micro_rc"])
+    print("micro f1 = %f" % f1(a["micro_pr"], a["micro_rc"]))
 
 if __name__ == "__main__":
     if len(sys.argv) != 5:
