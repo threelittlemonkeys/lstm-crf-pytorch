@@ -76,14 +76,14 @@ def save_checkpoint(filename, model, epoch, loss, time):
         torch.save(checkpoint, filename + ".epoch%d" % epoch)
         print("saved model at epoch %d" % epoch)
 
-def iob_to_txt(txt, tags, unit):
-    y = ""
-    txt = tokenize(txt, unit)
-    for i, j in enumerate(tags):
+def iob_to_txt(x, y, unit):
+    out = ""
+    x = tokenize(x, unit)
+    for i, j in enumerate(y):
         if i and j[0] == "B":
-            y += " "
-        y += txt[i]
-    return y
+            out += " "
+        out += txt[i]
+    return out
 
 def f1(p, r):
     if p + r:

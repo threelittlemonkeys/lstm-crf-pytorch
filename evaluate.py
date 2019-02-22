@@ -32,4 +32,3 @@ if __name__ == "__main__":
     print("cuda: %s" % CUDA)
     with torch.no_grad():
         evaluate(predict(True))
-

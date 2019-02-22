@@ -20,7 +20,7 @@ def run_model(model, idx_to_tag, data):
     batch = [x[2] + [PAD_IDX] * (batch_len - len(x[2])) for x in data]
     result = model.decode(LongTensor(batch))
     for i in range(z):
-        data[i].append([idx_to_tag[j] for j in result[i]])
+        data[i].append(tuple(idx_to_tag[j] for j in result[i]))
     return [(x[1], x[3], x[4]) for x in sorted(data[:z])]
 
 def predict(lb = False):
@@ -35,7 +35,7 @@ def predict(lb = False):
             x, y = zip(*[re.split("/(?=[^/]+$)", x) for x in line.split()])
             x = [normalize(x) for x in x]
         else:
-            x, y = tokenize(line, UNIT), []
+            x, y = tokenize(line, UNIT), ()
         x = [word_to_idx[i] if i in word_to_idx else UNK_IDX for i in x]
         data.append([idx, line, x, y])
         if len(data) == BATCH_SIZE:
@@ -45,16 +45,14 @@ def predict(lb = False):
     fo.close()
     if len(data):
         result.extend(run_model(model, idx_to_tag, data))
-    if lb:
-        return result
-    else:
-        for x, _, y in result:
-            print((x, y))
-            # print(iob_to_txt(*x, UNIT))
+    return result
 
 if __name__ == "__main__":
     if len(sys.argv) != 5:
         sys.exit("Usage: %s model word_to_idx tag_to_idx test_data" % sys.argv[0])
     print("cuda: %s" % CUDA)
     with torch.no_grad():
-        predict()
+        result = predict()
+        for x, y0, y1 in result:
+            print((x, y0, y1))
+            # print(iob_to_txt(x, y1, UNIT))
