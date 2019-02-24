@@ -28,32 +28,32 @@ UNK_IDX = 3
 torch.manual_seed(1)
 CUDA = torch.cuda.is_available()
 
-class lstm_crf(nn.Module):
-    def __init__(self, vocab_size, num_tags):
+class rnn_crf(nn.Module):
+    def __init__(self, rnn_type, vocab_size, num_tags):
         super().__init__()
-        self.lstm = lstm(vocab_size, num_tags)
+        self.rnn = rnn(rnn_type, vocab_size, num_tags)
         self.crf = crf(num_tags)
         self = self.cuda() if CUDA else self
 
     def forward(self, x, y): # for training
         mask = x.data.gt(0).float()
-        h = self.lstm(x, mask)
+        h = self.rnn(x, mask)
         Z = self.crf.forward(h, mask)
         score = self.crf.score(h, y, mask)
         return Z - score # NLL loss
 
     def decode(self, x): # for prediction
         mask = x.data.gt(0).float()
-        h = self.lstm(x, mask)
+        h = self.rnn(x, mask)
         return self.crf.decode(h, mask)
 
-class lstm(nn.Module):
-    def __init__(self, vocab_size, num_tags):
+class rnn(nn.Module):
+    def __init__(self, rnn_type, vocab_size, num_tags):
         super().__init__()
 
         # architecture
         self.embed = nn.Embedding(vocab_size, EMBED_SIZE, padding_idx = PAD_IDX)
-        self.lstm = nn.LSTM(
+        self.rnn = getattr(nn, rnn_type)(
             input_size = EMBED_SIZE,
             hidden_size = HIDDEN_SIZE // NUM_DIRS,
             num_layers = NUM_LAYERS,
@@ -65,15 +65,17 @@ class lstm(nn.Module):
         self.out = nn.Linear(HIDDEN_SIZE, num_tags) # LSTM output to tag
 
     def init_hidden(self): # initialize hidden states
-        h = zeros(NUM_LAYERS * NUM_DIRS, BATCH_SIZE, HIDDEN_SIZE // NUM_DIRS) # hidden states
-        c = zeros(NUM_LAYERS * NUM_DIRS, BATCH_SIZE, HIDDEN_SIZE // NUM_DIRS) # cell states
-        return (h, c)
+        h = zeros(NUM_DIRS, BATCH_SIZE, HIDDEN_SIZE // NUM_DIRS) # hidden state
+        if self.rnn_type == "LSTM":
+            c = zeros(NUM_DIRS, BATCH_SIZE, HIDDEN_SIZE // NUM_DIRS) # cell state
+            return (h, c)
+        return h
 
     def forward(self, x, mask):
         self.hidden = self.init_hidden()
         x = self.embed(x)
         x = nn.utils.rnn.pack_padded_sequence(x, mask.sum(1).int(), batch_first = True)
-        h, _ = self.lstm(x, self.hidden)
+        h, _ = self.rnn(x, self.hidden)
         h, _ = nn.utils.rnn.pad_packed_sequence(h, batch_first = True)
         h = self.out(h)
         h *= mask.unsqueeze(2)

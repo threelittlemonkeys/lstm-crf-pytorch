@@ -3,11 +3,11 @@
 A minimal PyTorch implementation of bidirectional LSTM-CRF for sequence labelling.
 
 Supported features:
+- Character and/or word embeddings in the input layer
 - A PyTorch implementation of conditional random field (CRF)
 - Vectorized computation of CRF loss
 - Vectorized Viterbi decoding
 - Mini-batch training with CUDA
-- Character and word embeddings in the input layer
 
 ## Usage
 

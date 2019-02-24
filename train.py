@@ -33,7 +33,7 @@ def load_data():
 def train():
     num_epochs = int(sys.argv[5])
     data, word_to_idx, tag_to_idx = load_data()
-    model = lstm_crf(len(word_to_idx), len(tag_to_idx))
+    model = rnn_crf("LSTM", len(word_to_idx), len(tag_to_idx))
     print(model)
     optim = torch.optim.Adam(model.parameters(), lr = LEARNING_RATE)
     epoch = load_checkpoint(sys.argv[1], model) if isfile(sys.argv[1]) else 0
