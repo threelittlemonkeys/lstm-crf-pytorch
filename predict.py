@@ -5,7 +5,7 @@ def load_model():
     word_to_idx = load_word_to_idx(sys.argv[2])
     tag_to_idx = load_tag_to_idx(sys.argv[3])
     idx_to_tag = [tag for tag, _ in sorted(tag_to_idx.items(), key = lambda x: x[1])]
-    model = rnn_crf("LSTM", len(word_to_idx), len(tag_to_idx))
+    model = rnn_crf(len(word_to_idx), len(tag_to_idx))
     print(model)
     model.eval()
     load_checkpoint(sys.argv[1], model)

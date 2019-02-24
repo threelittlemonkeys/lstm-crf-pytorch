@@ -5,13 +5,13 @@ UNIT = "word" # unit of tokenization (char, word)
 MIN_LEN = 1 # minimum sequence length for training
 MAX_LEN = 50 # maximum sequence length for decoding
 KEEP_IDX = False # use the existing indices
+RNN_TYPE = "GRU" # LSTM or FRU
+NUM_DIRS = 2 # unidirectional: 1, bidirectional: 2
+NUM_LAYERS = 2
 BATCH_SIZE = 256
 EMBED_SIZE = 300
 HIDDEN_SIZE = 1000
-NUM_LAYERS = 2
 DROPOUT = 0.5
-BIDIRECTIONAL = True
-NUM_DIRS = 2 if BIDIRECTIONAL else 1
 LEARNING_RATE = 1e-4
 SAVE_EVERY = 10
 
@@ -29,9 +29,9 @@ torch.manual_seed(1)
 CUDA = torch.cuda.is_available()
 
 class rnn_crf(nn.Module):
-    def __init__(self, rnn_type, vocab_size, num_tags):
+    def __init__(self, vocab_size, num_tags):
         super().__init__()
-        self.rnn = rnn(rnn_type, vocab_size, num_tags)
+        self.rnn = rnn(vocab_size, num_tags)
         self.crf = crf(num_tags)
         self = self.cuda() if CUDA else self
 
@@ -48,26 +48,26 @@ class rnn_crf(nn.Module):
         return self.crf.decode(h, mask)
 
 class rnn(nn.Module):
-    def __init__(self, rnn_type, vocab_size, num_tags):
+    def __init__(self, vocab_size, num_tags):
         super().__init__()
 
         # architecture
         self.embed = nn.Embedding(vocab_size, EMBED_SIZE, padding_idx = PAD_IDX)
-        self.rnn = getattr(nn, rnn_type)(
+        self.rnn = getattr(nn, RNN_TYPE)(
             input_size = EMBED_SIZE,
             hidden_size = HIDDEN_SIZE // NUM_DIRS,
             num_layers = NUM_LAYERS,
             bias = True,
             batch_first = True,
             dropout = DROPOUT,
-            bidirectional = BIDIRECTIONAL
+            bidirectional = NUM_DIRS == 2
         )
-        self.out = nn.Linear(HIDDEN_SIZE, num_tags) # LSTM output to tag
+        self.out = nn.Linear(HIDDEN_SIZE, num_tags) # RNN output to tag
 
     def init_hidden(self): # initialize hidden states
-        h = zeros(NUM_DIRS, BATCH_SIZE, HIDDEN_SIZE // NUM_DIRS) # hidden state
-        if self.rnn_type == "LSTM":
-            c = zeros(NUM_DIRS, BATCH_SIZE, HIDDEN_SIZE // NUM_DIRS) # cell state
+        h = zeros(NUM_LAYERS * NUM_DIRS, BATCH_SIZE, HIDDEN_SIZE // NUM_DIRS) # hidden state
+        if RNN_TYPE == "LSTM":
+            c = zeros(NUM_LAYERS * NUM_DIRS, BATCH_SIZE, HIDDEN_SIZE // NUM_DIRS) # cell state
             return (h, c)
         return h
 
