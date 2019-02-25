@@ -9,6 +9,7 @@ RNN_TYPE = "LSTM" # LSTM or GRU
 NUM_DIRS = 2 # unidirectional: 1, bidirectional: 2
 NUM_LAYERS = 2
 BATCH_SIZE = 256
+EMBED = "char+word" # char, word, char+word
 EMBED_SIZE = 300
 HIDDEN_SIZE = 1000
 DROPOUT = 0.5
@@ -46,6 +47,14 @@ class rnn_crf(nn.Module):
         mask = x.data.gt(0).float()
         h = self.rnn(x, mask)
         return self.crf.decode(h, mask)
+
+class embed(nn.Module):
+    def __init__(self, char_vocab_size, word_vocab_size):
+        super().__init__()
+
+        # architecture
+        self.char_embed = nn.Embedding(char_vocab_size, EMBED_SIZE, padding_idx = PAD_IDX)
+        self.word_embed = nn.Embedding(word_vocab_size, EMBED_SIZE, padding_idx = PAD_IDX)
 
 class rnn(nn.Module):
     def __init__(self, vocab_size, num_tags):

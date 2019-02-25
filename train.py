@@ -8,9 +8,9 @@ def load_data():
     batch_x = []
     batch_y = []
     batch_len = 0 # maximum sequence length of a mini-batch
-    print("loading data...")
-    word_to_idx = load_word_to_idx(sys.argv[2])
-    tag_to_idx = load_tag_to_idx(sys.argv[3])
+    word_to_idx = load_tkn_to_idx(sys.argv[2])
+    tag_to_idx = load_tkn_to_idx(sys.argv[3])
+    print("loading %s" % sys.argv[4])
     fo = open(sys.argv[4], "r")
     for line in fo:
         line = line.strip()
