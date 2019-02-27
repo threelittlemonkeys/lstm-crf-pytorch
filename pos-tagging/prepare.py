@@ -19,8 +19,8 @@ def load_data():
         if len(tokens) < MIN_LEN or len(tokens) > MAX_LEN:
             continue
         char_x = []
-        word_x = []
         char_y = []
+        word_x = []
         word_y = []
         for tkn in tokens:
             word, tag = re.split("/(?=[^/]+$)", tkn)
