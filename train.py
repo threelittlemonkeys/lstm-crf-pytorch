@@ -58,6 +58,9 @@ def train():
 
 if __name__ == "__main__":
     if len(sys.argv) != 6:
-        sys.exit("Usage: %s model word_to_idx tag_to_idx training_data num_epoch" % sys.argv[0])
+        print("Usage:")
+        print("%s model word_to_idx tag_to_idx training_data.csv num_epoch" % sys.argv[0])
+        print("%s model char_to_idx word_to_idx tag_to_idx training_data.csv num_epoch" % sys.argv[0])
+        sys.exit()
     print("cuda: %s" % CUDA)
     train()
