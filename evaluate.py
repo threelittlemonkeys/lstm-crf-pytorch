@@ -35,8 +35,8 @@ def evaluate(result):
     print("micro f1 = %f" % f1(avg["micro_pr"], avg["micro_rc"]))
 
 if __name__ == "__main__":
-    if len(sys.argv) != 5:
-        sys.exit("Usage: %s model word_to_idx tag_to_idx test_data" % sys.argv[0])
+    if len(sys.argv) != 6:
+        sys.exit("Usage: %s model char_to_idx word_to_idx tag_to_idx test_data" % sys.argv[0])
     print("cuda: %s" % CUDA)
     with torch.no_grad():
         evaluate(predict(True))

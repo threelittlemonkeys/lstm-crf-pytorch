@@ -45,8 +45,8 @@ class rnn_crf(nn.Module):
         return Z - score # NLL loss
 
     def decode(self, cx, wx): # for prediction
-        mask = x.data.gt(0).float()
-        h = self.rnn(x, mask)
+        mask = wx.data.gt(0).float()
+        h = self.rnn(cx, wx, mask)
         return self.crf.decode(h, mask)
 
 class embed(nn.Module):

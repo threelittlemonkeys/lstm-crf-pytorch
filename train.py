@@ -8,8 +8,8 @@ def load_data():
     batch_cx = [] # character input
     batch_wx = [] # word input
     batch_y = []
-    cx_maxlen = 0 # maximum sequence length in character input
-    wx_maxlen = 0 # maximum sequence length in word input
+    cx_maxlen = 0 # maximum length of character sequence
+    wx_maxlen = 0 # maximum length of word sequence
     char_to_idx = load_tkn_to_idx(sys.argv[2])
     idx_to_word = load_idx_to_tkn(sys.argv[3])
     tag_to_idx = load_tkn_to_idx(sys.argv[4])
@@ -20,7 +20,7 @@ def load_data():
         tokens = [int(i) for i in line.split(" ")]
         wx_len = len(tokens) // 2
         wx = tokens[:wx_len]
-        wx_maxlen = wx_maxlen if wx_maxlen else wx_len
+        wx_maxlen = wx_maxlen if wx_maxlen else wx_len # the first line is longest in its mini-batch
         wx_pad = [PAD_IDX] * (wx_maxlen - wx_len)
         batch_wx.append(wx + wx_pad)
         batch_y.append([SOS_IDX] + tokens[wx_len:] + wx_pad)
