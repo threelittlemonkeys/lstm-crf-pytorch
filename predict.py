@@ -22,7 +22,7 @@ def run_model(model, idx_to_tag, data, cx_maxlen):
     if EMBED_UNIT[:4] == "char":
         for x in data:
             cx = [w + [PAD_IDX] * (cx_maxlen - len(w) + 2) for w in x[2]]
-            cx += [[PAD_IDX] * (cx_maxlen + 2)] * (wx_maxlen - len(cx))
+            cx.extend([[PAD_IDX] * (cx_maxlen + 2)] * (wx_maxlen - len(cx)))
             batch_cx.append(cx)
     result = model.decode(LongTensor(batch_cx), LongTensor(batch_wx))
     for i in range(z):
@@ -46,7 +46,8 @@ def predict(lb = False):
         cx = []
         if EMBED_UNIT[:4] == "char":
             for w in wx:
-                cx += [[SOS_IDX] + [char_to_idx[c] if c in char_to_idx else UNK_IDX for c in w] + [EOS_IDX]]
+                w = [char_to_idx[c] if c in char_to_idx else UNK_IDX for c in w]
+                cx.append([SOS_IDX] + w + [EOS_IDX])
             cx_maxlen = max(cx_maxlen, len(max(wx, key = len)))
         wx = [word_to_idx[w] if w in word_to_idx else UNK_IDX for w in wx]
         data.append([idx, line, cx, wx, y])
