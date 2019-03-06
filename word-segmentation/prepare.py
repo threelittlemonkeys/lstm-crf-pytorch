@@ -1,11 +1,13 @@
 import sys
 from utils import *
 
+KEEP_IDX = False # use the existing indices
+
 def load_data():
     data = []
     if KEEP_IDX:
-        word_to_idx = load_word_to_idx(sys.argv[1] + ".word_to_idx")
-        tag_to_idx = load_tag_to_idx(sys.argv[1] + ".tag_to_idx")
+        word_to_idx = load_tkn_to_idx(sys.argv[1] + ".word_to_idx")
+        tag_to_idx = load_tkn_to_idx(sys.argv[1] + ".tag_to_idx")
     else:
         word_to_idx = {PAD: PAD_IDX, SOS: SOS_IDX, EOS: EOS_IDX, UNK: UNK_IDX}
         tag_to_idx = {PAD: PAD_IDX, SOS: SOS_IDX, EOS: EOS_IDX}
@@ -16,8 +18,6 @@ def load_data():
     for line in fo:
         line = line.strip() 
         tokens = line.split(" ")
-        if len(tokens) < MIN_LEN or len(tokens) > MAX_LEN:
-            continue
         seq = []
         tags = []
         for word in tokens:
@@ -37,7 +37,7 @@ if __name__ == "__main__":
     if len(sys.argv) != 2:
         sys.exit("Usage: %s training_data" % sys.argv[0])
     data, word_to_idx, tag_to_idx = load_data()
-    save_data(sys.argv[1], data)
+    save_data(sys.argv[1] + ".csv", data)
     if not KEEP_IDX:
-        save_word_to_idx(sys.argv[1], word_to_idx)
-        save_tag_to_idx(sys.argv[1], tag_to_idx)
+        save_tkn_to_idx(sys.argv[1] + ".word_to_idx", word_to_idx)
+        save_tkn_to_idx(sys.argv[1] + ".tag_to_idx", tag_to_idx)

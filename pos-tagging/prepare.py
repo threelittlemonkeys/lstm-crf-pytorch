@@ -1,6 +1,8 @@
 import sys
 from utils import *
 
+KEEP_IDX = False # use the existing indices
+
 def load_data():
     data = []
     if KEEP_IDX:
@@ -15,8 +17,6 @@ def load_data():
     for line in fo:
         line = line.strip()
         tokens = line.split(" ")
-        if len(tokens) < MIN_LEN or len(tokens) > MAX_LEN:
-            continue
         x = []
         y = []
         for tkn in tokens:

@@ -3,9 +3,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 UNIT = "word" # unit of tokenization (char, word)
-MIN_LEN = 1 # minimum sequence length for training
-MAX_LEN = 50 # maximum sequence length for decoding
-KEEP_IDX = False # use the existing indices
 RNN_TYPE = "LSTM" # LSTM or GRU
 NUM_DIRS = 2 # unidirectional: 1, bidirectional: 2
 NUM_LAYERS = 2

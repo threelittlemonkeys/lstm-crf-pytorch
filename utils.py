@@ -24,16 +24,6 @@ def save_data(filename, data):
         fo.write(" ".join(seq) + "\n")
     fo.close()
 
-def load_idx_to_tkn(filename):
-    print("loading %s" % filename)
-    idx_to_tkn = []
-    fo = open(filename)
-    for line in fo:
-        line = line.strip()
-        idx_to_tkn.append(line)
-    fo.close()
-    return idx_to_tkn
-
 def load_tkn_to_idx(filename):
     print("loading %s" % filename)
     tkn_to_idx = {}
@@ -43,6 +33,16 @@ def load_tkn_to_idx(filename):
         tkn_to_idx[line] = len(tkn_to_idx)
     fo.close()
     return tkn_to_idx
+
+def load_idx_to_tkn(filename):
+    print("loading %s" % filename)
+    idx_to_tkn = []
+    fo = open(filename)
+    for line in fo:
+        line = line.strip()
+        idx_to_tkn.append(line)
+    fo.close()
+    return idx_to_tkn
 
 def save_tkn_to_idx(filename, tkn_to_idx):
     fo = open(filename, "w")
