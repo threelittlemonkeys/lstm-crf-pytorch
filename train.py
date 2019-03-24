@@ -1,6 +1,7 @@
 import sys
 import time
 from utils import *
+from model import *
 from os.path import isfile
 
 def load_data():
@@ -24,12 +25,12 @@ def load_data():
         wx_pad = [PAD_IDX] * (wx_maxlen - wx_len)
         batch_wx.append(wx + wx_pad)
         batch_y.append([SOS_IDX] + tokens[wx_len:] + wx_pad)
-        if EMBED_UNIT[:4] == "char":
+        if "char" in EMBED:
             cx = [idx_to_word[i] for i in wx]
             cx_maxlen = max(cx_maxlen, len(max(cx, key = len)))
             batch_cx.append([[SOS_IDX] + [char_to_idx[c] for c in w] + [EOS_IDX] for w in cx])
         if len(batch_wx) == BATCH_SIZE:
-            if EMBED_UNIT[:4] == "char":
+            if "char" in EMBED:
                 for cx in batch_cx:
                     for w in cx:
                         w += [PAD_IDX] * (cx_maxlen - len(w) + 2)
