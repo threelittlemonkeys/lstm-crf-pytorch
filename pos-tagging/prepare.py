@@ -2,8 +2,6 @@ import sys
 from utils import *
 from parameters import *
 
-KEEP_IDX = False # use the existing indices
-
 def load_data():
     data = []
     if KEEP_IDX:

@@ -20,3 +20,5 @@ PAD_IDX = 0
 SOS_IDX = 1
 EOS_IDX = 2
 UNK_IDX = 3
+
+KEEP_IDX = False # use the existing indices when preparing additional data

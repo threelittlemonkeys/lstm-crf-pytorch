@@ -12,7 +12,7 @@ def normalize(x):
 def tokenize(x, unit):
     x = normalize(x)
     if unit == "char":
-        return list(x)
+        return re.sub(" ", "", x)
     if unit == "word":
         return x.split(" ")
 
@@ -77,7 +77,7 @@ def iob_to_txt(x, y, unit):
     for i, j in enumerate(y):
         if i and j[0] == "B":
             out += " "
-        out += txt[i]
+        out += x[i]
     return out
 
 def f1(p, r):
