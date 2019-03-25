@@ -18,13 +18,13 @@ def load_data():
     fo = open(sys.argv[5], "r")
     for line in fo:
         line = line.strip()
-        tokens = [int(i) for i in line.split(" ")]
-        wx_len = len(tokens) // 2
-        wx = tokens[:wx_len]
+        seq = [int(i) for i in line.split(" ")]
+        wx_len = len(seq) // 2
+        wx = seq[:wx_len]
         wx_maxlen = wx_maxlen if wx_maxlen else wx_len # the first line is longest in its mini-batch
         wx_pad = [PAD_IDX] * (wx_maxlen - wx_len)
         batch_wx.append(wx + wx_pad)
-        batch_y.append([SOS_IDX] + tokens[wx_len:] + wx_pad)
+        batch_y.append([SOS_IDX] + seq[wx_len:] + wx_pad)
         if "char" in EMBED:
             cx = [idx_to_word[i] for i in wx]
             cx_maxlen = max(cx_maxlen, len(max(cx, key = len)))
