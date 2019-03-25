@@ -10,7 +10,7 @@ class embed(nn.Module):
 
         # architecture
         if "char" in EMBED:
-            self.char_embed = cnn(char_vocab_size, dim)
+            self.char_embed = embed_cnn(char_vocab_size, dim)
         if "word" in EMBED:
             self.word_embed = nn.Embedding(word_vocab_size, dim, padding_idx = PAD_IDX)
 
@@ -20,7 +20,7 @@ class embed(nn.Module):
         h = torch.cat([ch, wh], 2)
         return h
 
-class cnn(nn.Module):
+class embed_cnn(nn.Module):
     def __init__(self, dim_in, dim_out):
         super().__init__()
         self.embed_size = 50
@@ -50,7 +50,7 @@ class cnn(nn.Module):
         h = h.view(BATCH_SIZE, -1, h.size(1)) # [B, L, dim_out]
         return h
 
-class rnn(nn.Module): # TODO
+class embed_rnn(nn.Module): # TODO
     def __init__(self, dim_in, dim_out):
         pass
 
