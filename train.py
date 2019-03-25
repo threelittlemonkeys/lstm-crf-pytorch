@@ -21,21 +21,22 @@ def load_data():
         seq = [int(i) for i in line.split(" ")]
         wx_len = len(seq) // 2
         wx = seq[:wx_len]
-        wx_maxlen = wx_maxlen if wx_maxlen else wx_len # the first line is longest in its mini-batch
+        if not wx_maxlen: # the first line is longest in its mini-batch
+             wx_maxlen = wx_len
         wx_pad = [PAD_IDX] * (wx_maxlen - wx_len)
         batch_wx.append(wx + wx_pad)
         batch_y.append([SOS_IDX] + seq[wx_len:] + wx_pad)
         if "char" in EMBED:
-            cx = [idx_to_word[i] for i in wx]
+            cx = [[char_to_idx[c] for c in idx_to_word[i]] for i in wx]
             cx_maxlen = max(cx_maxlen, len(max(cx, key = len)))
-            batch_cx.append([[SOS_IDX] + [char_to_idx[c] for c in w] + [EOS_IDX] for w in cx])
+            batch_cx.append([[SOS_IDX] + w + [EOS_IDX] for w in cx])
         if len(batch_wx) == BATCH_SIZE:
             if "char" in EMBED:
                 for cx in batch_cx:
                     for w in cx:
                         w += [PAD_IDX] * (cx_maxlen - len(w) + 2)
                     cx += [[PAD_IDX] * (cx_maxlen + 2)] * (wx_maxlen - len(cx))
-            data.append((LongTensor(batch_cx), LongTensor(batch_wx), LongTensor(batch_y))) # append a mini-batch
+            data.append((LongTensor(batch_cx), LongTensor(batch_wx), LongTensor(batch_y)))
             batch_cx = []
             batch_wx = []
             batch_y = []

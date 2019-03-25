@@ -4,7 +4,7 @@ from embedding import embed
 from parameters import *
 
 CUDA = torch.cuda.is_available()
-torch.manual_seed(1) # for reproducibility
+torch.manual_seed(0) # for reproducibility
 
 class rnn_crf(nn.Module):
     def __init__(self, char_vocab_size, word_vocab_size, num_tags):
