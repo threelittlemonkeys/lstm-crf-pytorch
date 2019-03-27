@@ -22,3 +22,4 @@ EOS_IDX = 2
 UNK_IDX = 3
 
 KEEP_IDX = False # use the existing indices when preparing additional data
+NUM_DIGITS = 4 # number of digits to print
