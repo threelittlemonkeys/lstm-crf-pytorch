@@ -14,10 +14,10 @@ class embed(nn.Module):
         if "word" in EMBED:
             self.word_embed = nn.Embedding(word_vocab_size, dim, padding_idx = PAD_IDX)
 
-    def forward(self, cx, wx):
-        ch = self.char_embed(cx) if "char" in EMBED else []
-        wh = self.word_embed(wx) if "word" in EMBED else []
-        h = torch.cat([ch, wh], 2)
+    def forward(self, xc, xw):
+        hc = self.char_embed(xc) if "char" in EMBED else []
+        hw = self.word_embed(xw) if "word" in EMBED else []
+        h = torch.cat([hc, hw], 2)
         return h
 
 class embed_cnn(nn.Module):
