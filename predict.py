@@ -15,7 +15,7 @@ def run_model(model, itt, batch):
     while len(batch) < BATCH_SIZE:
         batch.append([-1, "", [[]], [EOS_IDX], []])
     batch.sort(key = lambda x: -len(x[3]))
-    xc, xw = batchify(*zip(*[(x[2], x[3]) for x in batch]))
+    xc, xw = batchify(*zip(*[(x[2], x[3]) for x in batch]), sos = False, eos = False)
     result = model.decode(xc, xw)
     for i in range(batch_size):
         batch[i].append(tuple(itt[j] for j in result[i]))
