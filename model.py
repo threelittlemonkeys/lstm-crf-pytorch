@@ -1,10 +1,5 @@
-import torch
-import torch.nn as nn
+from utils import *
 from embedding import embed
-from parameters import *
-
-CUDA = torch.cuda.is_available()
-torch.manual_seed(0) # for reproducibility
 
 class rnn_crf(nn.Module):
     def __init__(self, char_vocab_size, word_vocab_size, num_tags):
@@ -13,16 +8,16 @@ class rnn_crf(nn.Module):
         self.crf = crf(num_tags)
         self = self.cuda() if CUDA else self
 
-    def forward(self, cx, wx, y): # for training
-        mask = wx.data.gt(0).float()
-        h = self.rnn(cx, wx, mask)
+    def forward(self, xc, xw, y): # for training
+        mask = xw.data.gt(0).float()
+        h = self.rnn(xc, xw, mask)
         Z = self.crf.forward(h, mask)
         score = self.crf.score(h, y, mask)
         return Z - score # NLL loss
 
-    def decode(self, cx, wx): # for prediction
-        mask = wx.data.gt(0).float()
-        h = self.rnn(cx, wx, mask)
+    def decode(self, xc, xw): # for prediction
+        mask = xw.data.gt(0).float()
+        h = self.rnn(xc, xw, mask)
         return self.crf.decode(h, mask)
 
 class rnn(nn.Module):
@@ -49,9 +44,9 @@ class rnn(nn.Module):
             return (h, c)
         return h
 
-    def forward(self, cx, wx, mask):
+    def forward(self, xc, xw, mask):
         self.hidden = self.init_hidden()
-        x = self.embed(cx, wx)
+        x = self.embed(xc, xw)
         x = nn.utils.rnn.pack_padded_sequence(x, mask.sum(1).int(), batch_first = True)
         h, _ = self.rnn(x, self.hidden)
         h, _ = nn.utils.rnn.pad_packed_sequence(h, batch_first = True)
@@ -129,23 +124,3 @@ class crf(nn.Module):
             best_path[b].reverse()
 
         return best_path
-
-def Tensor(*args):
-    x = torch.Tensor(*args)
-    return x.cuda() if CUDA else x
-
-def LongTensor(*args):
-    x = torch.LongTensor(*args)
-    return x.cuda() if CUDA else x
-
-def randn(*args):
-    x = torch.randn(*args)
-    return x.cuda() if CUDA else x
-
-def zeros(*args):
-    x = torch.zeros(*args)
-    return x.cuda() if CUDA else x
-
-def log_sum_exp(x):
-    m = torch.max(x, -1)[0]
-    return m + torch.log(torch.sum(torch.exp(x - m.unsqueeze(-1)), -1))

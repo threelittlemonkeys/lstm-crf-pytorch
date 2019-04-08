@@ -1,17 +1,15 @@
-import sys
 from utils import *
-from parameters import *
 
 def load_data():
     data = []
     if KEEP_IDX:
-        char_to_idx = load_tkn_to_idx(sys.argv[1] + ".char_to_idx")
-        word_to_idx = load_tkn_to_idx(sys.argv[1] + ".word_to_idx")
-        tag_to_idx = load_tkn_to_idx(sys.argv[1] + ".tag_to_idx")
+        cti = load_tkn_to_idx(sys.argv[1] + ".char_to_idx")
+        wti = load_tkn_to_idx(sys.argv[1] + ".word_to_idx")
+        tti = load_tkn_to_idx(sys.argv[1] + ".tag_to_idx")
     else:
-        char_to_idx = {PAD: PAD_IDX, SOS: SOS_IDX, EOS: EOS_IDX, UNK: UNK_IDX}
-        word_to_idx = {PAD: PAD_IDX, SOS: SOS_IDX, EOS: EOS_IDX, UNK: UNK_IDX}
-        tag_to_idx = {PAD: PAD_IDX, SOS: SOS_IDX, EOS: EOS_IDX}
+        cti = {PAD: PAD_IDX, SOS: SOS_IDX, EOS: EOS_IDX, UNK: UNK_IDX}
+        wti = {PAD: PAD_IDX, SOS: SOS_IDX, EOS: EOS_IDX, UNK: UNK_IDX}
+        tti = {PAD: PAD_IDX, SOS: SOS_IDX, EOS: EOS_IDX}
     fo = open(sys.argv[1])
     for line in fo:
         line = line.strip()
@@ -23,25 +21,25 @@ def load_data():
             word = normalize(word)
             if not KEEP_IDX:
                 for c in word:
-                    if c not in char_to_idx:
-                        char_to_idx[c] = len(char_to_idx)
-                if word not in word_to_idx:
-                    word_to_idx[word] = len(word_to_idx)
-                if tag not in tag_to_idx:
-                    tag_to_idx[tag] = len(tag_to_idx)
-            x.append(str(word_to_idx[word]) if word in word_to_idx else str(UNK_IDX))
-            y.append(str(tag_to_idx[tag]))
+                    if c not in cti:
+                        cti[c] = len(cti)
+                if word not in wti:
+                    wti[word] = len(wti)
+                if tag not in tti:
+                    tti[tag] = len(tti)
+            x.append("+".join(str(cti[c]) for c in word) + ":%d" % wti[word])
+            y.append(str(tti[tag]))
         data.append(x + y)
     data.sort(key = lambda x: -len(x))
     fo.close()
-    return data, char_to_idx, word_to_idx, tag_to_idx
+    return data, cti, wti, tti 
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
         sys.exit("Usage: %s training_data" % sys.argv[0])
-    data, char_to_idx, word_to_idx, tag_to_idx = load_data()
+    data, cti, wti, tti = load_data()
     save_data(sys.argv[1] + ".csv", data)
     if not KEEP_IDX:
-        save_tkn_to_idx(sys.argv[1] + ".char_to_idx", char_to_idx)
-        save_tkn_to_idx(sys.argv[1] + ".word_to_idx", word_to_idx)
-        save_tkn_to_idx(sys.argv[1] + ".tag_to_idx", tag_to_idx)
+        save_tkn_to_idx(sys.argv[1] + ".char_to_idx", cti)
+        save_tkn_to_idx(sys.argv[1] + ".word_to_idx", wti)
+        save_tkn_to_idx(sys.argv[1] + ".tag_to_idx", tti)
