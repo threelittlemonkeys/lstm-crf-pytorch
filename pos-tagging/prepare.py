@@ -32,7 +32,7 @@ def load_data():
         data.append(x + y)
     data.sort(key = lambda x: -len(x))
     fo.close()
-    return data, cti, wti, tti 
+    return data, cti, wti, tti
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:

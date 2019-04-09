@@ -18,16 +18,20 @@ def run_model(model, itt, batch):
     xc, xw = batchify(*zip(*[(x[2], x[3]) for x in batch]), sos = False, eos = False)
     result = model.decode(xc, xw)
     for i in range(batch_size):
-        batch[i].append(tuple(itt[j] for j in result[i]))
+        batch[i].append([itt[j] for j in result[i]])
     return [(x[1], x[4], x[5]) for x in sorted(batch[:batch_size])]
 
-def predict(filename, model, cti, wti, itt):
+def predict(filename, model, cti, wti, itt, iob = False):
     data = []
     fo = open(filename)
     for idx, line in enumerate(fo):
         line = line.strip()
-        if re.match("(\S+/\S+( |$))+", line):
-            x, y = zip(*[re.split("/(?=[^/]+$)", x) for x in line.split()])
+        if iob:
+            x, y = tokenize(line, UNIT), []
+            for w in line.split(" "):
+                y.extend(["B"] + ["I"] * (len(w) - 1))
+        elif re.match("(\S+/\S+( |$))+", line):
+            x, y = zip(*[re.split("/(?=[^/]+$)", x) for x in line.split(" ")])
             x = [normalize(x) for x in x]
         else:
             x, y = tokenize(line, UNIT), None

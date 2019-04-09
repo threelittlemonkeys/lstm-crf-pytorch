@@ -15,17 +15,16 @@ def load_data():
     for line in fo:
         line = line.strip()
         tokens = line.split(" ")
-        seq = []
-        tags = []
+        x = []
+        y = []
         for word in tokens:
             if not KEEP_IDX:
                 for c in word:
                     if c not in cti:
                         cti[c] = len(cti)
-            ctags = ["B" if i == 0 else "I" for i in range(len(word))]
-            seq.extend(["%d:%d" % (cti[c], cti[c]) if c in cti else str(UNK_IDX) for c in word])
-            tags.extend([str(tti[t]) for t in ctags])
-        data.append(seq + tags)
+            x.extend(["%d:%d" % (cti[c], cti[c]) if c in cti else str(UNK_IDX) for c in word])
+            y.extend([str(tti["B"])] + [str(tti["I"])] * (len(word) - 1))
+        data.append(x + y)
     data.sort(key = lambda x: -len(x))
     fo.close()
     return data, cti, tti

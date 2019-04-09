@@ -1,6 +1,6 @@
 import torch
 
-UNIT = "word" # unit of tokenization (char, word)
+UNIT = "char" # unit of tokenization (char, word)
 RNN_TYPE = "LSTM" # LSTM or GRU
 NUM_DIRS = 2 # unidirectional: 1, bidirectional: 2
 NUM_LAYERS = 2
