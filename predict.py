@@ -21,16 +21,17 @@ def run_model(model, itt, batch):
         batch[i].append([itt[j] for j in result[i]])
     return [(x[1], x[4], x[5]) for x in sorted(batch[:batch_size])]
 
-def predict(filename, model, cti, wti, itt, iob = False):
+def predict(filename, model, cti, wti, itt):
     data = []
     fo = open(filename)
     for idx, line in enumerate(fo):
         line = line.strip()
-        if iob:
+        if FORMAT == "char+iob":
+            wti = cti
             x, y = tokenize(line, UNIT), []
             for w in line.split(" "):
                 y.extend(["B"] + ["I"] * (len(w) - 1))
-        elif re.match("(\S+/\S+( |$))+", line):
+        elif re.match("(\S+/\S+( |$))+", line): # if FORMAT == "word+tag":
             x, y = zip(*[re.split("/(?=[^/]+$)", x) for x in line.split(" ")])
             x = [normalize(x) for x in x]
         else:
@@ -52,5 +53,7 @@ if __name__ == "__main__":
     print("cuda: %s" % CUDA)
     result = predict(sys.argv[5], *load_model())
     for x, y0, y1 in result:
-        print((x, y0, y1) if y0 else (x, y1))
-        # print(iob_to_txt(x, y1, UNIT))
+        if FORMAT == "char+iob":
+            print((x, iob_to_txt(x, y1, UNIT)))
+        else:
+            print((x, y0, y1) if y0 else (x, y1))

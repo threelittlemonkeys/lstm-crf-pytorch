@@ -1,6 +1,7 @@
 import torch
 
 UNIT = "char" # unit of tokenization (char, word)
+FORMAT = "char+iob" # data format (char+iob, word+tag)
 RNN_TYPE = "LSTM" # LSTM or GRU
 NUM_DIRS = 2 # unidirectional: 1, bidirectional: 2
 NUM_LAYERS = 2
