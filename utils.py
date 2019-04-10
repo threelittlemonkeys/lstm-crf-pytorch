@@ -1,12 +1,10 @@
-import sys
 import re
-import time
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
-from os.path import isfile
-from parameters import *
-from collections import defaultdict
+
+from functools import wraps
+
+from parameters import SOS_IDX, EOS_IDX, UNK_IDX, PAD_IDX, CUDA
+
 
 def normalize(x):
     # x = re.sub("[\uAC00-\uD7A3]+", "\uAC00", x) £ convert Hangeul to 가
@@ -17,87 +15,87 @@ def normalize(x):
     x = x.lower()
     return x
 
+
 def tokenize(x, unit):
     x = normalize(x)
     if unit == "char":
         return re.sub(" ", "", x)
-    if unit == "word":
+    elif unit == "word":
         return x.split(" ")
 
+
 def save_data(filename, data):
-    fo = open(filename, "w")
-    for seq in data:
-        fo.write(" ".join(seq) + "\n")
-    fo.close()
+    with open(filename, "w") as outfile:
+        for seq in data:
+            outfile.write(" ".join(seq) + "\n")
+
 
 def load_tkn_to_idx(filename):
-    print("loading %s" % filename)
+    print("loading {}".format(filename))
     tkn_to_idx = {}
-    fo = open(filename)
-    for line in fo:
-        line = line[:-1]
-        tkn_to_idx[line] = len(tkn_to_idx)
-    fo.close()
+    with open(filename) as infile:
+        for line in infile:
+            line = line[:-1]
+            tkn_to_idx[line] = len(tkn_to_idx)
     return tkn_to_idx
 
+
 def load_idx_to_tkn(filename):
-    print("loading %s" % filename)
+    print("loading {}".format(filename))
     idx_to_tkn = []
-    fo = open(filename)
-    for line in fo:
-        line = line[:-1]
-        idx_to_tkn.append(line)
-    fo.close()
+    with open(filename) as infile:
+        for line in infile:
+            line = line[:-1]
+            idx_to_tkn.append(line)
     return idx_to_tkn
 
-def save_tkn_to_idx(filename, tkn_to_idx):
-    fo = open(filename, "w")
-    for tkn, _ in sorted(tkn_to_idx.items(), key = lambda x: x[1]):
-        fo.write("%s\n" % tkn)
-    fo.close()
 
-def load_checkpoint(filename, model = None):
-    print("loading %s" % filename)
+def save_tkn_to_idx(filename, tkn_to_idx):
+    with open(filename, "w") as outfile:
+        for tkn, _ in sorted(tkn_to_idx.items(), key=lambda x: x[1]):
+            outfile.write("%s\n" % tkn)
+
+
+def load_checkpoint(filename, model=None):
+    print("loading {}".format(filename))
     checkpoint = torch.load(filename)
     if model:
         model.load_state_dict(checkpoint["state_dict"])
     epoch = checkpoint["epoch"]
     loss = checkpoint["loss"]
-    print("saved model: epoch = %d, loss = %f" % (checkpoint["epoch"], checkpoint["loss"]))
+    print("saved model: epoch = {:d}, loss = {:f}".format(checkpoint["epoch"], checkpoint["loss"]))
     return epoch
 
+
 def save_checkpoint(filename, model, epoch, loss, time):
-    print("epoch = %d, loss = %f, time = %f" % (epoch, loss, time))
+    print("epoch = {:d}, loss = {:f}, time = {:f}".format(epoch, loss, time))
     if filename and model:
-        print("saving %s" % filename)
-        checkpoint = {}
-        checkpoint["state_dict"] = model.state_dict()
-        checkpoint["epoch"] = epoch
-        checkpoint["loss"] = loss
+        print("saving {}".format(filename))
+        checkpoint = {"state_dict": model.state_dict(), "epoch": epoch, "loss": loss}
         torch.save(checkpoint, filename + ".epoch%d" % epoch)
-        print("saved model at epoch %d" % epoch)
+        print("saved model at epoch {:d}".format(epoch))
 
-def Tensor(*args):
-    x = torch.Tensor(*args)
-    return x.cuda() if CUDA else x
 
-def LongTensor(*args):
-    x = torch.LongTensor(*args)
-    return x.cuda() if CUDA else x
+def cudify(f):
+    @wraps(f)
+    def cudified(*args):
+        x = f(*args)
+        return x.cuda() if CUDA else x
+    return cudified
 
-def randn(*args):
-    x = torch.randn(*args)
-    return x.cuda() if CUDA else x
 
-def zeros(*args):
-    x = torch.zeros(*args)
-    return x.cuda() if CUDA else x
+Tensor = cudify(torch.Tensor)
+LongTensor = cudify(torch.LongTensor)
+randn = cudify(torch.randn)
+zeros = cudify(torch.zeros)
+
 
 def log_sum_exp(x):
     m = torch.max(x, -1)[0]
     return m + torch.log(torch.sum(torch.exp(x - m.unsqueeze(-1)), -1))
 
-def batchify(xc, xw, minlen = 0, sos = True, eos = True):
+
+def batchify(xc, xw, minlen=0, sos=True, eos=True):
     xw_len = max(minlen, max(len(x) for x in xw))
     if xc:
         xc_len = max(minlen, max(len(w) for x in xc for w in x))
@@ -110,6 +108,7 @@ def batchify(xc, xw, minlen = 0, sos = True, eos = True):
     xw = [sos + list(x) + eos + [PAD_IDX] * (xw_len - len(x)) for x in xw]
     return xc, LongTensor(xw)
 
+
 def iob_to_txt(x, y, unit):
     out = ""
     x = tokenize(x, unit)
@@ -119,5 +118,6 @@ def iob_to_txt(x, y, unit):
         out += x[i]
     return out
 
-def f1(p, r):
-    return 2 * p * r / (p + r) if p + r else 0
+
+def f1(prec, recall):
+    return 2 * prec * recall / (prec + recall) if prec + recall else 0
