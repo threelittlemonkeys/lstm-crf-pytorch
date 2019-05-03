@@ -21,8 +21,8 @@ def load_data():
         bxw.append(xw)
         by.append(y)
         if len(by) == BATCH_SIZE:
-            bxc, bxw = batchify(bxc, bxw, sos = False, eos = False)
-            _, by = batchify(None, by, eos = False)
+            bxc, bxw = batchify(bxc, bxw)
+            _, by = batchify(None, by, sos = True)
             data.append((bxc, bxw, by))
             bxc = []
             bxw = []

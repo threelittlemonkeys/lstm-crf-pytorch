@@ -89,7 +89,7 @@ def log_sum_exp(x):
     m = torch.max(x, -1)[0]
     return m + torch.log(torch.sum(torch.exp(x - m.unsqueeze(-1)), -1))
 
-def batchify(xc, xw, minlen = 0, sos = True, eos = True):
+def batchify(xc, xw, sos = False, eos = False, minlen = 0):
     xw_len = max(minlen, max(len(x) for x in xw))
     if xc:
         xc_len = max(minlen, max(len(w) for x in xc for w in x))
