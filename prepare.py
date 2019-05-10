@@ -38,9 +38,6 @@ def load_data():
             if FORMAT == "word+tag":
                 x.append("+".join(str(cti[c]) for c in w) + ":%d" % wti[w])
                 y.append(str(tti[tag]))
-        print(line)
-        print(x)
-        print(y)
         data.append(x + y)
     fo.close()
     data.sort(key = lambda x: -len(x))
