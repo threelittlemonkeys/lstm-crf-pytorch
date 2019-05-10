@@ -85,10 +85,6 @@ LongTensor = cudify(torch.LongTensor)
 randn = cudify(torch.randn)
 zeros = cudify(torch.zeros)
 
-def log_sum_exp(x):
-    m = torch.max(x, -1)[0]
-    return m + torch.log(torch.sum(torch.exp(x - m.unsqueeze(-1)), -1))
-
 def batchify(xc, xw, sos = False, eos = False, minlen = 0):
     xw_len = max(minlen, max(len(x) for x in xw))
     if xc:
@@ -102,14 +98,18 @@ def batchify(xc, xw, sos = False, eos = False, minlen = 0):
     xw = [sos + list(x) + eos + [PAD_IDX] * (xw_len - len(x)) for x in xw]
     return xc, LongTensor(xw)
 
+def log_sum_exp(x):
+    m = torch.max(x, -1)[0]
+    return m + torch.log(torch.sum(torch.exp(x - m.unsqueeze(-1)), -1))
+
 def iob_to_txt(x, y, unit):
-    out = ""
+    out = []
     x = tokenize(x, unit)
     for i, j in enumerate(y):
         if i and j[0] == "B":
-            out += " "
-        out += x[i]
-    return out
+            out.append(" " if unit == "char" else "\n")
+        out.append(x[i])
+    return ("" if unit == "char" else " ").join(out)
 
 def f1(p, r):
     return 2 * p * r / (p + r) if p + r else 0
