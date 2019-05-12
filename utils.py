@@ -105,7 +105,7 @@ def log_sum_exp(x):
 def iob_to_txt(x, y, unit):
     out = []
     tmp = []
-    for i, (j, k) in zip(tokenize(x, unit), enumerate(y)):
+    for i, (j, k) in enumerate(zip(tokenize(x, unit), y)):
         if i and k[0] == "B":
             out.append(tmp)
             tmp = []
