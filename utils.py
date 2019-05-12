@@ -104,12 +104,15 @@ def log_sum_exp(x):
 
 def iob_to_txt(x, y, unit):
     out = []
-    x = tokenize(x, unit)
-    for i, j in enumerate(y):
-        if i and j[0] == "B":
-            out.append(" " if unit == "char" else "\n")
-        out.append(x[i])
-    return ("" if unit == "char" else " ").join(out)
+    tmp = []
+    for i, (j, k) in zip(tokenize(x, unit), enumerate(y)):
+        if i and k[0] == "B":
+            out.append(tmp)
+            tmp = []
+        tmp.append(j)
+    d1 = "" if unit == "char" else " "
+    d2 = " " if unit == "char" else "\n"
+    return d2.join(d1.join(x) for x in out)
 
 def f1(p, r):
     return 2 * p * r / (p + r) if p + r else 0
