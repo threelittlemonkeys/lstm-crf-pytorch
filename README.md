@@ -20,17 +20,19 @@ token/tag token/tag token/tag ...
 
 To prepare data:
 ```
-python prepare.py training_data
+python3 char+iob.py training_data # for word segmentation
+python3 word+iob.py training_data # for sentence segmentation
+python3 prepare.py training_data
 ```
 
 To train:
 ```
-python train.py model char_to_idx word_to_idx tag_to_idx training_data.csv (validation_data) num_epoch
+python3 train.py model char_to_idx word_to_idx tag_to_idx training_data.csv (validation_data) num_epoch
 ```
 
 To predict:
 ```
-python predict.py model.epochN word_to_idx tag_to_idx test_data
+python3 predict.py model.epochN word_to_idx tag_to_idx test_data
 ```
 
 ## References
