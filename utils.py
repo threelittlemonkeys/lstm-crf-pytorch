@@ -103,13 +103,11 @@ def log_sum_exp(x):
     return m + torch.log(torch.sum(torch.exp(x - m.unsqueeze(-1)), -1))
 
 def iob_to_txt(x, y, unit):
-    out = []
-    tmp = []
+    out = [[]]
     for i, (j, k) in enumerate(zip(tokenize(x, unit), y)):
         if i and k[0] == "B":
-            out.append(tmp)
-            tmp = []
-        tmp.append(j)
+            out.append([])
+        out[-1].append(j)
     d1 = "" if unit == "char" else " "
     d2 = " " if unit == "char" else "\n"
     return d2.join(d1.join(x) for x in out)
