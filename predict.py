@@ -26,14 +26,14 @@ def predict(filename, model, cti, wti, itt):
     fo = open(filename)
     for idx, line in enumerate(fo):
         line = line.strip()
-        if FORMAT == "char+iob":
+        if re.match("(\S+/\S+( |$))+", line): # word/tag
+            x, y = zip(*[re.split("/(?=[^/]+$)", x) for x in line.split(" ")])
+            x = [normalize(x) for x in x]
+        elif UNIT == "char" and FORMAT == "IOB":
             wti = cti
             x, y = tokenize(line, UNIT), []
             for w in line.split(" "):
                 y.extend(["B"] + ["I"] * (len(w) - 1))
-        elif re.match("(\S+/\S+( |$))+", line): # word+tag
-            x, y = zip(*[re.split("/(?=[^/]+$)", x) for x in line.split(" ")])
-            x = [normalize(x) for x in x]
         else: # no ground truth provided
             x, y = tokenize(line, UNIT), None
         xc = [[cti[c] if c in cti else UNK_IDX for c in w] for w in x]
