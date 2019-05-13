@@ -53,9 +53,7 @@ if __name__ == "__main__":
     print("cuda: %s" % CUDA)
     result = predict(sys.argv[5], *load_model())
     for x, y0, y1 in result:
-        if IOB:
-            if y0:
-                print((x, iob_to_txt(x, y0, UNIT)))
+        if format == "IOB":
             print((x, iob_to_txt(x, y1, UNIT)))
         else:
             print((x, y0, y1) if y0 else (x, y1))
