@@ -105,7 +105,7 @@ def log_sum_exp(x):
 
 def iob_to_txt(x, y):
     out = [[]]
-    if re.match("(\S+/\S+( |$))+", x):
+    if re.match("(\S+/\S+( |$))+", x): # token/tag
         x = re.sub(r"/[^ /]+\b", "", x) # remove tags
     for i, (j, k) in enumerate(zip(tokenize(x, False), y)):
         if i and k[0] == "B":
