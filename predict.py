@@ -16,26 +16,27 @@ def run_model(model, itt, batch):
         batch.append([-1, "", [[]], [EOS_IDX], []])
     batch.sort(key = lambda x: -len(x[3]))
     xc, xw = batchify(*zip(*[(x[2], x[3]) for x in batch]))
-    result = model.decode(xc, xw)
-    for i in range(batch_size):
-        batch[i].append([itt[j] for j in result[i]])
-    return [(x[1], x[4], x[5]) for x in sorted(batch[:batch_size])]
+    batch = batch[:batch_size]
+    result = model.decode(xc, xw)[:batch_size]
+    for x, y in zip(batch, result):
+        x.append([itt[j] for j in y])
+    return [(x[1], x[4], x[5]) for x in sorted(batch)]
 
 def predict(filename, model, cti, wti, itt):
     data = []
     fo = open(filename)
     for idx, line in enumerate(fo):
         line = line.strip()
-        if re.match("(\S+/\S+( |$))+", line): # word/tag
+        if re.match("(\S+/\S+( |$))+", line): # token/tag
             x, y = zip(*[re.split("/(?=[^/]+$)", x) for x in line.split(" ")])
-            x = [normalize(x) for x in x]
-        elif UNIT == "char" and FORMAT == "IOB":
+            x = list(map(normalize, x))
+        elif FORMAT == "word-segmentation":
             wti = cti
-            x, y = tokenize(line, UNIT), []
+            x, y = tokenize(line), []
             for w in line.split(" "):
                 y.extend(["B"] + ["I"] * (len(w) - 1))
         else: # no ground truth provided
-            x, y = tokenize(line, UNIT), None
+            x, y = tokenize(line), None
         xc = [[cti[c] if c in cti else UNK_IDX for c in w] for w in x]
         xw = [wti[w] if w in wti else UNK_IDX for w in x]
         data.append([idx, line, xc, xw, y])
@@ -53,7 +54,10 @@ if __name__ == "__main__":
     print("cuda: %s" % CUDA)
     result = predict(sys.argv[5], *load_model())
     for x, y0, y1 in result:
-        if FORMAT == "IOB":
-            print((x, iob_to_txt(x, y1, UNIT)))
-        else:
+        if not FORMAT:
             print((x, y0, y1) if y0 else (x, y1))
+        else: # segmentation
+            if y0:
+                print(iob_to_txt(x, y0))
+            print(iob_to_txt(x, y1))
+            print()

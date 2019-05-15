@@ -17,11 +17,12 @@ def normalize(x):
     x = x.lower()
     return x
 
-def tokenize(x, unit):
-    x = normalize(x)
-    if unit == "char":
+def tokenize(x, normalization = True):
+    if normalization:
+        x = normalize(x)
+    if UNIT == "char":
         return re.sub(" ", "", x)
-    if unit == "word":
+    if UNIT == "word":
         return x.split(" ")
 
 def save_data(filename, data):
@@ -102,14 +103,16 @@ def log_sum_exp(x):
     m = torch.max(x, -1)[0]
     return m + torch.log(torch.sum(torch.exp(x - m.unsqueeze(-1)), -1))
 
-def iob_to_txt(x, y, unit):
+def iob_to_txt(x, y):
     out = [[]]
-    for i, (j, k) in enumerate(zip(tokenize(x, unit), y)):
+    if re.match("(\S+/\S+( |$))+", x):
+        x = re.sub(r"/[^ /]+\b", "", x) # remove tags
+    for i, (j, k) in enumerate(zip(tokenize(x, False), y)):
         if i and k[0] == "B":
             out.append([])
         out[-1].append(j)
-    d1 = "" if unit == "char" else " "
-    d2 = " " if unit == "char" else "\n"
+    d1 = "" if UNIT == "char" else " "
+    d2 = " " if UNIT == "char" else "\n"
     return d2.join(d1.join(x) for x in out)
 
 def f1(p, r):
