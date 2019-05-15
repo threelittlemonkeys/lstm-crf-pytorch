@@ -20,9 +20,15 @@ token/tag token/tag token/tag ...
 
 To prepare data:
 ```
-python3 char+iob.py training_data # for word segmentation
-python3 word+iob.py training_data # for sentence segmentation
 python3 prepare.py training_data
+
+# word segmentation
+python3 char+iob.py training_data
+python3 prepare.py training_data.char+iob
+
+# sentence segmentation
+python3 word+iob.py training_data
+python3 prepare.py training_data.word+iob
 ```
 
 To train:
