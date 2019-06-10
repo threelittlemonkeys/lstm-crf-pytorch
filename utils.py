@@ -14,11 +14,14 @@ def normalize(x):
     # x = re.sub("[\u4E00-\u9FFF]+", "\u6F22", x) # convert CJK unified ideographs to 漢
     x = re.sub("\s+", " ", x)
     x = re.sub("^ | $", "", x)
-    x = x.lower()
+    if CASE == "lower": # lower case
+        x = x.lower()
+    if CASE == "keep-capitalized": # keep the case of the first letter
+        x = x[0] + x[1:].lower()
     return x
 
-def tokenize(x, normalization = True):
-    if normalization:
+def tokenize(x, norm = True):
+    if norm:
         x = normalize(x)
     if UNIT == "char":
         return re.sub(" ", "", x)
