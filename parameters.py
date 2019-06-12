@@ -1,8 +1,8 @@
 import torch
 
 UNIT = "word" # unit of tokenization (char, word)
-CASE = "lower" # casing for normalization (lower, keep-capitalized)
 FORMAT = None # format (None, word-segmentation, sentence-segmentation)
+LOWERCASE = False # lowercasing for normalization
 RNN_TYPE = "LSTM" # LSTM or GRU
 NUM_DIRS = 2 # unidirectional: 1, bidirectional: 2
 NUM_LAYERS = 2

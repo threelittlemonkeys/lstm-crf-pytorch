@@ -33,12 +33,12 @@ def predict(filename, model, cti, wti, itt):
         elif FORMAT == "word-segmentation":
             wti = cti
             x, y = tokenize(line), []
-            for w in line.split(" "):
+            for w in x:
                 y.extend(["B"] + ["I"] * (len(w) - 1))
         else: # no ground truth provided
             x, y = tokenize(line), None
         xc = [[cti[c] if c in cti else UNK_IDX for c in w] for w in x]
-        xw = [wti[w] if w in wti else UNK_IDX for w in x]
+        xw = [wti[w] if w in wti else UNK_IDX for w in map(lambda x: x.lower(), x)]
         data.append([idx, line, xc, xw, y])
     fo.close()
     with torch.no_grad():

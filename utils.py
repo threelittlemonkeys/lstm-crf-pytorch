@@ -8,17 +8,13 @@ from os.path import isfile
 from parameters import *
 from collections import defaultdict
 
-def normalize(x):
+def normalize(x, lc = LOWERCASE):
     # x = re.sub("[\uAC00-\uD7A3]+", "\uAC00", x) £ convert Hangeul to 가
     # x = re.sub("[\u3040-\u30FF]+", "\u3042", x) # convert Hiragana and Katakana to あ
     # x = re.sub("[\u4E00-\u9FFF]+", "\u6F22", x) # convert CJK unified ideographs to 漢
     x = re.sub("\s+", " ", x)
     x = re.sub("^ | $", "", x)
-    if CASE == "lower": # lower case
-        x = x.lower()
-    if CASE == "keep-capitalized": # keep the case of the first letter
-        x = x[0] + x[1:].lower()
-    return x
+    return x.lower() if lc else x
 
 def tokenize(x, norm = True):
     if norm:

@@ -18,16 +18,17 @@ def load_data():
         y = []
         for w in tokens:
             w, tag = re.split("/(?=[^/]+$)", w)
-            w = normalize(w)
+            w0 = normalize(w) # for character embedding
+            w1 = w0.lower() # for word embedding
             if not KEEP_IDX:
-                for c in w:
+                for c in w0:
                     if c not in cti:
                         cti[c] = len(cti)
-                if w not in wti:
-                    wti[w] = len(wti)
+                if w1 not in wti:
+                    wti[w1] = len(wti)
                 if tag not in tti:
                     tti[tag] = len(tti)
-            x.append("+".join(str(cti[c]) for c in w) + ":%d" % wti[w])
+            x.append("+".join(str(cti[c]) for c in w0) + ":%d" % wti[w1])
             y.append(str(tti[tag]))
         data.append(x + y)
     fo.close()
