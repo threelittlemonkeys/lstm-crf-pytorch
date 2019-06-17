@@ -46,10 +46,3 @@ class embed_cnn(nn.Module):
         h = self.fc(h) # [B * L, dim_out]
         h = h.view(BATCH_SIZE, -1, h.size(1)) # [B, L, dim_out]
         return h
-
-class embed_rnn(nn.Module): # TODO
-    def __init__(self, dim_in, dim_out):
-        pass
-
-    def forward(self, x):
-        pass
