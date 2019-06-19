@@ -2,12 +2,12 @@ import torch
 
 UNIT = "word" # unit of tokenization (char, word)
 FORMAT = None # format (None, word-segmentation, sentence-segmentation)
-LOWERCASE = False # lowercasing for normalization
+LOWERCASE = True # lowercasing for normalization
 RNN_TYPE = "LSTM" # LSTM or GRU
 NUM_DIRS = 2 # unidirectional: 1, bidirectional: 2
 NUM_LAYERS = 2
 BATCH_SIZE = 128
-EMBED = ["char-cnn", "lookup"] # embeddings (char-cnn, lookup)
+EMBED = ["char-cnn", "lookup"] # embeddings (char-cnn, lookup, sae)
 EMBED_SIZE = 300
 HIDDEN_SIZE = 1000
 DROPOUT = 0.5
