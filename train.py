@@ -1,6 +1,8 @@
-from utils import *
 from model import *
+from utils import *
 from evaluate import *
+from time import time
+from os.path import isfile
 
 def load_data():
     data = []

@@ -1,5 +1,6 @@
 from utils import *
 import numpy as np
+import torch.nn.functional as F
 
 class embed(nn.Module):
     def __init__(self, char_vocab_size, word_vocab_size, embed_size):

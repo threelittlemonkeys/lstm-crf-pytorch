@@ -1,4 +1,5 @@
 import torch
+import torch.nn as nn
 
 UNIT = "word" # unit of tokenization (char, word)
 FORMAT = None # format (None, word-segmentation, sentence-segmentation)

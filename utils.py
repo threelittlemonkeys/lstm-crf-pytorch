@@ -1,12 +1,6 @@
 import sys
 import re
-import time
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-from os.path import isfile
 from parameters import *
-from collections import defaultdict
 
 def normalize(x):
     # x = re.sub("[\uAC00-\uD7A3]+", "\uAC00", x) £ convert Hangeul to 가
