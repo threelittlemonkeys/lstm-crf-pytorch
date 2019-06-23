@@ -11,9 +11,9 @@ def normalize(x, lc = True):
     x = x.lower() if lc and CASING[-7:] == "uncased" else x
     return x
 
-def tokenize(x, norm = True, lc = True):
+def tokenize(x, norm = True):
     if norm:
-        x = normalize(x, lc)
+        x = normalize(x)
     if UNIT == "char":
         return re.sub(" ", "", x)
     if UNIT == "word":
