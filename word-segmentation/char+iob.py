@@ -1,6 +1,6 @@
 import sys
 
-if __name__ == "__main__":
+if __name__ == "__main__": # tag every character in IOB2 format for word segmentation
     if len(sys.argv) != 2:
         sys.exit("Usage: %s training_data" % sys.argv[0])
     fi = open(sys.argv[1])

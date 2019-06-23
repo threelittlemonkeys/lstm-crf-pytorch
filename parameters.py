@@ -3,6 +3,7 @@ import torch.nn as nn
 
 UNIT = "word" # unit of tokenization (char, word)
 FORMAT = None # format (None, word-segmentation, sentence-segmentation)
+CASING = "ul+uncased" # casing for normalization (cased, uncased, ul+uncased)
 RNN_TYPE = "LSTM" # LSTM or GRU
 NUM_DIRS = 2 # unidirectional: 1, bidirectional: 2
 NUM_LAYERS = 2

@@ -29,16 +29,18 @@ def predict(filename, model, cti, wti, itt):
         line = line.strip()
         if re.match("(\S+/\S+( |$))+", line): # token/tag
             x, y = zip(*[re.split("/(?=[^/]+$)", x) for x in line.split(" ")])
+            ul = [normalize(w, False)[0].isupper() for w in x]
             x = list(map(normalize, x))
-        elif FORMAT == "word-segmentation":
-            wti = cti
-            x, y = tokenize(line), []
-            for w in x:
-                y.extend(["B"] + ["I"] * (len(w) - 1))
         else: # no ground truth provided
-            x, y = tokenize(line), None
+            ul = [w[0].isupper() for w in tokenize(line, lc = False)]
+            x, y = tokenize(line), []
+            if FORMAT == "word-segmentation":
+                y = [c for w in [["B"] + ["I"] * (len(w) - 1) for w in x] for c in w]
+                wti = cti
         xc = [[cti[c] if c in cti else UNK_IDX for c in w] for w in x]
         xw = [wti[w] if w in wti else UNK_IDX for w in map(lambda x: x.lower(), x)]
+        if CASING[:2] == "ul": # prepend the caseness of the first letter
+            xc = [[cti["U"] if v else cti["L"]] + w for v, w in zip(ul, xc)]
         data.append([idx, line, xc, xw, y])
     fo.close()
     with torch.no_grad():
@@ -56,7 +58,7 @@ if __name__ == "__main__":
     for x, y0, y1 in result:
         if not FORMAT:
             print((x, y0, y1) if y0 else (x, y1))
-        else: # segmentation
+        else: # word/sentence segmentation
             if y0:
                 print(iob_to_txt(x, y0))
             print(iob_to_txt(x, y1))

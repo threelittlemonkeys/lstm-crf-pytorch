@@ -2,17 +2,18 @@ import sys
 import re
 from parameters import *
 
-def normalize(x):
+def normalize(x, lc = True):
     # x = re.sub("[\uAC00-\uD7A3]+", "\uAC00", x) £ convert Hangeul to 가
     # x = re.sub("[\u3040-\u30FF]+", "\u3042", x) # convert Hiragana and Katakana to あ
     # x = re.sub("[\u4E00-\u9FFF]+", "\u6F22", x) # convert CJK unified ideographs to 漢
     x = re.sub("\s+", " ", x)
     x = re.sub("^ | $", "", x)
-    return x.lower()
+    x = x.lower() if lc and CASING[-7:] == "uncased" else x
+    return x
 
-def tokenize(x, norm = True):
+def tokenize(x, norm = True, lc = True):
     if norm:
-        x = normalize(x)
+        x = normalize(x, lc)
     if UNIT == "char":
         return re.sub(" ", "", x)
     if UNIT == "word":
@@ -96,7 +97,7 @@ def log_sum_exp(x):
     m = torch.max(x, -1)[0]
     return m + torch.log(torch.sum(torch.exp(x - m.unsqueeze(-1)), -1))
 
-def iob_to_txt(x, y):
+def iob_to_txt(x, y): # for word/sentence segmentation
     out = [[]]
     if re.match("(\S+/\S+( |$))+", x): # token/tag
         x = re.sub(r"/[^ /]+\b", "", x) # remove tags
@@ -104,8 +105,10 @@ def iob_to_txt(x, y):
         if i and k[0] == "B":
             out.append([])
         out[-1].append(j)
-    d1 = "" if UNIT == "char" else " "
-    d2 = " " if UNIT == "char" else "\n"
+    if FORMAT == "word-segmentation":
+        d1, d2 = "", " "
+    if FORMAT == "sentence-segmentation":
+        d1, d2 = " ", "\n"
     return d2.join(d1.join(x) for x in out)
 
 def f1(p, r):
