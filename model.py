@@ -42,7 +42,7 @@ class rnn(nn.Module):
         if RNN_TYPE == "LSTM":
             cs = zeros(NUM_LAYERS * NUM_DIRS, BATCH_SIZE, HIDDEN_SIZE // NUM_DIRS) # cell state
             return (hs, cs)
-        return h
+        return hs
 
     def forward(self, xc, xw, mask):
         hs = self.init_hidden()
