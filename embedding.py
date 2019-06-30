@@ -67,13 +67,13 @@ class embed(nn.Module):
             # architecture
             self.embed = nn.Embedding(vocab_size, embed_size, padding_idx = PAD_IDX)
             self.rnn = getattr(nn, self.rnn_type)(
-                input_size = embed_size,
-                hidden_size = embed_size // num_dirs,
-                num_layers = num_layers,
+                input_size = self.dim,
+                hidden_size = self.dim // self.num_dirs,
+                num_layers = self.num_layers,
                 bias = True,
                 batch_first = True,
                 dropout = DROPOUT,
-                bidirectional = num_dirs == 2
+                bidirectional = self.num_dirs == 2
             )
 
         def init_hidden(self): # initialize hidden states
