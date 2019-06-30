@@ -38,17 +38,17 @@ class rnn(nn.Module):
         self.out = nn.Linear(HIDDEN_SIZE, num_tags) # RNN output to tag
 
     def init_hidden(self): # initialize hidden states
-        h = zeros(NUM_LAYERS * NUM_DIRS, BATCH_SIZE, HIDDEN_SIZE // NUM_DIRS) # hidden state
+        hs = zeros(NUM_LAYERS * NUM_DIRS, BATCH_SIZE, HIDDEN_SIZE // NUM_DIRS) # hidden state
         if RNN_TYPE == "LSTM":
-            c = zeros(NUM_LAYERS * NUM_DIRS, BATCH_SIZE, HIDDEN_SIZE // NUM_DIRS) # cell state
-            return (h, c)
+            cs = zeros(NUM_LAYERS * NUM_DIRS, BATCH_SIZE, HIDDEN_SIZE // NUM_DIRS) # cell state
+            return (hs, cs)
         return h
 
     def forward(self, xc, xw, mask):
-        self.hidden = self.init_hidden()
+        hs = self.init_hidden()
         x = self.embed(xc, xw)
         x = nn.utils.rnn.pack_padded_sequence(x, mask.sum(1).int(), batch_first = True)
-        h, _ = self.rnn(x, self.hidden)
+        h, _ = self.rnn(x, hs)
         h, _ = nn.utils.rnn.pad_packed_sequence(h, batch_first = True)
         h = self.out(h)
         h *= mask.unsqueeze(2)

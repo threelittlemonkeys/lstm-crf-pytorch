@@ -3,13 +3,15 @@ import numpy as np
 import torch.nn.functional as F
 
 class embed(nn.Module):
-    def __init__(self, char_vocab_size, word_vocab_size, embed_size):
+    def __init__(self, char_vocab_size, word_vocab_size, embed_size, mask = None):
         super().__init__()
         dim = embed_size // len(EMBED) # dimension of each embedding vector
 
         # architecture
         if "char-cnn" in EMBED:
             self.char_embed = self.cnn(char_vocab_size, dim)
+        if "char-rnn" in EMBED:
+            self.char_embed = self.rnn(char_vocab_size, dim, mask)
         if "lookup" in EMBED:
             self.word_embed = nn.Embedding(word_vocab_size, dim, padding_idx = PAD_IDX)
         if "sae" in EMBED:
@@ -52,6 +54,43 @@ class embed(nn.Module):
             h = self.dropout(h)
             h = self.fc(h) # [B * L, embed_size] # fully connected layer
             h = h.view(BATCH_SIZE, -1, h.size(1)) # [B, L, embed_size]
+            return h
+
+    class rnn(nn.Module):
+        def __init__(self, vocab_size, embed_size):
+            super().__init__()
+            self.dim = embed_size
+            self.rnn_type = "GRU" # LSTM, GRU
+            self.num_dirs = 2 # unidirectional: 1, bidirectional: 2
+            self.num_layers = 1
+
+            # architecture
+            self.embed = nn.Embedding(vocab_size, embed_size, padding_idx = PAD_IDX)
+            self.rnn = getattr(nn, rnn_type)(
+                input_size = embed_size,
+                hidden_size = embed_size // num_dirs,
+                num_layers = num_layers,
+                bias = True,
+                batch_first = True,
+                dropout = DROPOUT,
+                bidirectional = num_dirs == 2
+            )
+
+        def init_hidden(self): # initialize hidden states
+            hs = zeros(self.num_layers * self.num_dirs, BATCH_SIZE, self.dim // self.num_dirs) # hidden state
+            if self.rnn_type == "LSTM":
+                cs = zeros(self.num_layers * self.num_dirs, BATCH_SIZE, self.dim // self.num_dirs) # cell state
+                return (hs, cs)
+            return hs
+
+        def forward(self, x, mask):
+            hs = self.init_hidden()
+            x = self.embed(x)
+            x = nn.utils.rnn.pack_padded_sequence(x, mask.sum(1).int(), batch_first = True)
+            h, _ = self.rnn(x, self.hidden)
+            h, _ = nn.utils.rnn.pad_packed_sequence(h, batch_first = True)
+            h = self.out(h)
+            h *= mask.unsqueeze(2)
             return h
 
     class sae(nn.Module): # self attentive encoder
