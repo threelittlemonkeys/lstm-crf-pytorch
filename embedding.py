@@ -66,7 +66,7 @@ class embed(nn.Module):
 
             # architecture
             self.embed = nn.Embedding(vocab_size, embed_size, padding_idx = PAD_IDX)
-            self.rnn = getattr(nn, rnn_type)(
+            self.rnn = getattr(nn, self.rnn_type)(
                 input_size = embed_size,
                 hidden_size = embed_size // num_dirs,
                 num_layers = num_layers,
