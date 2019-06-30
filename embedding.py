@@ -20,8 +20,8 @@ class embed(nn.Module):
         if CUDA:
             self = self.cuda()
 
-    def forward(self, xc, xw, mask = None):
-        hc = self.char_embed(xc, mask) if "char-cnn" in EMBED or "char-rnn" in EMBED else None
+    def forward(self, xc, xw):
+        hc = self.char_embed(xc) if "char-cnn" in EMBED or "char-rnn" in EMBED else None
         hw = self.word_embed(xw) if "lookup" in EMBED or "sae" in EMBED else None
         h = torch.cat([h for h in [hc, hw] if type(h) == torch.Tensor], 2)
         return h
@@ -43,7 +43,7 @@ class embed(nn.Module):
             self.dropout = nn.Dropout(DROPOUT)
             self.fc = nn.Linear(len(kernel_sizes) * num_featmaps, embed_size)
 
-        def forward(self, x, mask = None):
+        def forward(self, x):
             x = x.view(-1, x.size(2)) # [batch_size (B) * word_seq_len (L), char_seq_len (H)]
             x = self.embed(x) # [B * L, H, dim (W)]
             x = x.unsqueeze(1) # [B * L, Ci, H, W]
@@ -62,7 +62,7 @@ class embed(nn.Module):
             self.dim = embed_size
             self.rnn_type = "GRU" # LSTM, GRU
             self.num_dirs = 2 # unidirectional: 1, bidirectional: 2
-            self.num_layers = 1
+            self.num_layers = 2
 
             # architecture
             self.embed = nn.Embedding(vocab_size, embed_size, padding_idx = PAD_IDX)
@@ -83,7 +83,7 @@ class embed(nn.Module):
                 return (hs, cs)
             return hs
 
-        def forward(self, x, mask):
+        def forward(self, x):
             hs = self.init_hidden()
             x = self.embed(x)
             x = nn.utils.rnn.pack_padded_sequence(x, mask.sum(1).int(), batch_first = True)

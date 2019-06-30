@@ -46,7 +46,7 @@ class rnn(nn.Module):
 
     def forward(self, xc, xw, mask):
         hs = self.init_hidden()
-        x = self.embed(xc, xw, mask)
+        x = self.embed(xc, xw)
         x = nn.utils.rnn.pack_padded_sequence(x, mask.sum(1).int(), batch_first = True)
         h, _ = self.rnn(x, hs)
         h, _ = nn.utils.rnn.pad_packed_sequence(h, batch_first = True)
