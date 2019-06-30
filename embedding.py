@@ -10,18 +10,18 @@ class embed(nn.Module):
         # architecture
         if "char-cnn" in EMBED:
             self.char_embed = self.cnn(char_vocab_size, dim)
-        if "char-rnn" in EMBED:
+        elif "char-rnn" in EMBED:
             self.char_embed = self.rnn(char_vocab_size, dim, mask)
         if "lookup" in EMBED:
             self.word_embed = nn.Embedding(word_vocab_size, dim, padding_idx = PAD_IDX)
-        if "sae" in EMBED:
+        elif "sae" in EMBED:
             self.word_embed = self.sae(word_vocab_size, dim)
 
         if CUDA:
             self = self.cuda()
 
     def forward(self, xc, xw):
-        hc = self.char_embed(xc) if "char-cnn" in EMBED else None
+        hc = self.char_embed(xc) if "char-cnn" in EMBED or "char-rnn" in EMBED else None
         hw = self.word_embed(xw) if "lookup" in EMBED or "sae" in EMBED else None
         h = torch.cat([h for h in [hc, hw] if type(h) == torch.Tensor], 2)
         return h
