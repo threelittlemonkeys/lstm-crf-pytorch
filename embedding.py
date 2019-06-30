@@ -3,7 +3,7 @@ import numpy as np
 import torch.nn.functional as F
 
 class embed(nn.Module):
-    def __init__(self, char_vocab_size, word_vocab_size, embed_size, mask = None):
+    def __init__(self, char_vocab_size, word_vocab_size, embed_size):
         super().__init__()
         dim = embed_size // len(EMBED) # dimension of each embedding vector
 
@@ -11,7 +11,7 @@ class embed(nn.Module):
         if "char-cnn" in EMBED:
             self.char_embed = self.cnn(char_vocab_size, dim)
         elif "char-rnn" in EMBED:
-            self.char_embed = self.rnn(char_vocab_size, dim, mask)
+            self.char_embed = self.rnn(char_vocab_size, dim)
         if "lookup" in EMBED:
             self.word_embed = nn.Embedding(word_vocab_size, dim, padding_idx = PAD_IDX)
         elif "sae" in EMBED:
@@ -20,8 +20,8 @@ class embed(nn.Module):
         if CUDA:
             self = self.cuda()
 
-    def forward(self, xc, xw):
-        hc = self.char_embed(xc) if "char-cnn" in EMBED or "char-rnn" in EMBED else None
+    def forward(self, xc, xw, mask = None):
+        hc = self.char_embed(xc, mask) if "char-cnn" in EMBED or "char-rnn" in EMBED else None
         hw = self.word_embed(xw) if "lookup" in EMBED or "sae" in EMBED else None
         h = torch.cat([h for h in [hc, hw] if type(h) == torch.Tensor], 2)
         return h
@@ -43,7 +43,7 @@ class embed(nn.Module):
             self.dropout = nn.Dropout(DROPOUT)
             self.fc = nn.Linear(len(kernel_sizes) * num_featmaps, embed_size)
 
-        def forward(self, x):
+        def forward(self, x, mask = None):
             x = x.view(-1, x.size(2)) # [batch_size (B) * word_seq_len (L), char_seq_len (H)]
             x = self.embed(x) # [B * L, H, dim (W)]
             x = x.unsqueeze(1) # [B * L, Ci, H, W]
