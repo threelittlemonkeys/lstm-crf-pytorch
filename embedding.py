@@ -52,7 +52,7 @@ class embed(nn.Module):
             h = [F.max_pool1d(k, k.size(2)).squeeze(2) for k in h] # [B * L, Co] * K
             h = torch.cat(h, 1) # [B * L, Co * K]
             h = self.dropout(h)
-            h = self.fc(h) # [B * L, embed_size] # fully connected layer
+            h = self.fc(h) # fully connected layer [B * L, embed_size]
             h = h.view(BATCH_SIZE, -1, h.size(1)) # [B, L, embed_size]
             return h
 
