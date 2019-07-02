@@ -76,21 +76,23 @@ class embed(nn.Module):
                 bidirectional = self.num_dirs == 2
             )
 
-        def init_hidden(self, b): # initialize hidden states
-            a = self.num_layers * self.num_dirs
-            c = self.dim // self.num_dirs
-            hs = zeros(a, b, c) # hidden state
+        def init_state(self, b): # initialize the cell state
+            n = self.num_layers * self.num_dirs
+            h = self.dim // self.num_dirs
+            hs = zeros(n, b, h) # hidden state
             if self.rnn_type == "LSTM":
-                cs = zeros(a, b, c) # cell state
+                cs = zeros(n, b, h) # cell state
                 return (hs, cs)
             return hs
 
         def forward(self, x):
-            hs = self.init_hidden(x.size(0) * x.size(1))
+            s = self.init_state(x.size(0) * x.size(1))
             x = x.view(-1, x.size(2))
             x = self.embed(x)
-            h, _ = self.rnn(x, hs)
-            h = self.out(h)
+            _, s = self.rnn(x, s)
+            h = s if self.rnn_type == "GRU" else s[-1]
+            h = torch.cat([x for x in h[-self.num_dirs:]], 1) # final cell state
+            h = h.view(BATCH_SIZE, -1, h.size(1)) # [B, L, embed_size]
             return h
 
     class sae(nn.Module): # self attentive encoder
