@@ -3,19 +3,19 @@ import numpy as np
 import torch.nn.functional as F
 
 class embed(nn.Module):
-    def __init__(self, char_vocab_size, word_vocab_size, embed_size):
+    def __init__(self, char_vocab_size, word_vocab_size):
         super().__init__()
-        dim = embed_size // len(EMBED) # dimension of each embedding vector
 
         # architecture
-        if "char-cnn" in EMBED:
-            self.char_embed = self.cnn(char_vocab_size, dim)
-        elif "char-rnn" in EMBED:
-            self.char_embed = self.rnn(char_vocab_size, dim)
-        if "lookup" in EMBED:
-            self.word_embed = nn.Embedding(word_vocab_size, dim, padding_idx = PAD_IDX)
-        elif "sae" in EMBED:
-            self.word_embed = self.sae(word_vocab_size, dim)
+        for model, dim in EMBED.items():
+            if model == "char-cnn":
+                self.char_embed = self.cnn(char_vocab_size, dim)
+            elif model == "char-rnn":
+                self.char_embed = self.rnn(char_vocab_size, dim)
+            if model == "lookup":
+                self.word_embed = nn.Embedding(word_vocab_size, dim, padding_idx = PAD_IDX)
+            elif model == "sae":
+                self.word_embed = self.sae(word_vocab_size, dim)
 
         if CUDA:
             self = self.cuda()

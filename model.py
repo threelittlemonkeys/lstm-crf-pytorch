@@ -25,7 +25,7 @@ class rnn(nn.Module):
         super().__init__()
 
         # architecture
-        self.embed = embed(char_vocab_size, word_vocab_size, EMBED_SIZE)
+        self.embed = embed(char_vocab_size, word_vocab_size)
         self.rnn = getattr(nn, RNN_TYPE)(
             input_size = EMBED_SIZE,
             hidden_size = HIDDEN_SIZE // NUM_DIRS,
