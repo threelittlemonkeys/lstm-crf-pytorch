@@ -44,16 +44,16 @@ class embed(nn.Module):
             self.fc = nn.Linear(len(kernel_sizes) * num_featmaps, embed_size)
 
         def forward(self, x):
-            x = x.view(-1, x.size(2)) # [batch_size (B) * word_seq_len (L), char_seq_len (H)]
-            x = self.embed(x) # [B * L, H, dim (W)]
-            x = x.unsqueeze(1) # [B * L, Ci, H, W]
-            h = [conv(x) for conv in self.conv] # [B * L, Co, H, 1] * K
-            h = [F.relu(k).squeeze(3) for k in h] # [B * L, Co, H] * K
-            h = [F.max_pool1d(k, k.size(2)).squeeze(2) for k in h] # [B * L, Co] * K
-            h = torch.cat(h, 1) # [B * L, Co * K]
+            x = x.view(-1, x.size(2)) # [batch_size (B) * word_seq_len (Lw), char_seq_len (Lc)]
+            x = self.embed(x) # [B * Lw, Lc, dim (H)]
+            x = x.unsqueeze(1) # [B * Lw, Ci, Lc, W]
+            h = [conv(x) for conv in self.conv] # [B * Lw, Co, Lc, 1] * K
+            h = [F.relu(k).squeeze(3) for k in h] # [B * Lw, Co, Lc] * K
+            h = [F.max_pool1d(k, k.size(2)).squeeze(2) for k in h] # [B * Lw, Co] * K
+            h = torch.cat(h, 1) # [B * Lw, Co * K]
             h = self.dropout(h)
-            h = self.fc(h) # fully connected layer [B * L, embed_size]
-            h = h.view(BATCH_SIZE, -1, h.size(1)) # [B, L, embed_size]
+            h = self.fc(h) # fully connected layer [B * Lw, embed_size]
+            h = h.view(BATCH_SIZE, -1, h.size(1)) # [B, Lw, embed_size]
             return h
 
     class rnn(nn.Module):
@@ -87,12 +87,12 @@ class embed(nn.Module):
 
         def forward(self, x):
             s = self.init_state(x.size(0) * x.size(1))
-            x = x.view(-1, x.size(2))
-            x = self.embed(x)
-            _, s = self.rnn(x, s)
+            x = x.view(-1, x.size(2)) # [batch_size (B) * word_seq_len (Lw), char_seq_len (Lc)]
+            x = self.embed(x) # [B * Lw, Lc, embed_size (H)]
+            h, s = self.rnn(x, s)
             h = s if self.rnn_type == "GRU" else s[-1]
-            h = torch.cat([x for x in h[-self.num_dirs:]], 1) # final cell state
-            h = h.view(BATCH_SIZE, -1, h.size(1)) # [B, L, embed_size]
+            h = torch.cat([x for x in h[-self.num_dirs:]], 1) # final cell state [B * Lw, H]
+            h = h.view(BATCH_SIZE, -1, h.size(1)) # [B, Lw, H]
             return h
 
     class sae(nn.Module): # self attentive encoder
