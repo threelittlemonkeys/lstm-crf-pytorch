@@ -55,8 +55,6 @@ Slav Petrov, Dipanjan Das, Ryan McDonald. 2011. [A Universal Part-of-Speech Tags
 
 Nils Reimers, Iryna Gurevych. 2017. [Optimal Hyperparameters for Deep LSTM-Networks for Sequence Labeling Tasks.](https://arxiv.org/abs/1707.06799) arXiv:1707.06799.
 
-Manfred Stede, Maite Taboada. 2017. [Annotation Guidelines for Rhetorical Structure.](http://www.sfu.ca/~mtaboada/docs/research/RST_Annotation_Guidelines.pdf) University of Potsdam and Simon Fraser University. http://www.sfu.ca/~mtaboada/docs/research/RST_Annotation_Guidelines.pdf.
-
 Feifei Zhai, Saloni Potdar, Bing Xiang, Bowen Zhou. 2017. [Neural Models for Sequence Chunking.](https://arxiv.org/abs/1701.04027) In AAAI.
 
 Zenan Zhai, Dat Quoc Nguyen, Karin Verspoor. 2018. [Comparing CNN and LSTM Character-level Embeddings in BiLSTM-CRF Models for Chemical and Disease Named Entity Recognition.](https://arxiv.org/abs/1808.08450) arXiv:1808.08450.
