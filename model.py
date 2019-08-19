@@ -33,7 +33,7 @@ class rnn(nn.Module):
             bias = True,
             batch_first = True,
             dropout = DROPOUT,
-            bidirectional = NUM_DIRS == 2
+            bidirectional = (NUM_DIRS == 2)
         )
         self.out = nn.Linear(HIDDEN_SIZE, num_tags) # RNN output to tag
 
