@@ -30,6 +30,7 @@ def predict(filename, model, cti, wti, itt):
         line = line.strip()
         if re.match("(\S+/\S+( |$))+", line): # token/tag
             x, y = zip(*[re.split("/(?=[^/]+$)", x) for x in line.split(" ")])
+            line = " ".join(x)
         else: # no ground truth provided
             x, y = tokenize(line, False), []
         ul = ["U" if normalize(w, False)[0].isupper() else "L" for w in x]
