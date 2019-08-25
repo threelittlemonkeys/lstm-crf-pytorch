@@ -37,13 +37,13 @@ class rnn(nn.Module):
         )
         self.out = nn.Linear(HIDDEN_SIZE, num_tags) # RNN output to tag
 
-    def init_state(self): # initialize the cell state
-        args = [NUM_LAYERS * NUM_DIRS, BATCH_SIZE, HIDDEN_SIZE // NUM_DIRS]
+    def init_state(self): # initialize RNN states
+        args = (NUM_LAYERS * NUM_DIRS, BATCH_SIZE, HIDDEN_SIZE // NUM_DIRS)
         hs = zeros(*args) # hidden state
-        if RNN_TYPE == "GRU":
-            return hs
-        cs = zeros(*args) # cell state
-        return (hs, cs)
+        if RNN_TYPE == "LSTM":
+            cs = zeros(*args) # LSTM cell state
+            return (hs, cs)
+        return hs
 
     def forward(self, xc, xw, mask):
         s = self.init_state()

@@ -1,6 +1,4 @@
 from utils import *
-import numpy as np
-import torch.nn.functional as F
 
 class embed(nn.Module):
     def __init__(self, char_vocab_size, word_vocab_size):
@@ -76,12 +74,12 @@ class embed(nn.Module):
                 bidirectional = self.num_dirs == 2
             )
 
-        def init_state(self, b): # initialize the cell state
+        def init_state(self, b): # initialize RNN states
             n = self.num_layers * self.num_dirs
             h = self.dim // self.num_dirs
             hs = zeros(n, b, h) # hidden state
             if self.rnn_type == "LSTM":
-                cs = zeros(n, b, h) # cell state
+                cs = zeros(n, b, h) # LSTM cell state
                 return (hs, cs)
             return hs
 
@@ -91,7 +89,7 @@ class embed(nn.Module):
             x = self.embed(x) # [B * Lw, Lc, embed_size (H)]
             h, s = self.rnn(x, s)
             h = s if self.rnn_type == "GRU" else s[-1]
-            h = torch.cat([x for x in h[-self.num_dirs:]], 1) # final cell state [B * Lw, H]
+            h = torch.cat([x for x in h[-self.num_dirs:]], 1) # final hidden state [B * Lw, H]
             h = h.view(BATCH_SIZE, -1, h.size(1)) # [B, Lw, H]
             return h
 
@@ -123,7 +121,7 @@ class embed(nn.Module):
         def pos_encoding(dim, maxlen = 1000): # positional encoding
             pe = Tensor(maxlen, dim)
             pos = torch.arange(0, maxlen, 1.).unsqueeze(1)
-            k = torch.exp(-np.log(10000) * torch.arange(0, dim, 2.) / dim)
+            k = torch.exp(-math.log(10000) * torch.arange(0, dim, 2.) / dim)
             pe[:, 0::2] = torch.sin(pos * k)
             pe[:, 1::2] = torch.cos(pos * k)
             return pe
@@ -158,7 +156,7 @@ class embed(nn.Module):
                 self.norm = nn.LayerNorm(self.D)
 
             def attn_sdp(self, q, k, v, mask): # scaled dot-product attention
-                c = np.sqrt(self.Dk) # scale factor
+                c = math.sqrt(self.Dk) # scale factor
                 a = torch.matmul(q, k.transpose(2, 3)) / c # compatibility function
                 a = a.masked_fill(mask, -10000) # masking in log space
                 a = F.softmax(a, -1)
