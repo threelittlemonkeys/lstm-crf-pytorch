@@ -20,8 +20,6 @@ def load_data():
             w, tag = re.split("/(?=[^/]+$)", w)
             w0 = normalize(w) # for character embedding
             w1 = w0.lower() # for word embedding
-            if CASING[:2] == "ul": # prepend the caseness of the first letter
-                w0 = ("U" if w[0].isupper() else "L") + w0
             if not KEEP_IDX:
                 for c in w0:
                     if c not in cti:

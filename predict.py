@@ -31,16 +31,12 @@ def predict(filename, model, cti, wti, itt):
             x, y = zip(*[re.split("/(?=[^/]+$)", x) for x in line.split(" ")])
             line = " ".join(x)
         else: # no ground truth provided
-            x, y = tokenize(line, False), []
-        ul = ["U" if normalize(w, False)[0].isupper() else "L" for w in x]
-        x = list(map(normalize, x))
+            x, y = tokenize(line), []
         if FORMAT == "word-segmentation":
             y = [c for w in [["B"] + ["I"] * (len(w) - 1) for w in x] for c in w]
             wti = cti
         xc = [[cti[c] if c in cti else UNK_IDX for c in w] for w in x]
         xw = [wti[w] if w in wti else UNK_IDX for w in map(lambda x: x.lower(), x)]
-        if CASING[:2] == "ul": # prepend the caseness of the first letter
-            xc = [[cti[v]] + w for v, w in zip(ul, xc)]
         data.append([idx, line, xc, xw, y])
     fo.close()
     with torch.no_grad():

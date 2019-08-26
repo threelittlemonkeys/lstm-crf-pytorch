@@ -2,13 +2,13 @@ import sys
 import re
 from parameters import *
 
-def normalize(x, lc = True):
+def normalize(x):
     # x = re.sub("[\uAC00-\uD7A3]+", "\uAC00", x) £ convert Hangeul to 가
     # x = re.sub("[\u3040-\u30FF]+", "\u3042", x) # convert Hiragana and Katakana to あ
     # x = re.sub("[\u4E00-\u9FFF]+", "\u6F22", x) # convert CJK unified ideographs to 漢
     x = re.sub("\s+", " ", x)
     x = re.sub("^ | $", "", x)
-    x = x.lower() if lc and CASING[-7:] == "uncased" else x
+    x = x.lower()
     return x
 
 def tokenize(x, norm = True):
