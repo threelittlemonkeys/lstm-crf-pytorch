@@ -62,16 +62,16 @@ class crf(nn.Module):
 
         # matrix of transition scores from j to i
         self.trans = nn.Parameter(randn(num_tags, num_tags))
-        self.trans.data[SOS_IDX, :] = -10000. # no transition to SOS
-        self.trans.data[:, EOS_IDX] = -10000. # no transition from EOS except to PAD
-        self.trans.data[:, PAD_IDX] = -10000. # no transition from PAD except to PAD
-        self.trans.data[PAD_IDX, :] = -10000. # no transition to PAD except from EOS
-        self.trans.data[PAD_IDX, EOS_IDX] = 0.
-        self.trans.data[PAD_IDX, PAD_IDX] = 0.
+        self.trans.data[SOS_IDX, :] = -10000 # no transition to SOS
+        self.trans.data[:, EOS_IDX] = -10000 # no transition from EOS except to PAD
+        self.trans.data[:, PAD_IDX] = -10000 # no transition from PAD except to PAD
+        self.trans.data[PAD_IDX, :] = -10000 # no transition to PAD except from EOS
+        self.trans.data[PAD_IDX, EOS_IDX] = 0
+        self.trans.data[PAD_IDX, PAD_IDX] = 0
 
     def forward(self, h, mask): # forward algorithm
         # initialize forward variables in log space
-        score = Tensor(BATCH_SIZE, self.num_tags).fill_(-10000.) # [B, C]
+        score = Tensor(BATCH_SIZE, self.num_tags).fill_(-10000) # [B, C]
         score[:, SOS_IDX] = 0.
         trans = self.trans.unsqueeze(0) # [1, C, C]
         for t in range(h.size(1)): # recursion through the sequence
@@ -99,7 +99,7 @@ class crf(nn.Module):
     def decode(self, h, mask): # Viterbi decoding
         # initialize backpointers and viterbi variables in log space
         bptr = LongTensor()
-        score = Tensor(BATCH_SIZE, self.num_tags).fill_(-10000.)
+        score = Tensor(BATCH_SIZE, self.num_tags).fill_(-10000)
         score[:, SOS_IDX] = 0.
 
         for t in range(h.size(1)): # recursion through the sequence

@@ -121,7 +121,7 @@ class embed(nn.Module):
         def pos_encoding(dim, maxlen = 1000): # positional encoding
             pe = Tensor(maxlen, dim)
             pos = torch.arange(0, maxlen, 1.).unsqueeze(1)
-            k = torch.exp(-math.log(10000) * torch.arange(0, dim, 2.) / dim)
+            k = torch.exp(-np.log(10000) * torch.arange(0, dim, 2.) / dim)
             pe[:, 0::2] = torch.sin(pos * k)
             pe[:, 1::2] = torch.cos(pos * k)
             return pe
@@ -156,7 +156,7 @@ class embed(nn.Module):
                 self.norm = nn.LayerNorm(self.D)
 
             def attn_sdp(self, q, k, v, mask): # scaled dot-product attention
-                c = math.sqrt(self.Dk) # scale factor
+                c = np.sqrt(self.Dk) # scale factor
                 a = torch.matmul(q, k.transpose(2, 3)) / c # compatibility function
                 a = a.masked_fill(mask, -10000) # masking in log space
                 a = F.softmax(a, -1)
