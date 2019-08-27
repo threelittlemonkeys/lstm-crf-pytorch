@@ -9,13 +9,14 @@ class rnn_crf(nn.Module):
         self = self.cuda() if CUDA else self
 
     def forward(self, xc, xw, y): # for training
+        self.zero_grad()
         mask = xw.data.gt(0).float()
         h = self.rnn(xc, xw, mask)
         Z = self.crf.forward(h, mask)
         score = self.crf.score(h, y, mask)
-        return Z - score # NLL loss
+        return torch.mean(Z - score) # NLL loss
 
-    def decode(self, xc, xw): # for prediction
+    def decode(self, xc, xw): # for inference 
         mask = xw.data.gt(0).float()
         h = self.rnn(xc, xw, mask)
         return self.crf.decode(h, mask)
