@@ -114,7 +114,7 @@ class embed(nn.Module):
 
         @staticmethod
         def maskset(x): # set of mask and lengths
-            mask = x.data.eq(PAD_IDX)
+            mask = x.eq(PAD_IDX)
             return (mask.view(BATCH_SIZE, 1, 1, -1), x.size(1) - mask.sum(1))
 
         @staticmethod
