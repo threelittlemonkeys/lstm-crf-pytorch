@@ -12,7 +12,7 @@ def load_data():
     cti = load_tkn_to_idx(sys.argv[2]) # char_to_idx
     wti = load_tkn_to_idx(sys.argv[3]) # word_to_idx
     itt = load_idx_to_tkn(sys.argv[4]) # idx_to_tkn
-    print("loading %s" % sys.argv[5])
+    print("loading %s..." % sys.argv[5])
     fo = open(sys.argv[5], "r")
     for line in fo:
         seq = line.strip().split(" ")
