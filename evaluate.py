@@ -1,5 +1,4 @@
 from predict import *
-from collections import defaultdict
 
 def evaluate(result, summary = False):
     avg = defaultdict(float) # average
@@ -17,15 +16,14 @@ def evaluate(result, summary = False):
         avg["macro_pr"] += pr
         avg["macro_rc"] += rc
         if not summary:
-            print()
             print("label = %s" % y)
             print("precision = %f (%d/%d)" % (pr, tp[y], tpfp[y]))
             print("recall = %f (%d/%d)" % (rc, tp[y], tpfn[y]))
             print("f1 = %f" % f1(pr, rc))
+            print()
     avg["macro_pr"] /= len(tpfn)
     avg["macro_rc"] /= len(tpfn)
     avg["micro_f1"] = sum(tp.values()) / sum(tpfp.values())
-    print()
     print("macro precision = %f" % avg["macro_pr"])
     print("macro recall = %f" % avg["macro_rc"])
     print("macro f1 = %f" % f1(avg["macro_pr"], avg["macro_rc"]))
