@@ -65,9 +65,6 @@ def convert(tkn):
         out.append(word + "/" + "+".join(tags))
     return out
 
-def postprocess(tkn):
-    return tkn
-
 if __name__ == "__main__":
     fin = open("brown.tagged.merged.uniq", "r")
     fout = open("brown.tagged.merged.uniq.ptb", "w")
@@ -75,7 +72,6 @@ if __name__ == "__main__":
         line = line.strip()
         tkn = [re.split("/(?=[^/]+$)", x) for x in line.split()]
         tkn = convert(tkn)
-        tkn = postprocess(tkn)
         fout.write(" ".join(tkn) + "\n")
     fin.close()
     fout.close()
