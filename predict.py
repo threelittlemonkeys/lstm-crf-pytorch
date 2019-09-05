@@ -31,7 +31,8 @@ def predict(filename, model, cti, wti, itt):
             x, y = zip(*[re.split("/(?=[^/]+$)", x) for x in line.split(" ")])
             line = " ".join(x)
         else: # no ground truth provided
-            x, y = tokenize(line), []
+            y = []
+        x = tokenize(line)
         if FORMAT == "word-segmentation":
             y = [c for w in [["B"] + ["I"] * (len(w) - 1) for w in x] for c in w]
             wti = cti
