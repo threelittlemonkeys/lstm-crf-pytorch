@@ -41,6 +41,11 @@ To predict:
 python3 predict.py model.epochN word_to_idx tag_to_idx test_data
 ```
 
+To evaluate:
+```
+python3 evaluate.py model.epochN word_to_idx tag_to_idx test_data
+```
+
 ## References
 
 Zhiheng Huang, Wei Xu, Kai Yu. 2015. [Bidirectional LSTM-CRF Models for Sequence Tagging.](https://arxiv.org/abs/1508.01991) arXiv:1508.01991.
