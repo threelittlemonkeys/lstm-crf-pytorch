@@ -2,10 +2,9 @@
 
 This is a simple tutorial for sentence segmentation using the scripts here.
 
-1. Training data should be formatted as below, sentences separated by `\n` and sentence blocks by `\n\n`, like `sample.en`:
+1. In the training data, sentences should be separated by `\n` and sentence blocks by `\n\n`, as in `sample.en`:
 
 ```
-sentence
 sentence
 sentence
 
