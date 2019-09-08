@@ -20,6 +20,7 @@ token/tag token/tag token/tag ...
 
 To prepare data:
 ```
+# by default
 python3 prepare.py training_data
 
 # word segmentation

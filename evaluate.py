@@ -10,6 +10,7 @@ def evaluate(result, summary = False):
             tp[y0] += y0 == y1
             tpfn[y0] += 1
             tpfp[y1] += 1
+    print()
     for y in sorted(tpfn.keys()):
         pr = (tp[y] / tpfp[y]) if tpfp[y] else 0
         rc = (tp[y] / tpfn[y]) if tpfn[y] else 0
@@ -19,8 +20,7 @@ def evaluate(result, summary = False):
             print("label = %s" % y)
             print("precision = %f (%d/%d)" % (pr, tp[y], tpfp[y]))
             print("recall = %f (%d/%d)" % (rc, tp[y], tpfn[y]))
-            print("f1 = %f" % f1(pr, rc))
-            print()
+            print("f1 = %f\n" % f1(pr, rc))
     avg["macro_pr"] /= len(tpfn)
     avg["macro_rc"] /= len(tpfn)
     avg["micro_f1"] = sum(tp.values()) / sum(tpfp.values())
