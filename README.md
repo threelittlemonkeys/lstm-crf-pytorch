@@ -51,6 +51,8 @@ python3 evaluate.py model.epochN word_to_idx tag_to_idx test_data
 
 Zhiheng Huang, Wei Xu, Kai Yu. 2015. [Bidirectional LSTM-CRF Models for Sequence Tagging.](https://arxiv.org/abs/1508.01991) arXiv:1508.01991.
 
+Harshit Kumar, Arvind Agarwal, Riddhiman Dasgupta, Sachindra Joshi. 2018. [Dialogue Act Sequence Labeling Using Hierarchical Encoder with CRF.](https://www.aaai.org/ocs/index.php/AAAI/AAAI18/paper/download/16706/16724) In AAAI.
+
 Xuezhe Ma, Eduard Hovy. 2016. [End-to-end Sequence Labeling via Bi-directional LSTM-CNNs-CRF.](https://arxiv.org/abs/1603.01354) arXiv:1603.01354.
 
 Shotaro Misawa, Motoki Taniguchi, Yasuhide Miura, Tomoko Ohkuma. 2017. [Character-based Bidirectional LSTM-CRF with Words and Characters for Japanese Named Entity Recognition.](http://www.aclweb.org/anthology/W17-4114) In Proceedings of the 1st Workshop on Subword and Character Level Models in NLP.
