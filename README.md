@@ -3,7 +3,7 @@
 A minimal PyTorch implementation of bidirectional LSTM-CRF for sequence labelling.
 
 Supported features:
-- Lookup, CNNs, RNNs and/or self-attentive encoding in the embedding layer
+- Lookup, CNNs, RNNs, self-attentive and/or hierarchical encoders in the embedding layer
 - A PyTorch implementation of conditional random field (CRF)
 - Vectorized computation of CRF loss
 - Vectorized Viterbi decoding

@@ -14,6 +14,8 @@ class embed(nn.Module):
                 self.word_embed = nn.Embedding(word_vocab_size, dim, padding_idx = PAD_IDX)
             elif model == "sae":
                 self.word_embed = self.sae(word_vocab_size, dim)
+            elif model == "hre":
+                self.sent_embed = None # TODO
 
         if CUDA:
             self = self.cuda()
@@ -21,10 +23,11 @@ class embed(nn.Module):
     def forward(self, xc, xw):
         hc = self.char_embed(xc) if "char-cnn" in EMBED or "char-rnn" in EMBED else None
         hw = self.word_embed(xw) if "lookup" in EMBED or "sae" in EMBED else None
+        hs = self.sent_embed() if "hre" in EMBED else None # TODO
         h = torch.cat([h for h in [hc, hw] if type(h) == torch.Tensor], 2)
         return h
 
-    class cnn(nn.Module): # character-based CNN
+    class cnn(nn.Module):
         def __init__(self, vocab_size, embed_size):
             super().__init__()
             dim = 50
@@ -54,7 +57,7 @@ class embed(nn.Module):
             h = h.view(BATCH_SIZE, -1, h.size(1)) # [B, Lw, embed_size]
             return h
 
-    class rnn(nn.Module): # character-based RNN
+    class rnn(nn.Module):
         def __init__(self, vocab_size, embed_size):
             super().__init__()
             self.dim = embed_size
