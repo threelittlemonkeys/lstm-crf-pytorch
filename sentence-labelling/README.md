@@ -18,7 +18,7 @@ sentence \t label
 2. Run `prepare.py` to make CSV and index files.
 
 ```
-python3 prepare.py train
+python3 ../prepare.py train
 ```
 
 4. Train your model. You can modify the hyperparameters in `parameters.py`.
