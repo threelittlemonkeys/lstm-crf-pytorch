@@ -14,7 +14,7 @@ class embed(nn.Module):
                 self.word_embed = nn.Embedding(word_vocab_size, dim, padding_idx = PAD_IDX)
             elif model == "sae":
                 self.word_embed = self.sae(word_vocab_size, dim)
-            elif model == "hre":
+            if model == "hre":
                 self.sent_embed = None # TODO
 
         if CUDA:

@@ -1,4 +1,4 @@
-# Sentence segmentation
+# Sentence Segmentation
 
 This is a simple tutorial for sentence segmentation using the scripts here.
 
