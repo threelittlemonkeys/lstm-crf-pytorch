@@ -1,8 +1,8 @@
 import sys
 
-if __name__ == "__main__": # tag every word in IOB2 format for sentence segmentation
+if __name__ == "__main__": # tag words in IOB2 format for sentence segmentation
     if len(sys.argv) != 2:
-        sys.exit("Usage: %s training_data" % sys.argv[0])
+        sys.exit("Usage: %s data" % sys.argv[0])
     fi = open(sys.argv[1])
     fo = open(sys.argv[1] + ".word+iob", "w")
     data = fi.read()

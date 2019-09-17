@@ -2,7 +2,7 @@
 
 This is a simple tutorial for sentence segmentation using the scripts here.
 
-1. In the training data, sentences should be separated by `\n` and sentence blocks by `\n\n`, as in `sample.en`:
+1. Training and validation data should be formatted as below, sentences separated by `\n` and sentence blocks by `\n\n`:
 
 ```
 sentence
@@ -15,7 +15,7 @@ sentence
 ...
 ```
 
-2. Run `word+iob.py` for IOB2 tagging.
+2. Run `word+iob.py` to tag words in IOB2 format.
 
 ```
 python3 word+iob.py sample.en
