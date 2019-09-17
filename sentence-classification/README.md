@@ -22,7 +22,7 @@ python3 ../tokenize.py L train
 python3 ../tokenize.py L valid
 ```
 
-3. Set the `hre` (hiearchical recurrent encoder) parameter in `parameters.py`. The dimension of the HRE must be the same as the dimension of the word embedding layer.
+3. Set the `hre` (hierarchical recurrent encoder) parameter in `parameters.py`. The dimension of the HRE must be the same as the dimension of the word embedding layer.
 
 ```
 EMBED = {"char-cnn": 50, "lookup": 250, "hre": 300}
