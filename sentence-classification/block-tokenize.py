@@ -2,10 +2,10 @@ import sys
 
 if __name__ == "__main__": # tokenize documents into blocks
     if len(sys.argv) != 3:
-        sys.exit("Usage: %s block_size training_data" % sys.argv[0])
+        sys.exit("Usage: %s block_size data" % sys.argv[0])
     z = int(sys.argv[1])
     fi = open(sys.argv[2])
-    fo = open(sys.argv[2] + ".tokenized", "w")
+    fo = open(sys.argv[2] + ".block", "w")
     data = fi.read()
     data = data.strip()
     data = data.split("\n\n")

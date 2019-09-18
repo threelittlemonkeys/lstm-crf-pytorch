@@ -15,11 +15,11 @@ sentence \t label
 ...
 ```
 
-2. Run `tokenize.py` to tokenize documents into blocks of size L.
+2. Run `block-tokenize.py` to tokenize documents into blocks of size L.
 
 ```
-python3 ../tokenize.py L train
-python3 ../tokenize.py L valid
+python3 ../block-tokenize.py L train.raw
+python3 ../block-tokenize.py L valid.raw
 ```
 
 3. Set the `hre` (hierarchical recurrent encoder) parameter in `parameters.py`. The dimension of the HRE must be the same as the dimension of the word embedding layer.
@@ -31,6 +31,8 @@ EMBED = {"char-cnn": 50, "lookup": 250, "hre": 300}
 4. Run `prepare.py` to make CSV and index files.
 
 ```
+mv train.raw.block train
+mv valid.raw.block valid
 python3 ../prepare.py train
 python3 ../prepare.py valid
 ```
