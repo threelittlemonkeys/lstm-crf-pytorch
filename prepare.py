@@ -18,7 +18,7 @@ def load_data():
         for block in txt:
             data.append([])
             for line in block.split("\n"):
-                x, y = _load_data(line, cti, wti, tti, hre)
+                x, y = load_line(line, cti, wti, tti, hre)
                 data[-1].append(x + [y])
         for block in sorted(data, key = lambda x: -len(x)):
             tmp.extend(block)
@@ -27,13 +27,13 @@ def load_data():
     else: # word level
         for line in fo:
             line = line.strip()
-            x, y = _load_data(line, cti, wti, tti)
+            x, y = load_line(line, cti, wti, tti, hre)
             data.append(x + y)
         data.sort(key = lambda x: -len(x))
     fo.close()
     return data, cti, wti, tti
 
-def _load_data(line, cti, wti, tti, hre = False):
+def load_line(line, cti, wti, tti, hre):
     x = []
     y = []
     if hre:

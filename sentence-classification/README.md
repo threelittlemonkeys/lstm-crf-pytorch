@@ -15,16 +15,19 @@ sentence \t label
 ...
 ```
 
-2. Run `block-tokenize.py` to tokenize documents into blocks of size L.
+2. Run `block-tokenize.py` to tokenize documents into blocks of size BLOCK_SIZE.
 
 ```
-python3 ../block-tokenize.py L train.raw
-python3 ../block-tokenize.py L valid.raw
+python3 ../block-tokenize.py BLOCK_SIZE train.raw
+python3 ../block-tokenize.py BLOCK_SIZE valid.raw
 ```
 
-3. Set the `hre` (hierarchical recurrent encoder) parameter in `parameters.py`. The dimension of the HRE must be the same as the dimension of the word embedding layer.
+3. Modify the parameters related to the HRE (hierarchical recurrent encoder) in `parameters.py`.
+
+Set the `hre` to the dimension of the word embedding layer and `BLOCK_SIZE` to the same value as in the previous step.
 
 ```
+BLOCK_SIZE = 5
 EMBED = {"char-cnn": 50, "lookup": 250, "hre": 300}
 ```
 

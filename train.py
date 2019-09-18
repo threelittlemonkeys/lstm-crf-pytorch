@@ -14,13 +14,26 @@ def load_data():
     print("loading %s..." % sys.argv[5])
     fo = open(sys.argv[5], "r")
     for line in fo:
-        seq = line.strip().split(" ")
-        x = [x.split(":") for x in seq[:len(seq) // 2]]
-        y = [int(x) for x in seq[len(seq) // 2:]]
-        xc, xw = zip(*[(list(map(int, xc.split("+"))), int(xw)) for xc, xw in x])
-        bxc.append(xc)
-        bxw.append(xw)
-        by.append(y)
+        line = line.strip()
+        print("_" + line + "_")
+        if line:
+            seq = line.split(" ")
+            if hre:
+                y = seq.pop()
+            x = [x.split(":") for x in seq[:len(seq) // 2]]
+            if not hre:
+                y = [int(x) for x in seq[len(seq) // 2:]]
+            xc, xw = zip(*[(list(map(int, xc.split("+"))), int(xw)) for xc, xw in x])
+            bxc.append(xc)
+            bxw.append(xw)
+            by.append(y)
+        else: # block delimiter
+            if len(by) < BLOCK_SIZE:
+                # TODO
+                print(bxc)
+                print(bxw)
+                print(by)
+                exit()
         if len(by) == BATCH_SIZE:
             bxc, bxw = batchify(bxc, bxw)
             _, by = batchify(None, by, sos = True)
