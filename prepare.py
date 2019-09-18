@@ -1,6 +1,7 @@
 from utils import *
 
 def load_data():
+    hre = "hre" in EMBED # hierarchical recurrent encoding
     data = []
     if KEEP_IDX:
         cti = load_tkn_to_idx(sys.argv[1] + ".char_to_idx")
@@ -11,17 +12,14 @@ def load_data():
         wti = {PAD: PAD_IDX, SOS: SOS_IDX, EOS: EOS_IDX, UNK: UNK_IDX}
         tti = {PAD: PAD_IDX, SOS: SOS_IDX, EOS: EOS_IDX}
     fo = open(sys.argv[1])
-    hre = "hre" in EMBED # hierarchical recurrent encoding
     if hre: # sentence level
-        txt = fo.read()
-        txt = txt.strip()
-        txt = txt.split("\n\n")
+        tmp = []
+        txt = fo.read().strip().split("\n\n")
         for block in txt:
             data.append([])
             for line in block.split("\n"):
                 x, y = _load_data(line, cti, wti, tti, hre)
                 data[-1].append(x + [y])
-        tmp = []
         for block in sorted(data, key = lambda x: -len(x)):
             tmp.extend(block)
             tmp.append([])
