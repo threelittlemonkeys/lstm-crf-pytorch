@@ -11,11 +11,13 @@ if __name__ == "__main__": # tokenize documents into blocks
     data = data.split("\n\n")
     blocks = []
     for doc in data:
+        i = 0
         doc = doc.split("\n")
-        for i in range(0, len(doc) - z + 1, z):
+        while i <= len(doc) - z:
             blocks.append("\n".join(doc[i:i + z]))
-        if i + z < len(doc):
-            blocks.append("\n".join(doc[i + z:]))
+            i += z
+        if i < len(doc):
+            blocks.append("\n".join(doc[i:]))
     fo.write("\n\n".join(blocks))
     fi.close()
     fo.close()

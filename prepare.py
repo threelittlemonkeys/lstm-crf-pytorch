@@ -11,28 +11,31 @@ def load_data():
         wti = {PAD: PAD_IDX, SOS: SOS_IDX, EOS: EOS_IDX, UNK: UNK_IDX}
         tti = {PAD: PAD_IDX, SOS: SOS_IDX, EOS: EOS_IDX}
     fo = open(sys.argv[1])
-    hre = "hre" in EMBED
+    hre = "hre" in EMBED # hierarchical recurrent encoding
     if hre: # sentence level
         txt = fo.read()
         txt = txt.strip()
         txt = txt.split("\n\n")
         for block in txt:
+            data.append([])
             for line in block.split("\n"):
-                x, y = _proc(line, cti, wti, tti, hre)
-                print(x)
-                print(y)
-                # TODO
-                data.append(x + [y])
+                x, y = _load_data(line, cti, wti, tti, hre)
+                data[-1].append(x + [y])
+        tmp = []
+        for block in sorted(data, key = lambda x: -len(x)):
+            tmp.extend(block)
+            tmp.append([])
+        data = tmp[:-1]
     else: # word level
         for line in fo:
             line = line.strip()
-            x, y = _proc(line, cti, wti, tti)
+            x, y = _load_data(line, cti, wti, tti)
             data.append(x + y)
+        data.sort(key = lambda x: -len(x))
     fo.close()
-    data.sort(key = lambda x: -len(x))
     return data, cti, wti, tti
 
-def _proc(line, cti, wti, tti, hre = False):
+def _load_data(line, cti, wti, tti, hre = False):
     x = []
     y = []
     if hre:
