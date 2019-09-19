@@ -2,21 +2,22 @@ from utils import *
 from embedding import embed
 
 class rnn_crf(nn.Module):
-    def __init__(self, char_vocab_size, word_vocab_size, num_tags):
+    def __init__(self, char_vocab_size, word_vocab_size, num_tags, hre):
         super().__init__()
         self.rnn = rnn(char_vocab_size, word_vocab_size, num_tags)
         self.crf = crf(num_tags)
+        self.hre = hre # hierarchical recurrent encoding (HRE)
         self = self.cuda() if CUDA else self
 
     def forward(self, xc, xw, y): # for training
         self.zero_grad()
-        mask = xw.gt(0).float()
+        mask = (y.gt(SOS_IDX) if self.hre else xw.gt(PAD_IDX)).float() # TODO
         h = self.rnn(xc, xw, mask)
         Z = self.crf.forward(h, mask)
         score = self.crf.score(h, y, mask)
         return torch.mean(Z - score) # NLL loss
 
-    def decode(self, xc, xw): # for inference 
+    def decode(self, xc, xw): # for inference
         mask = xw.gt(0).float()
         h = self.rnn(xc, xw, mask)
         return self.crf.decode(h, mask)
@@ -49,6 +50,7 @@ class rnn(nn.Module):
     def forward(self, xc, xw, mask):
         s = self.init_state()
         x = self.embed(xc, xw)
+        # TODO
         x = nn.utils.rnn.pack_padded_sequence(x, mask.sum(1).int(), batch_first = True)
         h, _ = self.rnn(x, s)
         h, _ = nn.utils.rnn.pad_packed_sequence(h, batch_first = True)

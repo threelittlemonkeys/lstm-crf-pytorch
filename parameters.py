@@ -3,14 +3,13 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-UNIT = "word" # unit of tokenization (char, word)
+UNIT = "word" # unit of tokenization (char, word, sent)
 FORMAT = None # format (None, word-segmentation, sentence-segmentation)
 RNN_TYPE = "LSTM" # LSTM or GRU
 NUM_DIRS = 2 # unidirectional: 1, bidirectional: 2
 NUM_LAYERS = 2
-BATCH_SIZE = 100 # BATCH_SIZE * BLOCK_SIZE in case of HRE (hierarchical recurrent encoding)
-BLOCK_SIZE = 5 # number of sentences in each HRE block
-EMBED = {"char-cnn": 50, "lookup": 250} # embeddings (char-cnn, char-rnn, lookup, sae, hre)
+BATCH_SIZE = 100
+EMBED = {"char-rnn": 50, "lookup": 250} # embeddings (char-cnn, char-rnn, lookup, sae)
 HIDDEN_SIZE = 1000
 DROPOUT = 0.5
 LEARNING_RATE = 1e-4
@@ -32,5 +31,3 @@ CUDA = torch.cuda.is_available()
 
 KEEP_IDX = False # use the existing indices when preparing additional data
 NUM_DIGITS = 4 # number of digits to print
-
-assert BATCH_SIZE % BLOCK_SIZE == 0

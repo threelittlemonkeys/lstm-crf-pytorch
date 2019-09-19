@@ -2,11 +2,11 @@ from model import *
 from utils import *
 from evaluate import *
 
-def load_data():
-    hre = "hre" in EMBED # hierarchical recurrent encoding
+def load_data(hre):
+    hre_size = 0 # size of HRE block
     bxc = [] # character sequence batch
     bxw = [] # word sequence batch
-    by = [] # label batch
+    by = [[]] if hre else [] # label batch
     data = []
     cti = load_tkn_to_idx(sys.argv[2]) # char_to_idx
     wti = load_tkn_to_idx(sys.argv[3]) # word_to_idx
@@ -15,41 +15,36 @@ def load_data():
     fo = open(sys.argv[5], "r")
     for line in fo:
         line = line.strip()
-        print("_" + line + "_")
         if line:
             seq = line.split(" ")
-            if hre:
-                y = seq.pop()
-            x = [x.split(":") for x in seq[:len(seq) // 2]]
-            if not hre:
-                y = [int(x) for x in seq[len(seq) // 2:]]
+            y = int(seq.pop()) if hre else [int(i) for i in seq[len(seq) // 2:]]
+            x = [i.split(":") for i in (seq if hre else seq[:len(seq) // 2])]
             xc, xw = zip(*[(list(map(int, xc.split("+"))), int(xw)) for xc, xw in x])
             bxc.append(xc)
             bxw.append(xw)
-            by.append(y)
-        else: # block delimiter
-            if len(by) < BLOCK_SIZE:
-                # TODO
-                print(bxc)
-                print(bxw)
-                print(by)
-                exit()
+            (by[-1] if hre else by).append(y)
+        elif hre: # empty line as block delimiter
+            if hre_size == 0:
+                hre_size = len(by[-1])
+            by[-1] += [PAD_IDX] * (hre_size - len(by[-1]))
+            by.append([])
         if len(by) == BATCH_SIZE:
             bxc, bxw = batchify(bxc, bxw)
             _, by = batchify(None, by, sos = True)
             data.append((bxc, bxw, by))
             bxc = []
             bxw = []
-            by = []
+            by = [[]] if hre else []
     fo.close()
     print("data size: %d" % (len(data) * BATCH_SIZE))
     print("batch size: %d" % BATCH_SIZE)
     return data, cti, wti, itt
 
 def train():
+    hre = (UNIT == "sent") # hierarchical recurrent encoding (HRE)
     num_epochs = int(sys.argv[-1])
-    data, cti, wti, itt = load_data()
-    model = rnn_crf(len(cti), len(wti), len(itt))
+    data, cti, wti, itt = load_data(hre)
+    model = rnn_crf(len(cti), len(wti), len(itt), hre)
     optim = torch.optim.Adam(model.parameters(), lr = LEARNING_RATE)
     print(model)
     epoch = load_checkpoint(sys.argv[1], model) if isfile(sys.argv[1]) else 0
@@ -71,7 +66,7 @@ def train():
             save_checkpoint(filename, model, ei, loss_sum, timer)
         if EVAL_EVERY and (ei % EVAL_EVERY == 0 or ei == epoch + num_epochs):
             args = [model, cti, wti, itt]
-            evaluate(predict(sys.argv[6], *args), True)
+            evaluate(predict(sys.argv[-1], *args), True)
             model.train()
             print()
 

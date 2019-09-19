@@ -19,7 +19,7 @@ def tokenize(x, norm = True):
         x = normalize(x)
     if UNIT == "char":
         return re.sub(" ", "", x)
-    if UNIT == "word":
+    if UNIT in ("word", "sent"):
         return x.split(" ")
 
 def save_data(filename, data):
@@ -75,8 +75,8 @@ def save_checkpoint(filename, model, epoch, loss, time):
         torch.save(checkpoint, filename + ".epoch%d" % epoch)
         print("saved model at epoch %d" % epoch)
 
-def cudify(f):
-    return lambda *x: f(*x).cuda() if CUDA else f(*x)
+def cudify(t):
+    return lambda *x: t(*x).cuda() if CUDA else t(*x)
 
 Tensor = cudify(torch.Tensor)
 LongTensor = cudify(torch.LongTensor)
