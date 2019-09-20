@@ -2,16 +2,15 @@ from utils import *
 from embedding import embed
 
 class rnn_crf(nn.Module):
-    def __init__(self, char_vocab_size, word_vocab_size, num_tags, hre):
+    def __init__(self, char_vocab_size, word_vocab_size, num_tags):
         super().__init__()
         self.rnn = rnn(char_vocab_size, word_vocab_size, num_tags)
         self.crf = crf(num_tags)
-        self.hre = hre # hierarchical recurrent encoding (HRE)
         self = self.cuda() if CUDA else self
 
     def forward(self, xc, xw, y): # for training
         self.zero_grad()
-        mask = (y.gt(SOS_IDX) if self.hre else xw.gt(PAD_IDX)).float() # TODO
+        mask = (y[:, 1:].gt(SOS_IDX) if HRE else xw.gt(PAD_IDX)).float()
         h = self.rnn(xc, xw, mask)
         Z = self.crf.forward(h, mask)
         score = self.crf.score(h, y, mask)
@@ -29,7 +28,7 @@ class rnn(nn.Module):
         # architecture
         self.embed = embed(char_vocab_size, word_vocab_size)
         self.rnn = getattr(nn, RNN_TYPE)(
-            input_size = sum(EMBED.values()),
+            input_size = EMBED_SIZE,
             hidden_size = HIDDEN_SIZE // NUM_DIRS,
             num_layers = NUM_LAYERS,
             bias = True,
@@ -50,7 +49,8 @@ class rnn(nn.Module):
     def forward(self, xc, xw, mask):
         s = self.init_state()
         x = self.embed(xc, xw)
-        # TODO
+        if HRE: # [B * doc_seq_len, H] -> [B, doc_seq_len, H]
+            x = x.view(BATCH_SIZE, -1, EMBED_SIZE)
         x = nn.utils.rnn.pack_padded_sequence(x, mask.sum(1).int(), batch_first = True)
         h, _ = self.rnn(x, s)
         h, _ = nn.utils.rnn.pad_packed_sequence(h, batch_first = True)

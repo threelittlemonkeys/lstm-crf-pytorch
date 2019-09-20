@@ -3,7 +3,6 @@ from utils import *
 class embed(nn.Module):
     def __init__(self, char_vocab_size, word_vocab_size):
         super().__init__()
-        self.hre = (UNIT == "sent") # hierarchical recurrent encoding (HRE)
 
         # architecture
         for model, dim in EMBED.items():
@@ -15,17 +14,17 @@ class embed(nn.Module):
                 self.word_embed = nn.Embedding(word_vocab_size, dim, padding_idx = PAD_IDX)
             elif model == "sae":
                 self.word_embed = self.sae(word_vocab_size, dim)
-        if self.hre:
-            self.sent_embed = self.rnn(sum(EMBED.values()), sum(EMBED.values()), True)
-
-        if CUDA:
-            self = self.cuda()
+        if HRE:
+            self.sent_embed = self.rnn(EMBED_SIZE, EMBED_SIZE, True)
+        self = self.cuda() if CUDA else self
 
     def forward(self, xc, xw):
-        hc = self.char_embed(xc) if "char-cnn" in EMBED or "char-rnn" in EMBED else None
-        hw = self.word_embed(xw) if "lookup" in EMBED or "sae" in EMBED else None
+        if "char-cnn" in EMBED or "char-rnn" in EMBED:
+            hc = self.char_embed(xc)
+        if "lookup" in EMBED or "sae" in EMBED:
+            hw = self.word_embed(xw)
         h = torch.cat([h for h in [hc, hw] if type(h) == torch.Tensor], 2)
-        if self.hre:
+        if HRE:
             h = self.sent_embed(h)
         return h
 

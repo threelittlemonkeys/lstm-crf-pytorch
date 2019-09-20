@@ -11,16 +11,16 @@ def load_data():
         wti = {PAD: PAD_IDX, SOS: SOS_IDX, EOS: EOS_IDX, UNK: UNK_IDX}
         tti = {PAD: PAD_IDX, SOS: SOS_IDX, EOS: EOS_IDX}
     fo = open(sys.argv[1])
-    if UNIT == "sent":
+    if HRE:
         tmp = []
         txt = fo.read().strip().split("\n\n")
-        for block in txt:
+        for doc in txt:
             data.append([])
-            for line in block.split("\n"):
+            for line in doc.split("\n"):
                 x, y = load_line(line, cti, wti, tti)
                 data[-1].append(x + [y])
-        for block in sorted(data, key = lambda x: -len(x)):
-            tmp.extend(block)
+        for doc in sorted(data, key = lambda x: -len(x)):
+            tmp.extend(doc)
             tmp.append([])
         data = tmp[:-1]
     else:
@@ -35,13 +35,13 @@ def load_data():
 def load_line(line, cti, wti, tti):
     x = []
     y = []
-    if UNIT == "sent":
+    if HRE:
         line, y = line.split("\t")
         if y not in tti:
             tti[y] = len(tti)
         y = str(tti[y])
     for w in line.split(" "):
-        w, tag = (w, None) if UNIT == "sent" else re.split("/(?=[^/]+$)", w)
+        w, tag = (w, None) if HRE else re.split("/(?=[^/]+$)", w)
         w0 = normalize(w) # for character embedding
         w1 = w0.lower() # for word embedding
         if not KEEP_IDX:
@@ -53,7 +53,7 @@ def load_line(line, cti, wti, tti):
             if tag and tag not in tti:
                 tti[tag] = len(tti)
         x.append("+".join(str(cti[c]) for c in w0) + ":%d" % wti[w1])
-        if UNIT != "sent":
+        if tag:
             y.append(str(tti[tag]))
     return x, y
 

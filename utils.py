@@ -83,18 +83,16 @@ LongTensor = cudify(torch.LongTensor)
 randn = cudify(torch.randn)
 zeros = cudify(torch.zeros)
 
-def batchify(bxc, bxw, sos = False, eos = False, minlen = 0):
-    bxw_len = max(minlen, max(len(x) for x in bxw))
-    if bxc:
-        bxc_len = max(minlen, max(len(w) for x in bxc for w in x))
-        pad = [[PAD_IDX] * (bxc_len + 2)]
-        bxc = [[[SOS_IDX, *w, EOS_IDX, *[PAD_IDX] * (bxc_len - len(w))] for w in x] for x in bxc]
-        bxc = [(pad if sos else []) + x + (pad * (bxw_len - len(x) + eos)) for x in bxc]
-        bxc = LongTensor(bxc)
-    sos = [SOS_IDX] if sos else []
-    eos = [EOS_IDX] if eos else []
-    bxw = [sos + list(x) + eos + [PAD_IDX] * (bxw_len - len(x)) for x in bxw]
-    return bxc, LongTensor(bxw)
+def batchify(c, w, sos = False, eos = False, minlen = 0):
+    w_len = max(minlen, max(len(x) for x in w))
+    w = [[*[SOS_IDX] * sos, *x, *[EOS_IDX] * eos, *[PAD_IDX] * (w_len - len(x))] for x in w]
+    if c:
+        c_len = max(minlen, max(len(w) for x in c for w in x))
+        pad = [[PAD_IDX] * (c_len + 2)]
+        c = [[[SOS_IDX, *w, EOS_IDX, *[PAD_IDX] * (c_len - len(w))] for w in x] for x in c]
+        c = [[*pad * sos, *x, *pad * (w_len - len(x) + eos)] for x in c]
+        c = LongTensor(c)
+    return c, LongTensor(w)
 
 def log_sum_exp(x):
     m = torch.max(x, -1)[0]
