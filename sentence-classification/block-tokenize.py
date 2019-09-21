@@ -9,15 +9,10 @@ if __name__ == "__main__": # tokenize documents into blocks
     data = fi.read()
     data = data.strip()
     data = data.split("\n\n")
-    blocks = []
     for doc in data:
-        i = 0
         doc = doc.split("\n")
-        while i <= len(doc) - z:
-            blocks.append("\n".join(doc[i:i + z]))
-            i += z
-        if i < len(doc):
-            blocks.append("\n".join(doc[i:]))
-    fo.write("\n\n".join(blocks))
+        for i in range(len(doc)):
+            fo.write("\n".join(doc[i:i + z]))
+            fo.write("\n" if i == len(doc) - 1 else "\n\n")
     fi.close()
     fo.close()
