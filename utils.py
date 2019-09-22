@@ -57,8 +57,7 @@ def save_tkn_to_idx(filename, tkn_to_idx):
 def load_checkpoint(filename, model = None):
     print("loading %s" % filename)
     checkpoint = torch.load(filename)
-    if model:
-        model.load_state_dict(checkpoint["state_dict"])
+    if model: model.load_state_dict(checkpoint["state_dict"])
     epoch = checkpoint["epoch"]
     loss = checkpoint["loss"]
     print("saved model: epoch = %d, loss = %f" % (checkpoint["epoch"], checkpoint["loss"]))
@@ -83,16 +82,26 @@ LongTensor = cudify(torch.LongTensor)
 randn = cudify(torch.randn)
 zeros = cudify(torch.zeros)
 
-def batchify(c, w, sos = False, eos = False, minlen = 0):
-    w_len = max(minlen, max(len(x) for x in w))
-    w = [[*[SOS_IDX] * sos, *x, *[EOS_IDX] * eos, *[PAD_IDX] * (w_len - len(x))] for x in w]
-    if c:
-        c_len = max(minlen, max(len(w) for x in c for w in x))
+def batchify(bc = None, bw = None, sos = False, eos = False, min_len = 0, doc_lens = []):
+    if len(doc_lens): # sentence-level padding for hierarchical recurrent encoding (HRE)
+        i, _bc, _bw = 0, [], []
+        s_len = max(doc_lens) # maximum sent_seq_len (Ls)
+        for j in doc_lens:
+            _bc.extend(bc[i:i + j] + [([PAD_IDX],)] * (s_len - j))
+            _bw.extend(bw[i:i + j] + [(PAD_IDX,)] * (s_len - j))
+            i += j
+        bc, bw = _bc, _bw
+    if bw:
+        w_len = max(min_len, max(len(x) for x in bw)) # maximum word_seq_len (Lw)
+        bw = [[*[SOS_IDX] * sos, *x, *[EOS_IDX] * eos, *[PAD_IDX] * (w_len - len(x))] for x in bw]
+        bw = LongTensor(bw) # [B * Ls, Lw]
+    if bc:
+        c_len = max(min_len, max(len(w) for x in bc for w in x)) # maximum char_seq_len (Lc)
         pad = [[PAD_IDX] * (c_len + 2)]
-        c = [[[SOS_IDX, *w, EOS_IDX, *[PAD_IDX] * (c_len - len(w))] for w in x] for x in c]
-        c = [[*pad * sos, *x, *pad * (w_len - len(x) + eos)] for x in c]
-        c = LongTensor(c)
-    return c, LongTensor(w)
+        bc = [[[SOS_IDX, *w, EOS_IDX, *[PAD_IDX] * (c_len - len(w))] for w in x] for x in bc]
+        bc = [[*pad * sos, *x, *pad * (w_len - len(x) + eos)] for x in bc]
+        bc = LongTensor(bc) # [B * Ls, Lw, Lc]
+    return bc, bw
 
 def log_sum_exp(x):
     m = torch.max(x, -1)[0]

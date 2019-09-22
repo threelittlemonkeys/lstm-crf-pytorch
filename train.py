@@ -6,8 +6,8 @@ def load_data():
     bxc = [] # character sequence batch
     bxw = [] # word sequence batch
     by = [[]] if HRE else [] # label batch
+    doc_lens = [] # document lengths for HRE
     data = []
-    doc_len = 0 # document length in HRE
     cti = load_tkn_to_idx(sys.argv[2]) # char_to_idx
     wti = load_tkn_to_idx(sys.argv[3]) # word_to_idx
     itt = load_idx_to_tkn(sys.argv[4]) # idx_to_tkn
@@ -24,21 +24,16 @@ def load_data():
             bxw.append(xw)
             (by[-1] if HRE else by).append(y)
         elif HRE: # empty line as document delimiter
-            if not doc_len: # the first document should be the longest
-                doc_len = len(by[-1])
-            pad_len = doc_len - len(by[-1])
-            bxc.extend([([PAD_IDX],)] * pad_len)
-            bxw.extend([(PAD_IDX,)] * pad_len)
-            by[-1].extend([PAD_IDX] * pad_len)
+            doc_lens.append(len(by[-1]))
             by.append([])
         if len(by) == BATCH_SIZE + HRE:
-            bxc, bxw = batchify(bxc, bxw)
+            bxc, bxw = batchify(bxc, bxw, doc_lens = doc_lens)
             _, by = batchify(None, by[:len(by) - HRE], sos = True)
             data.append((bxc, bxw, by))
             bxc = []
             bxw = []
             by = [[]] if HRE else []
-            doc_len = 0
+            doc_lens = []
     fo.close()
     print("data size: %d" % (len(data) * BATCH_SIZE))
     print("batch size: %d" % BATCH_SIZE)
