@@ -10,7 +10,7 @@ def load_model():
     load_checkpoint(sys.argv[1], model)
     return model, cti, wti, itt
 
-def run_model(model, itt, batch):
+def run_model(model, itt, batch, doc_lens):
     batch_size = len(batch) # real batch size
     while len(batch) < BATCH_SIZE:
         batch.append([-1, "", [[]], [EOS_IDX], []])
@@ -23,15 +23,13 @@ def run_model(model, itt, batch):
     return [(x[1], x[4], x[5]) for x in sorted(batch)]
 
 def predict(filename, model, cti, wti, itt):
-    data = []
-    doc_lens = [0] # document lengths for HRE
+    data = [[]] if HRE else []
     fo = open(filename)
     for idx, line in enumerate(fo):
         line = line.strip()
         if line:
-            if re.match("\S+( \S+)*\t\S+$", line): # sentence \t label
+            if HRE and re.match("\S+( \S+)*\t\S+$", line): # sentence \t label
                 line, y = line.split("\t")
-                doc_lens[-1] += 1
             elif re.match("(\S+/\S+( |$))+$", line): # word/tag
                 x, y = zip(*[re.split("/(?=[^/]+$)", x) for x in line.split(" ")])
                 line = " ".join(x)
@@ -40,15 +38,17 @@ def predict(filename, model, cti, wti, itt):
             x = tokenize(line)
             xc = [[cti[c] if c in cti else UNK_IDX for c in w] for w in x]
             xw = [wti[w] if w in wti else UNK_IDX for w in map(lambda x: x.lower(), x)]
-            data.append([idx, line, xc, xw, y])
+            (data[-1] if HRE else data).append([idx, line, xc, xw, y])
         elif HRE: # empty line as document delimiter
-            doc_lens.append(0)
+            data.append([])
     fo.close()
     with torch.no_grad():
-         model.eval()
-         for i in range(0, len(data), BATCH_SIZE):
+        model.eval()
+        for i in range(0, len(data), BATCH_SIZE):
             batch = data[i:i + BATCH_SIZE]
-            for y in run_model(model, itt, batch):
+            doc_lens = [len(x) for x in batch] if HRE else []
+            batch = [x for x in batch for x in x]
+            for y in run_model(model, itt, batch, doc_lens):
                 yield y
 
 if __name__ == "__main__":

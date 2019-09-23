@@ -7,7 +7,6 @@ def load_data():
     bxw = [] # word sequence batch
     by = [[]] if HRE else [] # label batch
     data = []
-    doc_lens = [] # document lengths for HRE
     cti = load_tkn_to_idx(sys.argv[2]) # char_to_idx
     wti = load_tkn_to_idx(sys.argv[3]) # word_to_idx
     itt = load_idx_to_tkn(sys.argv[4]) # idx_to_tkn
@@ -24,9 +23,9 @@ def load_data():
             bxw.append(xw)
             (by[-1] if HRE else by).append(y)
         elif HRE: # empty line as document delimiter
-            doc_lens.append(len(by[-1]))
             by.append([])
         if len(by) == BATCH_SIZE + HRE:
+            doc_lens = [len(x) for x in by[:-1]] if HRE else []
             bxc, bxw = batchify(bxc, bxw, doc_lens = doc_lens)
             _, by = batchify(None, by[:len(by) - HRE], sos = True)
             data.append((bxc, bxw, by))
