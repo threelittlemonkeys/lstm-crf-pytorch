@@ -6,8 +6,8 @@ def load_data():
     bxc = [] # character sequence batch
     bxw = [] # word sequence batch
     by = [[]] if HRE else [] # label batch
-    doc_lens = [] # document lengths for HRE
     data = []
+    doc_lens = [] # document lengths for HRE
     cti = load_tkn_to_idx(sys.argv[2]) # char_to_idx
     wti = load_tkn_to_idx(sys.argv[3]) # word_to_idx
     itt = load_idx_to_tkn(sys.argv[4]) # idx_to_tkn

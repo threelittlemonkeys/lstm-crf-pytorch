@@ -82,8 +82,8 @@ LongTensor = cudify(torch.LongTensor)
 randn = cudify(torch.randn)
 zeros = cudify(torch.zeros)
 
-def batchify(bc = None, bw = None, sos = False, eos = False, min_len = 0, doc_lens = []):
-    if len(doc_lens): # sentence-level padding for hierarchical recurrent encoding (HRE)
+def batchify(bc, bw, sos = False, eos = False, min_len = 0, doc_lens = []):
+    if len(doc_lens): # sentence padding for hierarchical recurrent encoding (HRE)
         i, _bc, _bw = 0, [], []
         s_len = max(doc_lens) # maximum sent_seq_len (Ls)
         for j in doc_lens:
@@ -91,10 +91,9 @@ def batchify(bc = None, bw = None, sos = False, eos = False, min_len = 0, doc_le
             _bw.extend(bw[i:i + j] + [(PAD_IDX,)] * (s_len - j))
             i += j
         bc, bw = _bc, _bw
-    if bw:
-        w_len = max(min_len, max(len(x) for x in bw)) # maximum word_seq_len (Lw)
-        bw = [[*[SOS_IDX] * sos, *x, *[EOS_IDX] * eos, *[PAD_IDX] * (w_len - len(x))] for x in bw]
-        bw = LongTensor(bw) # [B * Ls, Lw]
+    w_len = max(min_len, max(len(x) for x in bw)) # maximum word_seq_len (Lw)
+    bw = [[*[SOS_IDX] * sos, *x, *[EOS_IDX] * eos, *[PAD_IDX] * (w_len - len(x))] for x in bw]
+    bw = LongTensor(bw) # [B * Ls, Lw]
     if bc:
         c_len = max(min_len, max(len(w) for x in bc for w in x)) # maximum char_seq_len (Lc)
         pad = [[PAD_IDX] * (c_len + 2)]

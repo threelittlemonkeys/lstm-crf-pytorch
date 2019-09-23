@@ -49,8 +49,8 @@ class rnn(nn.Module):
     def forward(self, xc, xw, mask):
         s = self.init_state()
         x = self.embed(xc, xw)
-        if HRE: # [B * doc_seq_len, H] -> [B, doc_seq_len, H]
-            x = x.view(BATCH_SIZE, -1, EMBED_SIZE)
+        if HRE:
+            x = x.view(BATCH_SIZE, -1, EMBED_SIZE) # [B * doc_len, H] -> [B, doc_len, H]
         x = nn.utils.rnn.pack_padded_sequence(x, mask.sum(1).int(), batch_first = True)
         h, _ = self.rnn(x, s)
         h, _ = nn.utils.rnn.pad_packed_sequence(h, batch_first = True)

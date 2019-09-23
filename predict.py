@@ -24,18 +24,26 @@ def run_model(model, itt, batch):
 
 def predict(filename, model, cti, wti, itt):
     data = []
+    doc_lens = [0] # document lengths for HRE
     fo = open(filename)
     for idx, line in enumerate(fo):
         line = line.strip()
-        if re.match("(\S+/\S+( |$))+", line): # word/tag
-            x, y = zip(*[re.split("/(?=[^/]+$)", x) for x in line.split(" ")])
-            line = " ".join(x)
-        else: # no ground truth provided
-            y = []
-        x = tokenize(line)
-        xc = [[cti[c] if c in cti else UNK_IDX for c in w] for w in x]
-        xw = [wti[w] if w in wti else UNK_IDX for w in map(lambda x: x.lower(), x)]
-        data.append([idx, line, xc, xw, y])
+        if line:
+            if re.match("\S+( \S+)*\t\S+$", line): # sentence \t label
+                line, y = line.split("\t")
+                doc_lens[-1] += 1
+            elif re.match("(\S+/\S+( |$))+$", line): # word/tag
+                x, y = zip(*[re.split("/(?=[^/]+$)", x) for x in line.split(" ")])
+                line = " ".join(x)
+            else: # no ground truth provided
+                y = []
+            x = tokenize(line)
+            xc = [[cti[c] if c in cti else UNK_IDX for c in w] for w in x]
+            xw = [wti[w] if w in wti else UNK_IDX for w in map(lambda x: x.lower(), x)]
+            data.append([idx, line, xc, xw, y])
+            idx += 1
+        elif HRE: # empty line as document delimiter
+            doc_lens.append(0)
     fo.close()
     with torch.no_grad():
          model.eval()
