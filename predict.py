@@ -41,7 +41,6 @@ def predict(filename, model, cti, wti, itt):
             xc = [[cti[c] if c in cti else UNK_IDX for c in w] for w in x]
             xw = [wti[w] if w in wti else UNK_IDX for w in map(lambda x: x.lower(), x)]
             data.append([idx, line, xc, xw, y])
-            idx += 1
         elif HRE: # empty line as document delimiter
             doc_lens.append(0)
     fo.close()
