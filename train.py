@@ -17,7 +17,7 @@ def load_data():
             x = [x.split(":") for x in (seq if HRE else seq[:len(seq) // 2])]
             xc, xw = zip(*[(list(map(int, xc.split("+"))), int(xw)) for xc, xw in x])
             data.append_item(xc = xc, xw = xw, y0 = y)
-        if not (HRE and line): # delimiters
+        if not (HRE and line): # delimiters (\n, \n\n)
             data.append_list()
     if not HRE:
         data.xc.pop()
