@@ -12,8 +12,8 @@ def load_model():
 
 def run_model(model, itt, data):
     data.sort()
-    for xc, xw, y0, y0_lens in data.batchiter():
-        xc, xw = data.batchify(xc, xw)
+    for xc, xw, y0, y0_lens in data.split():
+        xc, xw = data.tensor(xc, xw)
         result = model.decode(xc, xw)
         for y1 in result:
             data.append(y1 = [itt[i] for i in y1])
@@ -37,9 +37,12 @@ def predict(filename, model, cti, wti, itt):
             xc = [[cti[c] if c in cti else UNK_IDX for c in w] for w in x]
             xw = [wti[w] if w in wti else UNK_IDX for w in map(lambda x: x.lower(), x)]
             data.append(idx = idx, x = line, xc = xc, xw = xw, y0 = y)
-        elif HRE: # empty line as document delimiter
-            data.y0.append([])
+        if not (HRE and line): # delimiters
+            data.create()
     fo.close()
+    if not HRE:
+        data.xc.pop()
+        data.xw.pop()
     with torch.no_grad():
         model.eval()
         return run_model(model, itt, data)

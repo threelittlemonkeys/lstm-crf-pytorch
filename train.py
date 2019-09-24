@@ -14,14 +14,17 @@ def load_data():
         if line:
             seq = line.split(" ")
             y = int(seq.pop()) if HRE else [int(i) for i in seq[len(seq) // 2:]]
-            x = [i.split(":") for i in (seq if HRE else seq[:len(seq) // 2])]
+            x = [x.split(":") for x in (seq if HRE else seq[:len(seq) // 2])]
             xc, xw = zip(*[(list(map(int, xc.split("+"))), int(xw)) for xc, xw in x])
             data.append(xc = xc, xw = xw, y0 = y)
-        elif HRE: # empty line as document delimiter
-            data.y0.append([])
-    for xc, xw, y0, y0_lens in data.batchiter():
-        xc, xw = data.batchify(xc, xw, doc_lens = y0_lens)
-        _, y0 = data.batchify(None, y0, sos = True)
+        if not (HRE and line): # delimiters
+            data.create()
+    if not HRE:
+        data.xc.pop()
+        data.xw.pop()
+    for xc, xw, y0, y0_lens in data.split():
+        xc, xw = data.tensor(xc, xw, doc_lens = y0_lens)
+        _, y0 = data.tensor(None, y0, _sos = True)
         data.batch.append((xc, xw, y0))
     fo.close()
     print("data size: %d" % (len(data.batch) * BATCH_SIZE))
@@ -30,7 +33,7 @@ def load_data():
 
 def train():
     num_epochs = int(sys.argv[-1])
-    data, cti, wti, itt = load_data()
+    batch, cti, wti, itt = load_data()
     model = rnn_crf(len(cti), len(wti), len(itt))
     optim = torch.optim.Adam(model.parameters(), lr = LEARNING_RATE)
     print(model)
@@ -40,13 +43,13 @@ def train():
     for ei in range(epoch + 1, epoch + num_epochs + 1):
         loss_sum = 0
         timer = time()
-        for xc, xw, y0 in data:
+        for xc, xw, y0 in batch:
             loss = model(xc, xw, y0) # forward pass and compute loss
             loss.backward() # compute gradients
             optim.step() # update parameters
             loss_sum += loss.item()
         timer = time() - timer
-        loss_sum /= len(data)
+        loss_sum /= len(batch)
         if ei % SAVE_EVERY and ei != epoch + num_epochs:
             save_checkpoint("", None, ei, loss_sum, timer)
         else:
