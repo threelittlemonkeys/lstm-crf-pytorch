@@ -131,22 +131,22 @@ class dataset():
                 xw = [list(*x) for x in self.xw[i:i + BATCH_SIZE]]
             yield xc, xw, y0, y0_lens
 
-    def tensor(self, bc, bw, _sos = False, _eos = False, min_len = 0, doc_lens = None):
+    def tensor(self, bc, bw, _sos = False, _eos = False, doc_lens = None):
         sos, eos, pad = [SOS_IDX], [EOS_IDX], [PAD_IDX]
         if doc_lens:
             s_len = max(doc_lens) # sent_seq_len (Ls)
             i, _bc, _bw = 0, [], []
             for j in doc_lens:
-                _bc.extend(bc[i:i + j] + [[[PAD_IDX]]] * (s_len - j))
-                _bw.extend(bw[i:i + j] + [[PAD_IDX]] * (s_len - j))
+                _bc.extend(bc[i:i + j] + [[pad]] * (s_len - j))
+                _bw.extend(bw[i:i + j] + [pad] * (s_len - j))
                 i += j
             bc, bw = _bc, _bw
         if bw:
-            w_len = max(min_len, max(len(x) for x in bw)) # word_seq_len (Lw)
+            w_len = max(len(x) for x in bw) # word_seq_len (Lw)
             bw = [sos * _sos + x + eos * _eos + pad * (w_len - len(x)) for x in bw]
             bw = LongTensor(bw) # [B * Ls, Lw]
         if bc:
-            c_len = max(min_len, max(len(w) for x in bc for w in x)) # char_seq_len (Lc)
+            c_len = max(len(w) for x in bc for w in x) # char_seq_len (Lc)
             w_pad = [pad * (c_len + 2)]
             bc = [[sos + w + eos + pad * (c_len - len(w)) for w in x] for x in bc]
             bc = [w_pad * _sos + x + w_pad * (w_len - len(x) + _eos) for x in bc]
