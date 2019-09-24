@@ -40,9 +40,9 @@ def predict(filename, model, cti, wti, itt):
                 y = []
             x = tokenize(line)
             xc = [[cti[c] if c in cti else UNK_IDX for c in w] for w in x]
-            xw = [wti[w] if w in wti else UNK_IDX for w in map(lambda x: x.lower(), x)]
+            xw = [wti[w] if w in wti else UNK_IDX for w in x]
             data.append_item(x = line, xc = xc, xw = xw, y0 = y)
-        if not (HRE and line): # delimiters
+        if not (HRE and line): # delimiters (\n, \n\n)
             data.append_list()
     fo.close()
     if not HRE:
