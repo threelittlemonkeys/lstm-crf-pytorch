@@ -28,7 +28,7 @@ SOS_IDX = 1
 EOS_IDX = 2
 UNK_IDX = 3
 
-torch.manual_seed(1)
+torch.manual_seed(0)
 CUDA = torch.cuda.is_available()
 
 KEEP_IDX = False # use the existing indices when preparing additional data
