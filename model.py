@@ -18,10 +18,13 @@ class rnn_crf(nn.Module):
         score = self.crf.score(h, y, mask)
         return torch.mean(Z - score) # NLL loss
 
-    def decode(self, xc, xw): # for inference
-        self.rnn.batch_size = xw.size(0)
-        self.crf.batch_size = xw.size(0)
-        mask = xw.gt(0).float()
+    def decode(self, xc, xw, doc_lens): # for inference
+        self.rnn.batch_size = len(doc_lens) if HRE else xw.size(0)
+        self.crf.batch_size = len(doc_lens) if HRE else xw.size(0)
+        if HRE:
+            mask = Tensor([[1] * x + [PAD_IDX] * (doc_lens[0] - x) for x in doc_lens])
+        else:
+            mask = xw.gt(PAD_IDX).float()
         h = self.rnn(xc, xw, mask)
         return self.crf.decode(h, mask)
 
@@ -55,8 +58,8 @@ class rnn(nn.Module):
     def forward(self, xc, xw, mask):
         s = self.init_state(self.batch_size)
         x = self.embed(xc, xw)
-        if HRE:
-            x = x.view(self.batch_size, -1, EMBED_SIZE) # [B * doc_len, H] -> [B, doc_len, H]
+        if HRE: # [B * doc_len, H] -> [B, doc_len, H]
+            x = x.view(self.batch_size, -1, EMBED_SIZE)
         x = nn.utils.rnn.pack_padded_sequence(x, mask.sum(1).int(), batch_first = True)
         h, _ = self.rnn(x, s)
         h, _ = nn.utils.rnn.pad_packed_sequence(h, batch_first = True)

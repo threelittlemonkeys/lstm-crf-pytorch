@@ -13,34 +13,40 @@ def load_model():
 def run_model(model, itt, data):
     data.sort()
     for xc, xw, y0, y0_lens in data.split():
-        xc, xw = data.tensor(xc, xw)
-        result = model.decode(xc, xw)
+        xc, xw = data.tensor(xc, xw, doc_lens = y0_lens)
+        result = model.decode(xc, xw, y0_lens)
         for y1 in result:
-            data.append(y1 = [itt[i] for i in y1])
+            data.append_item(y1 = [itt[i] for i in y1])
     data.unsort()
-    return list(zip(data.x, data.y0, data.y1))
+    for x, y0, y1 in zip(data.x, data.y0, data.y1):
+        if HRE:
+            for x, y0, y1 in zip(x, y0, y1):
+                yield x, y0, y1
+        else:
+            yield x, y0, y1
 
 def predict(filename, model, cti, wti, itt):
     data = dataset()
     fo = open(filename)
-    for idx, line in enumerate(fo):
+    for line in fo:
         line = line.strip()
         if line:
-            if HRE and re.match("\S+( \S+)*\t\S+$", line): # sentence \t label
-                line, y = line.split("\t")
-            elif re.match("(\S+/\S+( |$))+$", line): # word/tag
+            if re.match("(\S+/\S+( |$))+$", line): # word/tag
                 x, y = zip(*[re.split("/(?=[^/]+$)", x) for x in line.split(" ")])
                 line = " ".join(x)
+            elif re.match("\S+( \S+)*\t\S+$", line): # sentence \t label
+                line, y = line.split("\t")
             else: # no ground truth provided
                 y = []
             x = tokenize(line)
             xc = [[cti[c] if c in cti else UNK_IDX for c in w] for w in x]
             xw = [wti[w] if w in wti else UNK_IDX for w in map(lambda x: x.lower(), x)]
-            data.append(idx = idx, x = line, xc = xc, xw = xw, y0 = y)
+            data.append_item(x = line, xc = xc, xw = xw, y0 = y)
         if not (HRE and line): # delimiters
-            data.create()
+            data.append_list()
     fo.close()
     if not HRE:
+        data.x.pop()
         data.xc.pop()
         data.xw.pop()
     with torch.no_grad():

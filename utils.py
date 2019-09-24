@@ -89,44 +89,46 @@ class dataset():
         self.xc = [[]] # input character sequences
         self.xw = [[]] # input word sequences
         self.y0 = [[]] if HRE else [] # actual labels
-        self.y1 = [[]] if HRE else [] # predicted labels
+        self.y1 = [] # predicted labels
         self.batch = [] # batch tensors
 
-    def append(self, idx = -1, x = None, xc = None, xw = None, y0 = None, y1 = None):
+    def append_item(self, idx = -1, x = None, xc = None, xw = None, y0 = None, y1 = None):
         if idx >= 0 : self.idx.append(idx)
         if x: self.x[-1].append(x)
         if xc: self.xc[-1].append(xc)
         if xw: self.xw[-1].append(xw)
         if y0: (self.y0[-1] if HRE else self.y0).append(y0)
-        if y1: (self.y1[-1] if HRE else self.y1).append(y1)
+        if y1: self.y1.append(y1)
 
-    def create(self): # create a document array
+    def append_list(self):
         self.x.append([])
         self.xc.append([])
         self.xw.append([])
         if HRE: self.y0.append([])
 
     def sort(self):
-        if HRE:
-            pass
-        else:
-            self.idx.sort(key = lambda x: -len(self.xw[x][0]))
+        self.idx = list(range(len(self.x)))
+        self.idx.sort(key = lambda x: -len(self.xw[x] if HRE else self.xw[x][0]))
         self.xc = [self.xc[i] for i in self.idx]
         self.xw = [self.xw[i] for i in self.idx]
 
     def unsort(self):
         idx = sorted(range(len(self.idx)), key = lambda x: self.idx[x])
-        self.idx = list(range(len(self.idx)))
+        self.idx = list(range(len(self.x)))
         self.xc = [self.xc[i] for i in idx]
         self.xw = [self.xw[i] for i in idx]
         self.y1 = [self.y1[i] for i in idx]
 
-    def split(self):
+    def split(self): # split into batches
         for i in range(0, len(self.y0), BATCH_SIZE):
             y0 = self.y0[i:i + BATCH_SIZE]
-            y0_lens = [len(x) for x in y0] if HRE else None
-            xc = [list(*x) for x in self.xc[i:i + BATCH_SIZE]]
-            xw = [list(*x) for x in self.xw[i:i + BATCH_SIZE]]
+            y0_lens = [len(x) for x in self.xw[i:i + BATCH_SIZE]] if HRE else None
+            if HRE:
+                xc = [list(x) for x in self.xc[i:i + BATCH_SIZE] for x in x]
+                xw = [list(x) for x in self.xw[i:i + BATCH_SIZE] for x in x]
+            else:
+                xc = [list(*x) for x in self.xc[i:i + BATCH_SIZE]]
+                xw = [list(*x) for x in self.xw[i:i + BATCH_SIZE]]
             yield xc, xw, y0, y0_lens
 
     def tensor(self, bc, bw, _sos = False, _eos = False, min_len = 0, doc_lens = None):
@@ -135,8 +137,8 @@ class dataset():
             s_len = max(doc_lens) # sent_seq_len (Ls)
             i, _bc, _bw = 0, [], []
             for j in doc_lens:
-                _bc.extend(bc[i:i + j] + [([PAD_IDX],)] * (s_len - j))
-                _bw.extend(bw[i:i + j] + [(PAD_IDX,)] * (s_len - j))
+                _bc.extend(bc[i:i + j] + [[[PAD_IDX]]] * (s_len - j))
+                _bw.extend(bw[i:i + j] + [[PAD_IDX]] * (s_len - j))
                 i += j
             bc, bw = _bc, _bw
         if bw:
