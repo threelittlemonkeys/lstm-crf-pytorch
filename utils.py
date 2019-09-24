@@ -82,25 +82,67 @@ LongTensor = cudify(torch.LongTensor)
 randn = cudify(torch.randn)
 zeros = cudify(torch.zeros)
 
-def batchify(bc, bw, sos = False, eos = False, min_len = 0, doc_lens = []):
-    if len(doc_lens): # sentence padding for hierarchical recurrent encoding (HRE)
-        i, _bc, _bw = 0, [], []
-        s_len = max(doc_lens) # maximum sent_seq_len (Ls)
-        for j in doc_lens:
-            _bc.extend(bc[i:i + j] + [([PAD_IDX],)] * (s_len - j))
-            _bw.extend(bw[i:i + j] + [(PAD_IDX,)] * (s_len - j))
-            i += j
-        bc, bw = _bc, _bw
-    w_len = max(min_len, max(len(x) for x in bw)) # maximum word_seq_len (Lw)
-    bw = [[*[SOS_IDX] * sos, *x, *[EOS_IDX] * eos, *[PAD_IDX] * (w_len - len(x))] for x in bw]
-    bw = LongTensor(bw) # [B * Ls, Lw]
-    if bc:
-        c_len = max(min_len, max(len(w) for x in bc for w in x)) # maximum char_seq_len (Lc)
-        pad = [[PAD_IDX] * (c_len + 2)]
-        bc = [[[SOS_IDX, *w, EOS_IDX, *[PAD_IDX] * (c_len - len(w))] for w in x] for x in bc]
-        bc = [[*pad * sos, *x, *pad * (w_len - len(x) + eos)] for x in bc]
-        bc = LongTensor(bc) # [B * Ls, Lw, Lc]
-    return bc, bw
+class dataset():
+    def __init__(self):
+        self.idx = []
+        self.x = []
+        self.xc = [] # input character sequence batches
+        self.xw = [] # input word sequence batches
+        self.y0 = [[]] if HRE else [] # actual label batches
+        self.y1 = [[]] if HRE else [] # predicted label batches
+        self.batch = [] # batch tensors
+
+    def append(self, idx = -1, x = None, xc = None, xw = None, y0 = None, y1 = None):
+        if idx >=0 : self.idx.append(idx)
+        if x: self.x.append(x)
+        if xc: self.xc.append(xc)
+        if xw: self.xw.append(xw)
+        if y0: (self.y0[-1] if HRE else self.y0).append(y0)
+        if y1: self.y1.append(y1)
+
+    def sort(self):
+        self.idx.sort(key = lambda x: -len(self.xw[x]))
+        self.xc = [self.xc[i] for i in self.idx]
+        self.xw = [self.xw[i] for i in self.idx]
+
+    def unsort(self):
+        idx = sorted(range(len(self.idx)), key = lambda x: self.idx[x])
+        self.idx = list(range(len(self.idx)))
+        self.xc = [self.xc[i] for i in idx]
+        self.xw = [self.xw[i] for i in idx]
+        self.y1 = [self.y1[i] for i in idx]
+
+    def batchiter(self):
+        j = 0
+        for i in range(0, len(self.y0), BATCH_SIZE):
+            y0 = self.y0[i:i + BATCH_SIZE]
+            y0_lens = [len(x) for x in y0] if HRE else None
+            k = sum(y0_lens) if HRE else len(y0)
+            xc = self.xc[j:j + k]
+            xw = self.xw[j:j + k]
+            j += k
+            yield xc, xw, y0, y0_lens
+
+    def batchify(self, bc, bw, sos = False, eos = False, min_len = 0, doc_lens = None):
+        if doc_lens:
+            s_len = max(doc_lens) # maximum sent_seq_len (Ls)
+            i, _bc, _bw = 0, [], []
+            for j in doc_lens:
+                _bc.extend(bc[i:i + j] + [([PAD_IDX],)] * (s_len - j))
+                _bw.extend(bw[i:i + j] + [(PAD_IDX,)] * (s_len - j))
+                i += j
+            bc, bw = _bc, _bw
+        if bw:
+            w_len = max(min_len, max(len(x) for x in bw)) # maximum word_seq_len (Lw)
+            bw = [[*[SOS_IDX] * sos, *x, *[EOS_IDX] * eos, *[PAD_IDX] * (w_len - len(x))] for x in bw]
+            bw = LongTensor(bw) # [B * Ls, Lw]
+        if bc:
+            c_len = max(min_len, max(len(w) for x in bc for w in x)) # maximum char_seq_len (Lc)
+            pad = [[PAD_IDX] * (c_len + 2)]
+            bc = [[[SOS_IDX, *w, EOS_IDX, *[PAD_IDX] * (c_len - len(w))] for w in x] for x in bc]
+            bc = [[*pad * sos, *x, *pad * (w_len - len(x) + eos)] for x in bc]
+            bc = LongTensor(bc) # [B * Ls, Lw, Lc]
+        return bc, bw
 
 def log_sum_exp(x):
     m = torch.max(x, -1)[0]

@@ -7,7 +7,7 @@ def evaluate(result, summary = False):
     tpfp = defaultdict(int) # true positives + false positives
     for _, y0, y1 in result: # actual value, prediction
         for y0, y1 in zip(y0, y1):
-            tp[y0] += y0 == y1
+            tp[y0] += (y0 == y1)
             tpfn[y0] += 1
             tpfp[y1] += 1
     print()
@@ -23,7 +23,7 @@ def evaluate(result, summary = False):
             print("f1 = %f\n" % f1(pr, rc))
     avg["macro_pr"] /= len(tpfn)
     avg["macro_rc"] /= len(tpfn)
-    avg["micro_f1"] = sum(tp.values()) / sum(tpfp.values())
+    avg["micro_f1"] = sum(tp.values()) / sum(tpfn.values())
     print("macro precision = %f" % avg["macro_pr"])
     print("macro recall = %f" % avg["macro_rc"])
     print("macro f1 = %f" % f1(avg["macro_pr"], avg["macro_rc"]))

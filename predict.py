@@ -10,20 +10,18 @@ def load_model():
     load_checkpoint(sys.argv[1], model)
     return model, cti, wti, itt
 
-def run_model(model, itt, batch, doc_lens):
-    batch_size = len(batch) # real batch size
-    while len(batch) < BATCH_SIZE:
-        batch.append([-1, "", [[]], [EOS_IDX], []])
-    batch.sort(key = lambda x: -len(x[3]))
-    bxc, bxw = batchify(*zip(*[(x[2], x[3]) for x in batch]))
-    batch = batch[:batch_size]
-    result = model.decode(bxc, bxw)[:batch_size]
-    for x, y in zip(batch, result):
-        x.append([itt[j] for j in y])
-    return [(x[1], x[4], x[5]) for x in sorted(batch)]
+def run_model(model, itt, data):
+    data.sort()
+    for xc, xw, y0, y0_lens in data.batchiter():
+        xc, xw = data.batchify(xc, xw)
+        result = model.decode(xc, xw)
+        for y1 in result:
+            data.append(y1 = [itt[i] for i in y1])
+    data.unsort()
+    return list(zip(data.x, data.y0, data.y1))
 
 def predict(filename, model, cti, wti, itt):
-    data = [[]] if HRE else []
+    data = dataset()
     fo = open(filename)
     for idx, line in enumerate(fo):
         line = line.strip()
@@ -38,18 +36,13 @@ def predict(filename, model, cti, wti, itt):
             x = tokenize(line)
             xc = [[cti[c] if c in cti else UNK_IDX for c in w] for w in x]
             xw = [wti[w] if w in wti else UNK_IDX for w in map(lambda x: x.lower(), x)]
-            (data[-1] if HRE else data).append([idx, line, xc, xw, y])
+            data.append(idx = idx, x = line, xc = xc, xw = xw, y0 = y)
         elif HRE: # empty line as document delimiter
-            data.append([])
+            data.y0.append([])
     fo.close()
     with torch.no_grad():
         model.eval()
-        for i in range(0, len(data), BATCH_SIZE):
-            batch = data[i:i + BATCH_SIZE]
-            doc_lens = [len(x) for x in batch] if HRE else []
-            batch = [x for x in batch for x in x]
-            for y in run_model(model, itt, batch, doc_lens):
-                yield y
+        return run_model(model, itt, data)
 
 if __name__ == "__main__":
     if len(sys.argv) != 6:

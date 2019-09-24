@@ -3,10 +3,7 @@ from utils import *
 from evaluate import *
 
 def load_data():
-    bxc = [] # character sequence batch
-    bxw = [] # word sequence batch
-    by = [[]] if HRE else [] # label batch
-    data = []
+    data = dataset()
     cti = load_tkn_to_idx(sys.argv[2]) # char_to_idx
     wti = load_tkn_to_idx(sys.argv[3]) # word_to_idx
     itt = load_idx_to_tkn(sys.argv[4]) # idx_to_tkn
@@ -19,24 +16,17 @@ def load_data():
             y = int(seq.pop()) if HRE else [int(i) for i in seq[len(seq) // 2:]]
             x = [i.split(":") for i in (seq if HRE else seq[:len(seq) // 2])]
             xc, xw = zip(*[(list(map(int, xc.split("+"))), int(xw)) for xc, xw in x])
-            bxc.append(xc)
-            bxw.append(xw)
-            (by[-1] if HRE else by).append(y)
+            data.append(xc = xc, xw = xw, y0 = y)
         elif HRE: # empty line as document delimiter
-            by.append([])
-        if len(by) == BATCH_SIZE + HRE:
-            doc_lens = [len(x) for x in by[:-1]] if HRE else []
-            bxc, bxw = batchify(bxc, bxw, doc_lens = doc_lens)
-            _, by = batchify(None, by[:len(by) - HRE], sos = True)
-            data.append((bxc, bxw, by))
-            bxc = []
-            bxw = []
-            by = [[]] if HRE else []
-            doc_lens = []
+            data.y0.append([])
+    for xc, xw, y0, y0_lens in data.batchiter():
+        xc, xw = data.batchify(xc, xw, doc_lens = y0_lens)
+        _, y0 = data.batchify(None, y0, sos = True)
+        data.batch.append((xc, xw, y0))
     fo.close()
-    print("data size: %d" % (len(data) * BATCH_SIZE))
+    print("data size: %d" % (len(data.batch) * BATCH_SIZE))
     print("batch size: %d" % BATCH_SIZE)
-    return data, cti, wti, itt
+    return data.batch, cti, wti, itt
 
 def train():
     num_epochs = int(sys.argv[-1])
@@ -50,8 +40,8 @@ def train():
     for ei in range(epoch + 1, epoch + num_epochs + 1):
         loss_sum = 0
         timer = time()
-        for xc, xw, y in data:
-            loss = model(xc, xw, y) # forward pass and compute loss
+        for xc, xw, y0 in data:
+            loss = model(xc, xw, y0) # forward pass and compute loss
             loss.backward() # compute gradients
             optim.step() # update parameters
             loss_sum += loss.item()
