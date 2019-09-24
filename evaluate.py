@@ -6,11 +6,11 @@ def evaluate(result, summary = False):
     tpfn = defaultdict(int) # true positives + false negatives
     tpfp = defaultdict(int) # true positives + false positives
     for _, y0, y1 in result: # actual value, prediction
-        if HRE:
+        if HRE: # sentence level
             tp[y0] += (y0 == y1)
             tpfn[y0] += 1
             tpfp[y1] += 1
-        else:
+        else: # word level
             for y0, y1 in zip(y0, y1):
                 tp[y0] += (y0 == y1)
                 tpfn[y0] += 1
