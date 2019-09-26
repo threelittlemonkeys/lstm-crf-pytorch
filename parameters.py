@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-UNIT = "sent" # unit of tokenization (char, word, sent)
+UNIT = "word" # unit of tokenization (char, word, sent)
 FORMAT = None # format (None, word-segmentation, sentence-segmentation)
 RNN_TYPE = "LSTM" # LSTM or GRU
 HRE = (UNIT == "sent") # hierarchical recurrent encoding
