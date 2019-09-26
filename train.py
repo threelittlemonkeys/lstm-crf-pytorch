@@ -4,6 +4,7 @@ from evaluate import *
 
 def load_data():
     data = dataset()
+    batch = []
     cti = load_tkn_to_idx(sys.argv[2]) # char_to_idx
     wti = load_tkn_to_idx(sys.argv[3]) # word_to_idx
     itt = load_idx_to_tkn(sys.argv[4]) # idx_to_tkn
@@ -20,16 +21,15 @@ def load_data():
         if not (HRE and line): # delimiters (\n, \n\n)
             data.append_list()
     if not HRE:
-        data.xc.pop()
-        data.xw.pop()
+        data.strip()
     for xc, xw, y0, y0_lens in data.split():
         xc, xw = data.tensor(xc, xw, doc_lens = y0_lens)
         _, y0 = data.tensor(None, y0, _sos = True)
-        data.batch.append((xc, xw, y0))
+        batch.append((xc, xw, y0))
     fo.close()
-    print("data size: %d" % (len(data.batch) * BATCH_SIZE))
+    print("data size: %d" % (len(batch) * BATCH_SIZE))
     print("batch size: %d" % BATCH_SIZE)
-    return data.batch, cti, wti, itt
+    return batch, cti, wti, itt
 
 def train():
     num_epochs = int(sys.argv[-1])

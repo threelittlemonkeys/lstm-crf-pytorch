@@ -74,8 +74,8 @@ def save_checkpoint(filename, model, epoch, loss, time):
         torch.save(checkpoint, filename + ".epoch%d" % epoch)
         print("saved model at epoch %d" % epoch)
 
-def cudify(t):
-    return lambda *x: t(*x).cuda() if CUDA else t(*x)
+def cudify(f):
+    return lambda *x: f(*x).cuda() if CUDA else f(*x)
 
 Tensor = cudify(torch.Tensor)
 LongTensor = cudify(torch.LongTensor)
@@ -85,12 +85,11 @@ zeros = cudify(torch.zeros)
 class dataset():
     def __init__(self):
         self.idx = []
-        self.x = [[]]
+        self.x = [[]] # input sequences
         self.xc = [[]] # input character sequences
         self.xw = [[]] # input word sequences
         self.y0 = [[]] if HRE else [] # actual labels
-        self.y1 = [] # predicted labels
-        self.batch = [] # batch tensors
+        self.y1 = [[]] if HRE else [] # predicted labels
 
     def append_item(self, idx = -1, x = None, xc = None, xw = None, y0 = None, y1 = None):
         if idx >= 0 : self.idx.append(idx)
@@ -98,13 +97,19 @@ class dataset():
         if xc: self.xc[-1].append(xc)
         if xw: self.xw[-1].append(xw)
         if y0: (self.y0[-1] if HRE else self.y0).append(y0)
-        if y1: self.y1.append(y1)
+        if y1: self.y1.extend(y1)
 
     def append_list(self):
         self.x.append([])
         self.xc.append([])
         self.xw.append([])
         if HRE: self.y0.append([])
+
+    def strip(self):
+        self.x.pop()
+        self.xc.pop()
+        self.xw.pop()
+        if HRE: self.y0.pop()
 
     def sort(self):
         self.idx = list(range(len(self.x)))
@@ -121,36 +126,37 @@ class dataset():
 
     def split(self): # split into batches
         for i in range(0, len(self.y0), BATCH_SIZE):
-            y0 = self.y0[i:i + BATCH_SIZE]
-            y0_lens = [len(x) for x in self.xw[i:i + BATCH_SIZE]] if HRE else None
+            j = i + BATCH_SIZE
+            y0 = self.y0[i:j]
+            y0_lens = [len(x) for x in self.xw[i:j]] if HRE else None
             if HRE:
-                xc = [list(x) for x in self.xc[i:i + BATCH_SIZE] for x in x]
-                xw = [list(x) for x in self.xw[i:i + BATCH_SIZE] for x in x]
+                xc = [list(x) for x in self.xc[i:j] for x in x]
+                xw = [list(x) for x in self.xw[i:j] for x in x]
             else:
-                xc = [list(*x) for x in self.xc[i:i + BATCH_SIZE]]
-                xw = [list(*x) for x in self.xw[i:i + BATCH_SIZE]]
+                xc = [list(*x) for x in self.xc[i:j]]
+                xw = [list(*x) for x in self.xw[i:j]]
             yield xc, xw, y0, y0_lens
 
     def tensor(self, bc, bw, _sos = False, _eos = False, doc_lens = None):
         sos, eos, pad = [SOS_IDX], [EOS_IDX], [PAD_IDX]
         if doc_lens:
-            s_len = max(doc_lens) # sent_seq_len (Ls)
+            d_len = max(doc_lens) # doc_len (Ld)
             i, _bc, _bw = 0, [], []
             for j in doc_lens:
-                _bc.extend(bc[i:i + j] + [[pad]] * (s_len - j))
-                _bw.extend(bw[i:i + j] + [pad] * (s_len - j))
+                _bc.extend(bc[i:i + j] + [[pad]] * (d_len - j))
+                _bw.extend(bw[i:i + j] + [pad] * (d_len - j))
                 i += j
             bc, bw = _bc, _bw
         if bw:
-            w_len = max(len(x) for x in bw) # word_seq_len (Lw)
-            bw = [sos * _sos + x + eos * _eos + pad * (w_len - len(x)) for x in bw]
-            bw = LongTensor(bw) # [B * Ls, Lw]
+            s_len = max(map(len, bw)) # sent_len (Ls)
+            bw = [sos * _sos + x + eos * _eos + pad * (s_len - len(x)) for x in bw]
+            bw = LongTensor(bw) # [B * Ld, Ls]
         if bc:
-            c_len = max(len(w) for x in bc for w in x) # char_seq_len (Lc)
-            w_pad = [pad * (c_len + 2)]
-            bc = [[sos + w + eos + pad * (c_len - len(w)) for w in x] for x in bc]
-            bc = [w_pad * _sos + x + w_pad * (w_len - len(x) + _eos) for x in bc]
-            bc = LongTensor(bc) # [B * Ls, Lw, Lc]
+            w_len = max(max(map(len, x)) for x in bc) # word_len (Lw)
+            w_pad = [pad * (w_len + 2)]
+            bc = [[sos + w + eos + pad * (w_len - len(w)) for w in x] for x in bc]
+            bc = [w_pad * _sos + x + w_pad * (s_len - len(x) + _eos) for x in bc]
+            bc = LongTensor(bc) # [B * Ld, Ls, Lw]
         return bc, bw
 
 def log_sum_exp(x):

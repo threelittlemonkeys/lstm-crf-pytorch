@@ -9,9 +9,9 @@ class rnn_crf(nn.Module):
         self = self.cuda() if CUDA else self
 
     def forward(self, xc, xw, y): # for training
+        self.zero_grad()
         self.rnn.batch_size = y.size(0)
         self.crf.batch_size = y.size(0)
-        self.zero_grad()
         mask = (y[:, 1:].gt(SOS_IDX) if HRE else xw.gt(PAD_IDX)).float()
         h = self.rnn(xc, xw, mask)
         Z = self.crf.forward(h, mask)
@@ -58,7 +58,7 @@ class rnn(nn.Module):
     def forward(self, xc, xw, mask):
         s = self.init_state(self.batch_size)
         x = self.embed(xc, xw)
-        if HRE: # [B * doc_len, H] -> [B, doc_len, H]
+        if HRE: # [B * doc_len, 1, H] -> [B, doc_len, H]
             x = x.view(self.batch_size, -1, EMBED_SIZE)
         x = nn.utils.rnn.pack_padded_sequence(x, mask.sum(1).int(), batch_first = True)
         h, _ = self.rnn(x, s)

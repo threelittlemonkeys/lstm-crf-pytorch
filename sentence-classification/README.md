@@ -15,11 +15,11 @@ sentence \t label
 ...
 ```
 
-2. Optionally you may choose to run `block-tokenize.py` to tokenize documents into blocks of size L.
+2. Optionally you may choose to run `block-tokenize.py` to tokenize documents into blocks of sizes L1, L2, L3, ... .
 
 ```
-python3 block-tokenize.py L train.raw
-python3 block-tokenize.py L valid.raw
+python3 block-tokenize.py L1,L2,L3 train.raw
+python3 block-tokenize.py L1,L2,L3 valid.raw
 ```
 
 3. Set `UNIT` to `sent` in `parameters.py` for hierarchical encoding.

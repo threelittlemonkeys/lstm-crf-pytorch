@@ -12,11 +12,10 @@ def load_model():
 
 def run_model(model, itt, data):
     data.sort()
-    for xc, xw, y0, y0_lens in data.split():
+    for xc, xw, _, y0_lens in data.split():
         xc, xw = data.tensor(xc, xw, doc_lens = y0_lens)
-        result = model.decode(xc, xw, y0_lens)
-        for y1 in result:
-            data.append_item(y1 = [itt[i] for i in y1])
+        y1 = model.decode(xc, xw, y0_lens)
+        data.append_item(y1 = [[itt[i] for i in x] for x in y1])
     data.unsort()
     for x, y0, y1 in zip(data.x, data.y0, data.y1):
         if HRE:
@@ -46,9 +45,7 @@ def predict(filename, model, cti, wti, itt):
             data.append_list()
     fo.close()
     if not HRE:
-        data.x.pop()
-        data.xc.pop()
-        data.xw.pop()
+        data.strip()
     with torch.no_grad():
         model.eval()
         return run_model(model, itt, data)
