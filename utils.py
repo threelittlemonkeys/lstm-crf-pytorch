@@ -89,7 +89,7 @@ class dataset():
         self.xc = [[]] # input character sequences
         self.xw = [[]] # input word sequences
         self.y0 = [[]] if HRE else [] # actual labels
-        self.y1 = [[]] if HRE else [] # predicted labels
+        self.y1 = [[]] # predicted labels
 
     def append_item(self, idx = -1, x = None, xc = None, xw = None, y0 = None, y1 = None):
         if idx >= 0 : self.idx.append(idx)
