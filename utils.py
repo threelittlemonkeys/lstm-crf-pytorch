@@ -89,7 +89,7 @@ class dataset():
         self.xc = [[]] # input character sequences
         self.xw = [[]] # input word sequences
         self.y0 = [[]] if HRE else [] # actual labels
-        self.y1 = [[]] # predicted labels
+        self.y1 = [] # predicted labels
 
     def append_item(self, idx = -1, x = None, xc = None, xw = None, y0 = None, y1 = None):
         if idx >= 0 : self.idx.append(idx)
@@ -106,10 +106,11 @@ class dataset():
         if HRE: self.y0.append([])
 
     def strip(self):
-        self.x.pop()
-        self.xc.pop()
-        self.xw.pop()
-        if HRE: self.y0.pop()
+        while len(self.xw[-1]) == 0:
+            self.x.pop()
+            self.xc.pop()
+            self.xw.pop()
+            if HRE: self.y0.pop()
 
     def sort(self):
         self.idx = list(range(len(self.x)))

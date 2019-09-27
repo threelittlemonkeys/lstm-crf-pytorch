@@ -44,8 +44,7 @@ def predict(filename, model, cti, wti, itt):
         if not (HRE and line): # delimiters (\n, \n\n)
             data.append_list()
     fo.close()
-    if not HRE:
-        data.strip()
+    data.strip()
     with torch.no_grad():
         model.eval()
         return run_model(model, itt, data)
