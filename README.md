@@ -18,20 +18,13 @@ token/tag token/tag token/tag ...
 token/tag token/tag token/tag ...
 ...
 ```
+For more detail, see README.md in each subdirectory.
 
 To prepare data:
 ```
-# by default
 python3 prepare.py training_data
-
-# word segmentation
-python3 char+iob.py training_data
-python3 prepare.py training_data.char+iob
-
-# sentence segmentation
-python3 word+iob.py training_data
-python3 prepare.py training_data.word+iob
 ```
+For more detail, see README.md in each subdirectory.
 
 To train:
 ```
