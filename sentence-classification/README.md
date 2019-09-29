@@ -15,7 +15,7 @@ sentence \t label
 ...
 ```
 
-2. Optionally you may choose to run `block-tokenize.py` to tokenize documents into blocks of sizes L1, L2, L3, ... .
+2. Optionally you may choose to run `block-tokenize.py` to tokenize documents into blocks of sizes L1, L2, L3, ... . Please note that duplicate blocks will be removed by this script.
 
 ```
 python3 block-tokenize.py L1,L2,L3 train.raw

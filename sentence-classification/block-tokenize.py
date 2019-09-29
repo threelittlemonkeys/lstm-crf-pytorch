@@ -14,6 +14,7 @@ if __name__ == "__main__": # tokenize documents into blocks
         for i in range(len(doc)):
             for z in sizes:
                 blocks["\n".join(doc[i:i + z])] = True
+                # duplicate blocks are removed
     blocks = list(blocks.keys())
     random.shuffle(blocks)
     fo.write("\n\n".join(blocks) + "\n")
