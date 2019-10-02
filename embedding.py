@@ -1,8 +1,9 @@
 from utils import *
 
 class embed(nn.Module):
-    def __init__(self, char_vocab_size, word_vocab_size):
+    def __init__(self, char_vocab_size, word_vocab_size, hre = False):
         super().__init__()
+        self.hre = hre
 
         # architecture
         for model, dim in EMBED.items():
@@ -14,7 +15,7 @@ class embed(nn.Module):
                 self.word_embed = nn.Embedding(word_vocab_size, dim, padding_idx = PAD_IDX)
             elif model == "sae":
                 self.word_embed = self.sae(word_vocab_size, dim)
-        if HRE:
+        if self.hre: # hierarchical recurrent encoding
             self.sent_embed = self.rnn(EMBED_SIZE, EMBED_SIZE, True)
         self = self.cuda() if CUDA else self
 
@@ -24,8 +25,8 @@ class embed(nn.Module):
         if "lookup" in EMBED or "sae" in EMBED:
             hw = self.word_embed(xw)
         h = torch.cat([h for h in [hc, hw] if type(h) == torch.Tensor], 2)
-        if HRE:
-            h = self.sent_embed(h)
+        if self.hre:
+            h = self.sent_embed(h) if self.hre else h
         return h
 
     class cnn(nn.Module):

@@ -34,7 +34,7 @@ class rnn(nn.Module):
         self.batch_size = 0
 
         # architecture
-        self.embed = embed(char_vocab_size, word_vocab_size)
+        self.embed = embed(char_vocab_size, word_vocab_size, HRE)
         self.rnn = getattr(nn, RNN_TYPE)(
             input_size = EMBED_SIZE,
             hidden_size = HIDDEN_SIZE // NUM_DIRS,
