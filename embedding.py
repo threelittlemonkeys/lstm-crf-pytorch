@@ -20,6 +20,7 @@ class embed(nn.Module):
         self = self.cuda() if CUDA else self
 
     def forward(self, xc, xw):
+        hc = None
         if "char-cnn" in EMBED or "char-rnn" in EMBED:
             hc = self.char_embed(xc)
         if "lookup" in EMBED or "sae" in EMBED:
