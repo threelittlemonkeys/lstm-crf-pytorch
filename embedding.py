@@ -67,7 +67,7 @@ class embed(nn.Module):
             self.rnn_type = "GRU" # LSTM, GRU
             self.num_dirs = 2 # unidirectional: 1, bidirectional: 2
             self.num_layers = 2
-            self.embedded = embedded # True: word_embed, False: char_embed
+            self.embedded = embedded # True: sent_embed, False: word_embed
 
             # architecture
             self.embed = nn.Embedding(vocab_size, embed_size, padding_idx = PAD_IDX)
