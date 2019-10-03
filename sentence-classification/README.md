@@ -34,7 +34,6 @@ UNIT = "sent"
 mv train.raw.block train
 mv valid.raw.block valid
 python3 ../prepare.py train
-python3 ../prepare.py valid
 ```
 
 5. Train your model. You can modify the hyperparameters in `parameters.py`.
