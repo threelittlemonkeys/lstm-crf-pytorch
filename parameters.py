@@ -6,10 +6,10 @@ import torch.nn.functional as F
 UNIT = "word" # unit of tokenization (char, word, sent)
 FORMAT = None # format (None, word-segmentation, sentence-segmentation)
 RNN_TYPE = "LSTM" # LSTM or GRU
-HRE = (UNIT == "sent") # hierarchical recurrent encoding
 NUM_DIRS = 2 # unidirectional: 1, bidirectional: 2
 NUM_LAYERS = 2
 BATCH_SIZE = 128
+HRE = (UNIT == "sent") # hierarchical recurrent encoding
 EMBED = {"char-cnn": 50, "lookup": 250} # embeddings (char-cnn, char-rnn, lookup, sae)
 EMBED_SIZE = sum(EMBED.values())
 HIDDEN_SIZE = 1000
