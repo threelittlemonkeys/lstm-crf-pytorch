@@ -8,14 +8,14 @@ class rnn_crf(nn.Module):
         self.crf = crf(num_tags)
         self = self.cuda() if CUDA else self
 
-    def forward(self, xc, xw, y): # for training
+    def forward(self, xc, xw, y0): # for training
         self.zero_grad()
-        self.rnn.batch_size = y.size(0)
-        self.crf.batch_size = y.size(0)
-        mask = (y[:, 1:].gt(SOS_IDX) if HRE else xw.gt(PAD_IDX)).float()
+        self.rnn.batch_size = y0.size(0)
+        self.crf.batch_size = y0.size(0)
+        mask = (y0[:, 1:].gt(SOS_IDX) if HRE else xw.gt(PAD_IDX)).float()
         h = self.rnn(xc, xw, mask)
         Z = self.crf.forward(h, mask)
-        score = self.crf.score(h, y, mask)
+        score = self.crf.score(h, y0, mask)
         return torch.mean(Z - score) # NLL loss
 
     def decode(self, xc, xw, doc_lens): # for inference
@@ -96,16 +96,16 @@ class crf(nn.Module):
         score = log_sum_exp(score + self.trans[EOS_IDX])
         return score # partition function
 
-    def score(self, h, y, mask): # calculate the score of a given sequence
+    def score(self, h, y0, mask): # calculate the score of a given sequence
         score = Tensor(self.batch_size).fill_(0.)
         h = h.unsqueeze(3)
         trans = self.trans.unsqueeze(2)
         for t in range(h.size(1)): # recursion through the sequence
             mask_t = mask[:, t]
-            emit_t = torch.cat([h[t, y[t + 1]] for h, y in zip(h, y)])
-            trans_t = torch.cat([trans[y[t + 1], y[t]] for y in y])
+            emit_t = torch.cat([h[t, y0[t + 1]] for h, y0 in zip(h, y0)])
+            trans_t = torch.cat([trans[y0[t + 1], y0[t]] for y0 in y0])
             score += (emit_t + trans_t) * mask_t
-        last_tag = y.gather(1, mask.sum(1).long().unsqueeze(1)).squeeze(1)
+        last_tag = y0.gather(1, mask.sum(1).long().unsqueeze(1)).squeeze(1)
         score += self.trans[EOS_IDX, last_tag]
         return score
 
@@ -129,11 +129,11 @@ class crf(nn.Module):
         bptr = bptr.tolist()
         best_path = [[i] for i in best_tag.tolist()]
         for b in range(self.batch_size):
-            x = best_tag[b] # best tag
-            y = int(mask[b].sum().item())
-            for bptr_t in reversed(bptr[b][:y]):
-                x = bptr_t[x]
-                best_path[b].append(x)
+            i = best_tag[b] # best tag
+            j = int(mask[b].sum().item())
+            for bptr_t in reversed(bptr[b][:j]):
+                i = bptr_t[i]
+                best_path[b].append(i)
             best_path[b].pop()
             best_path[b].reverse()
 
