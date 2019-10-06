@@ -3,7 +3,7 @@ from utils import *
 class embed(nn.Module):
     def __init__(self, char_vocab_size, word_vocab_size, hre = False):
         super().__init__()
-        self.hre = hre
+        self.hre = hre # hierarchical recurrent encoding
 
         # architecture
         for model, dim in EMBED.items():
@@ -15,7 +15,7 @@ class embed(nn.Module):
                 self.word_embed = nn.Embedding(word_vocab_size, dim, padding_idx = PAD_IDX)
             elif model == "sae":
                 self.word_embed = self.sae(word_vocab_size, dim)
-        if self.hre: # hierarchical recurrent encoding
+        if self.hre:
             self.sent_embed = self.rnn(EMBED_SIZE, EMBED_SIZE, True)
         self = self.cuda() if CUDA else self
 
