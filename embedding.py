@@ -20,7 +20,7 @@ class embed(nn.Module):
         self = self.cuda() if CUDA else self
 
     def forward(self, xc, xw):
-        hc = None
+        hc, hw = None, None
         if "char-cnn" in EMBED or "char-rnn" in EMBED:
             hc = self.char_embed(xc)
         if "lookup" in EMBED or "sae" in EMBED:
@@ -94,7 +94,7 @@ class embed(nn.Module):
         def forward(self, x):
             b = x.size(0) # batch_size (B)
             s = self.init_state(b * (1 if self.embedded else x.size(1)))
-            if not self.embedded:
+            if not self.embedded: # word_embed
                 x = x.view(-1, x.size(2)) # [B * word_seq_len (Lw), char_seq_len (Lc)]
                 x = self.embed(x) # [B * Lw, Lc, embed_size (H)]
             h, s = self.rnn(x, s)
