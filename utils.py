@@ -99,7 +99,7 @@ class dataset():
         if y0: (self.y0[-1] if HRE else self.y0).append(y0)
         if y1: self.y1.extend(y1)
 
-    def append_list(self):
+    def append_row(self):
         self.x.append([])
         self.xc.append([])
         self.xw.append([])

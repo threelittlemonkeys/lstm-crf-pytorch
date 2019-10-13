@@ -42,7 +42,7 @@ def predict(filename, model, cti, wti, itt):
             xw = [wti[w] if w in wti else UNK_IDX for w in x]
             data.append_item(x = line, xc = xc, xw = xw, y0 = y)
         if not (HRE and line): # delimiters (\n, \n\n)
-            data.append_list()
+            data.append_row()
     fo.close()
     data.strip()
     with torch.no_grad():

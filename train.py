@@ -19,7 +19,7 @@ def load_data():
             xc, xw = zip(*[(list(map(int, xc.split("+"))), int(xw)) for xc, xw in x])
             data.append_item(xc = xc, xw = xw, y0 = y)
         if not (HRE and line): # delimiters (\n, \n\n)
-            data.append_list()
+            data.append_row()
     data.strip()
     for xc, xw, y0, y0_lens in data.split():
         xc, xw = data.tensor(xc, xw, doc_lens = y0_lens)
