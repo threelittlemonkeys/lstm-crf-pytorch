@@ -26,6 +26,8 @@ def load_data():
     else:
         for line in fo:
             line = line.strip()
+            if not line:
+                continue
             x, y = load_line(line, cti, wti, tti)
             data.append(x + y)
         data.sort(key = lambda x: -len(x))
