@@ -14,7 +14,7 @@ def load_data():
         line = line.strip()
         if line:
             seq = line.split(" ")
-            y = int(seq.pop()) if HRE else [int(i) for i in seq[len(seq) // 2:]]
+            y = [int(seq.pop())] if HRE else [int(i) for i in seq[len(seq) // 2:]]
             x = [x.split(":") for x in (seq if HRE else seq[:len(seq) // 2])]
             xc, xw = zip(*[(list(map(int, xc.split("+"))), int(xw)) for xc, xw in x])
             data.append_item(xc = xc, xw = xw, y0 = y)

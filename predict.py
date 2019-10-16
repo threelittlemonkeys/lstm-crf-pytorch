@@ -34,7 +34,7 @@ def predict(filename, model, cti, wti, itt):
                 x, y = zip(*[re.split("/(?=[^/]+$)", x) for x in line.split(" ")])
                 line = " ".join(x)
             elif re.match("\S+( \S+)*\t\S+$", line): # sentence \t label
-                line, y = line.split("\t")
+                line, *y = line.split("\t")
             else: # no ground truth provided
                 y = []
             x = tokenize(line)
