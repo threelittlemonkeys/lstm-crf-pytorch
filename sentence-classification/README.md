@@ -1,6 +1,6 @@
 # Sentence Classification
 
-This is a simple tutorial for sentence-level sequence labelling using the scripts here.
+This is a simple tutorial for sentence-level sequence labeling using the scripts here.
 
 1. Training and validation data should be formatted as below, sentence-label pairs separated by `\n` and documents by `\n\n`:
 

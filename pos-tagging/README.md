@@ -19,7 +19,7 @@ python3 brown2ptb.py
 ```
 shuf brown.tagged.merged.uniq.ptb > data
 head -1000 data > test
-sed -n '1001,2000p' data > vaild
+sed -n '1001,2000p' data > valid
 tail -n +2001 data > train
 python3 prepare.py train
 ```

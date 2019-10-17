@@ -1,6 +1,6 @@
 # LSTM-CRF in PyTorch
 
-A minimal PyTorch implementation of bidirectional LSTM-CRF for sequence labelling.
+A minimal PyTorch implementation of bidirectional LSTM-CRF for sequence labeling.
 
 Supported features:
 - Mini-batch training with CUDA
