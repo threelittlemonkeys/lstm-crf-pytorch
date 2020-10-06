@@ -1,55 +1,59 @@
-import sys
+from model import *
 from utils import *
+from dataloader import *
 
 def load_model():
-    word_to_idx = load_word_to_idx(sys.argv[2])
-    tag_to_idx = load_tag_to_idx(sys.argv[3])
-    idx_to_tag = [tag for tag, _ in sorted(tag_to_idx.items(), key = lambda x: x[1])]
-    model = lstm_crf(len(word_to_idx), len(tag_to_idx))
+    cti = load_tkn_to_idx(sys.argv[2]) # char_to_idx
+    wti = load_tkn_to_idx(sys.argv[3]) # word_to_idx
+    itt = load_idx_to_tkn(sys.argv[4]) # idx_to_tag
+    model = rnn_crf(len(cti), len(wti), len(itt))
     print(model)
-    model.eval()
     load_checkpoint(sys.argv[1], model)
-    return model, word_to_idx, tag_to_idx, idx_to_tag
+    return model, cti, wti, itt
 
-def run_model(model, idx_to_tag, data):
-    z = len(data)
-    while len(data) < BATCH_SIZE:
-        data.append([-1, "", [EOS_IDX]])
-    data.sort(key = lambda x: -len(x[2]))
-    batch_len = len(data[0][2])
-    batch = [x + [PAD_IDX] * (batch_len - len(x)) for _, _, x in data]
-    result = model.decode(LongTensor(batch))
-    for i in range(z):
-        data[i].append([idx_to_tag[j] for j in result[i]])
-    return [(x[1], x[3]) for x in sorted(data[:z])]
+def run_model(model, data, itt):
+    with torch.no_grad():
+        model.eval()
+        for batch in data.split():
+            xc, xw, _, lens = batch.sort()
+            xc, xw = data.tensor(xc, xw, lens)
+            y1 = model.decode(xc, xw, lens)
+            batch.y1 = [[itt[i] for i in x] for x in y1]
+            batch.unsort()
+            for x0, y0, y1 in zip(batch.x0, batch.y0, batch.y1):
+                if not HRE:
+                    y0, y1 = [y0], [y1]
+                for x0, y0, y1 in zip(x0, y0, y1):
+                    yield x0, y0, y1
 
-def predict():
-    idx = 0
-    data = []
-    model, word_to_idx, tag_to_idx, idx_to_tag = load_model()
-    fo = open(sys.argv[4])
-    for line in fo:
-        line = line.strip()
-        x = tokenize(line, UNIT)
-        x = [word_to_idx[i] if i in word_to_idx else UNK_IDX for i in x]
-        data.append([idx, line, x])
-        if len(data) == BATCH_SIZE:
-            result = run_model(model, idx_to_tag, data)
-            for x in result:
-                print(x)
-                # print(iob_to_txt(*x, UNIT))
-            data = []
-        idx += 1
-    fo.close()
-    if len(data):
-        result = run_model(model, idx_to_tag, data)
-    for x in result:
-        print(x)
-        # print(iob_to_txt(*x, UNIT))
+def predict(filename, model, cti, wti, itt):
+    data = dataloader()
+    with open(filename) as fo:
+        text = fo.read().strip().split("\n" * (HRE + 1))
+    for block in text:
+        for x0 in block.split("\n"):
+            if re.match("\S+/\S+( \S+/\S+)*$", x0): # word/tag
+                x0, y0 = zip(*[re.split("/(?=[^/]+$)", x) for x in x0.split(" ")])
+                x0 = " ".join(x0)
+            elif re.match("[^\t]+\t\S+$", x0): # sentence \t label
+                x0, *y0 = x0.split("\t")
+            else: # no ground truth provided
+                y0 = [""]
+            x1 = tokenize(x0)
+            xc = [[cti[c] if c in cti else UNK_IDX for c in w] for w in x1]
+            xw = [wti[w] if w in wti else UNK_IDX for w in x1]
+            data.append_item(x0, x1, xc, xw, y0)
+        data.append_row()
+    data.strip()
+    return run_model(model, data, itt)
 
 if __name__ == "__main__":
-    if len(sys.argv) != 5:
-        sys.exit("Usage: %s model word_to_idx tag_to_idx test_data" % sys.argv[0])
-    print("cuda: %s" % CUDA)
-    with torch.no_grad():
-        predict()
+    if len(sys.argv) != 6:
+        sys.exit("Usage: %s model char_to_idx word_to_idx tag_to_idx test_data" % sys.argv[0])
+    result = predict(sys.argv[5], *load_model())
+    func = tag_to_txt if TASK else lambda *x: x
+    for x0, y0, y1 in result:
+        if y0:
+            print(func(x0, y0))
+        print(func(x0, y1))
+        print()
