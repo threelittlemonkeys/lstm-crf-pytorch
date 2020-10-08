@@ -38,7 +38,7 @@ def predict(filename, model, cti, wti, itt):
             elif re.match("[^\t]+\t\S+$", x0): # sentence \t label
                 x0, *y0 = x0.split("\t")
             else: # no ground truth provided
-                y0 = [""]
+                y0 = []
             x1 = tokenize(x0)
             xc = [[cti[c] if c in cti else UNK_IDX for c in w] for w in x1]
             xw = [wti[w] if w in wti else UNK_IDX for w in x1]
