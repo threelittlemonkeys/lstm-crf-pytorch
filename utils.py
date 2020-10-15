@@ -81,15 +81,14 @@ def log_sum_exp(x):
 def tag_to_txt(xs, ys):
     _xs, _ys = [], []
     for x, y in zip(tokenize(xs, False), ys):
-        if len(_xs) == 0 or y[:2] not in ("I-", "O-"):
-            _xs.append([])
-            _ys.append([])
-        _xs[-1].append(x)
-        _ys[-1].append(y)
+        if len(_xs) and y[:2] == "I-":
+            _xs[-1] += x
+            continue
+        if y[:2] in ("B-", "I-"):
+            y = y[2:]
+        _xs.append(x)
+        _ys.append(y)
     if TASK == "pos-tagging":
-        _xs = ["".join(x) for x in _xs]
-        _ys = ["".join(y) for y in _ys] if UNIT == "word" \
-        else ["+".join(y[2:] for y in y if y[:2] == "B-") for y in _ys]
         return " ".join(x + "/" + y for x, y in zip(_xs, _ys))
     if TASK == "word-segmentation":
         return " ".join("".join(x) for x in _xs)

@@ -56,4 +56,3 @@ if __name__ == "__main__":
         if y0:
             print(func(x0, y0))
         print(func(x0, y1))
-        print()
