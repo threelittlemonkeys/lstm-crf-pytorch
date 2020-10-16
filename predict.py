@@ -34,12 +34,13 @@ def predict(filename, model, cti, wti, itt):
         for x0 in block.split("\n"):
             if re.match("\S+/\S+( \S+/\S+)*$", x0): # word/tag
                 x0, y0 = zip(*[re.split("/(?=[^/]+$)", x) for x in x0.split(" ")])
-                x0 = " ".join(x0)
-            elif re.match("[^\t]+\t\S+$", x0): # sentence \t label
-                x0, *y0 = x0.split("\t")
-            else: # no ground truth provided
+                x1 = list(map(normalize, x0))
+            else:
                 y0 = []
-            x1 = tokenize(x0)
+                if re.match("[^\t]+\t\S+$", x0): # sentence \t label
+                    x0, *y0 = x0.split("\t")
+                x0 = tokenize(x0)
+                x1 = list(map(normalize, x0))
             xc = [[cti[c] if c in cti else UNK_IDX for c in w] for w in x1]
             xw = [wti[w] if w in wti else UNK_IDX for w in x1]
             data.append_item(x0, x1, xc, xw, y0)

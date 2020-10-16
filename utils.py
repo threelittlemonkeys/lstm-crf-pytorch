@@ -14,11 +14,11 @@ def normalize(x):
     x = x.lower()
     return x
 
-def tokenize(x, norm = True):
-    if norm:
-        x = normalize(x)
+def tokenize(x):
     if UNIT == "char":
-        return re.sub(" ", "", x)
+        return list(re.sub(" ", "", x))
+    if UNIT == "char+space":
+        return [x.replace("_", "__").replace(" ", "_") for x in x]
     if UNIT in ("word", "sent"):
         return x.split(" ")
 
@@ -80,7 +80,7 @@ def log_sum_exp(x):
 
 def tag_to_txt(xs, ys):
     _xs, _ys = [], []
-    for x, y in zip(tokenize(xs, False), ys):
+    for x, y in zip(xs, ys):
         if len(_xs) and y[:2] == "I-":
             _xs[-1] += x
             continue
