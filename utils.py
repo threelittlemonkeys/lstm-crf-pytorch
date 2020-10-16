@@ -81,6 +81,8 @@ def log_sum_exp(x):
 def tag_to_txt(xs, ys):
     _xs, _ys = [], []
     for x, y in zip(xs, ys):
+        if UNIT == "char+space" and x == "_":
+            y = "_"
         if len(_xs) and y == "I-" + _ys[-1]:
             _xs[-1] += x
             continue
