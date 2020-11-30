@@ -60,7 +60,7 @@ class rnn(nn.Module):
         x = self.embed(xc, xw)
         if HRE: # [B * doc_len, 1, H] -> [B, doc_len, H]
             x = x.view(self.batch_size, -1, EMBED_SIZE)
-        x = nn.utils.rnn.pack_padded_sequence(x, mask.sum(1).int(), batch_first = True)
+        x = nn.utils.rnn.pack_padded_sequence(x, mask.sum(1).int().cpu(), batch_first = True)
         h, _ = self.rnn(x, hs)
         h, _ = nn.utils.rnn.pad_packed_sequence(h, batch_first = True)
         h = self.out(h)

@@ -37,4 +37,4 @@ def evaluate(result, summary = False):
 if __name__ == "__main__":
     if len(sys.argv) != 6:
         sys.exit("Usage: %s model char_to_idx word_to_idx tag_to_idx test_data" % sys.argv[0])
-    evaluate(predict(sys.argv[5], *load_model()))
+    evaluate(predict(*load_model(sys.argv[1:5]), sys.argv[5]))

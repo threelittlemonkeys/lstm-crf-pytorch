@@ -2,13 +2,13 @@ from model import *
 from utils import *
 from dataloader import *
 
-def load_model():
-    cti = load_tkn_to_idx(sys.argv[2]) # char_to_idx
-    wti = load_tkn_to_idx(sys.argv[3]) # word_to_idx
-    itt = load_idx_to_tkn(sys.argv[4]) # idx_to_tag
+def load_model(args):
+    cti = load_tkn_to_idx(args[1]) # char_to_idx
+    wti = load_tkn_to_idx(args[2]) # word_to_idx
+    itt = load_idx_to_tkn(args[3]) # idx_to_tag
     model = rnn_crf(len(cti), len(wti), len(itt))
     print(model)
-    load_checkpoint(sys.argv[1], model)
+    load_checkpoint(args[0], model)
     return model, cti, wti, itt
 
 def run_model(model, data, itt):
@@ -26,7 +26,7 @@ def run_model(model, data, itt):
                 for x0, y0, y1 in zip(x0, y0, y1):
                     yield x0, y0, y1
 
-def predict(filename, model, cti, wti, itt):
+def predict(model, cti, wti, itt, filename):
     data = dataloader()
     with open(filename) as fo:
         text = fo.read().strip().split("\n" * (HRE + 1))
@@ -51,7 +51,7 @@ def predict(filename, model, cti, wti, itt):
 if __name__ == "__main__":
     if len(sys.argv) != 6:
         sys.exit("Usage: %s model char_to_idx word_to_idx tag_to_idx test_data" % sys.argv[0])
-    result = predict(sys.argv[5], *load_model())
+    result = predict(*load_model(sys.argv[1:5]), sys.argv[5])
     func = tag_to_txt if TASK else lambda *x: x
     for x0, y0, y1 in result:
         if False and y0:
