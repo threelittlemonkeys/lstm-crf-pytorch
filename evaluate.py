@@ -1,6 +1,12 @@
 from predict import *
 
 def evaluate(result, summary = False):
+    print()
+
+    if TASK == "word-segmentation":
+        evaluate_word_segmentation(result)
+        return
+
     avg = defaultdict(float) # average
     tp = defaultdict(int) # true positives
     tpfn = defaultdict(int) # true positives + false negatives
@@ -15,7 +21,6 @@ def evaluate(result, summary = False):
             tp[y0] += (y0 == y1)
             tpfn[y0] += 1
             tpfp[y1] += 1
-    print()
     for y in sorted(tpfn.keys()):
         pr = (tp[y] / tpfp[y]) if tpfp[y] else 0
         rc = (tp[y] / tpfn[y]) if tpfn[y] else 0
@@ -33,6 +38,22 @@ def evaluate(result, summary = False):
     print("macro recall = %f" % avg["macro_rc"])
     print("macro f1 = %f" % f1(avg["macro_pr"], avg["macro_rc"]))
     print("micro f1 = %f" % avg["micro_f1"])
+
+def evaluate_word_segmentation(result):
+    tp, tpfn, tpfp = 0, 0, 0
+    isbs = lambda x: x in ("B", "S")
+    for _, Y0, Y1 in result:
+        i = 0
+        tpfn += len(list(filter(isbs, Y0)))
+        tpfp += len(list(filter(isbs, Y1)))
+        for j, (y0, y1) in enumerate(zip(Y0 + ["B"], Y1 + ["B"])):
+            if j and isbs(y0) and isbs(y1):
+                tp += (Y0[i:j] == Y1[i:j])
+                i = j
+    print("TASK = %s" % TASK)
+    print("precision = %f (%d/%d)" % (tp / tpfp, tp, tpfp))
+    print("recall = %f (%d/%d)" % (tp / tpfn, tp, tpfn))
+    print("f1 = %f" % f1(tp / tpfp, tp / tpfn))
 
 if __name__ == "__main__":
     if len(sys.argv) != 6:

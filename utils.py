@@ -85,10 +85,10 @@ def tag_to_txt(xs, ys):
             if x == "_":
                 y = "_"
             x = x.replace("__", "_")
-        if len(_xs) and (y == "I" or y == "I-" + _ys[-1]):
+        if len(_xs) and y in ("I", "E", "I-" + _ys[-1], "E-" + _ys[-1]):
             _xs[-1] += x
             continue
-        if y[:2] in ("B-", "I-"):
+        if y[:2] in ("B-", "I-", "E-", "S-"):
             y = y[2:]
         _xs.append(x)
         _ys.append(y)

@@ -54,6 +54,6 @@ if __name__ == "__main__":
     result = predict(*load_model(sys.argv[1:5]), sys.argv[5])
     func = tag_to_txt if TASK else lambda *x: x
     for x0, y0, y1 in result:
-        if False and y0:
+        if y0:
             print(func(x0, y0))
         print(func(x0, y1))
