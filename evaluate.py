@@ -1,11 +1,7 @@
 from predict import *
 
 def evaluate(result, summary = False):
-    print()
-
-    if TASK == "word-segmentation":
-        evaluate_word_segmentation(result)
-        return
+    result = list(result)
 
     avg = defaultdict(float) # average
     tp = defaultdict(int) # true positives
@@ -21,6 +17,7 @@ def evaluate(result, summary = False):
             tp[y0] += (y0 == y1)
             tpfn[y0] += 1
             tpfp[y1] += 1
+    print()
     for y in sorted(tpfn.keys()):
         pr = (tp[y] / tpfp[y]) if tpfp[y] else 0
         rc = (tp[y] / tpfn[y]) if tpfn[y] else 0
@@ -38,6 +35,10 @@ def evaluate(result, summary = False):
     print("macro recall = %f" % avg["macro_rc"])
     print("macro f1 = %f" % f1(avg["macro_pr"], avg["macro_rc"]))
     print("micro f1 = %f" % avg["micro_f1"])
+
+    if TASK == "word-segmentation":
+        print()
+        evaluate_word_segmentation(result)
 
 def evaluate_word_segmentation(result):
     tp, tpfn, tpfp = 0, 0, 0
