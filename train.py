@@ -22,7 +22,7 @@ def load_data(args):
         data.append_row()
     data.strip()
     for _batch in data.split():
-        xc, xw, y0, lens = _batch.sort()
+        xc, xw, y0, lens = _batch.xc, _batch.xw, _batch.y0, _batch.lens
         xc, xw = data.tensor(xc, xw, lens)
         _, y0 = data.tensor(None, y0, sos = True)
         batch.append((xc, xw, y0))

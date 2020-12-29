@@ -1,35 +1,20 @@
 from utils import *
 
-class data():
+class dataset():
     def __init__(self):
-        self.idx = None # input index
         self.x0 = [[]] # string input, raw sentence
         self.x1 = [[]] # string input, tokenized
         self.xc = [[]] # indexed input, character-level
         self.xw = [[]] # indexed input, word-level
         self.y0 = [[]] # actual output
         self.y1 = None # predicted output
+        self.lens = None # sequence lengths
         self.prob = None # probability
         self.attn = None # attention heatmap
 
-    def sort(self):
-        self.idx = list(range(len(self.xw)))
-        self.idx.sort(key = lambda x: -len(self.xw[x]))
-        xc = [self.xc[i] for i in self.idx]
-        xw = [self.xw[i] for i in self.idx]
-        y0 = [self.y0[i] for i in self.idx]
-        lens = list(map(len, xw))
-        return xc, xw, y0, lens
-
-    def unsort(self):
-        self.idx = sorted(range(len(self.x0)), key = lambda x: self.idx[x])
-        self.y1 = [self.y1[i] for i in self.idx]
-        if self.prob: self.prob = [self.prob[i] for i in self.idx]
-        if self.attn: self.attn = [self.attn[i] for i in self.idx]
-
 class dataloader():
     def __init__(self):
-        for a, b in data().__dict__.items():
+        for a, b in dataset().__dict__.items():
             setattr(self, a, b)
 
     def append_item(self, x0 = None, x1 = None, xc = None, xw = None, y0 = None):
@@ -63,13 +48,14 @@ class dataloader():
 
     def split(self): # split into batches
         for i in range(0, len(self.y0), BATCH_SIZE):
-            batch = data()
+            batch = dataset()
             j = i + min(BATCH_SIZE, len(self.x0) - i)
             batch.x0 = self.x0[i:j]
             batch.x1 = self.x1[i:j] if HRE else self.flatten(self.x1[i:j])
             batch.xc = self.xc[i:j] if HRE else self.flatten(self.xc[i:j])
             batch.xw = self.xw[i:j] if HRE else self.flatten(self.xw[i:j])
             batch.y0 = self.y0[i:j]
+            batch.lens = list(map(len, batch.xw))
             yield batch
 
     def tensor(self, bc, bw, lens = None, sos = False, eos = False):

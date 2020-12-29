@@ -15,11 +15,10 @@ def run_model(model, data, itt):
     with torch.no_grad():
         model.eval()
         for batch in data.split():
-            xc, xw, _, lens = batch.sort()
+            xc, xw, lens = batch.xc, batch.xw, batch.lens
             xc, xw = data.tensor(xc, xw, lens)
             y1 = model.decode(xc, xw, lens)
             batch.y1 = [[itt[i] for i in x] for x in y1]
-            batch.unsort()
             for x0, y0, y1 in zip(batch.x0, batch.y0, batch.y1):
                 if not HRE:
                     y0, y1 = [y0], [y1]
