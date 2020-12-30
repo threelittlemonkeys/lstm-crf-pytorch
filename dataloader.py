@@ -1,11 +1,11 @@
 from utils import *
 
-class dataset():
+class dataset:
     def __init__(self):
-        self.x0 = [[]] # string input, raw sentence
-        self.x1 = [[]] # string input, tokenized
-        self.xc = [[]] # indexed input, character-level
-        self.xw = [[]] # indexed input, word-level
+        self.x0 = [[]] # input strings, raw
+        self.x1 = [[]] # input strings, tokenized
+        self.xc = [[]] # input indices, character-level
+        self.xw = [[]] # input indices, word-level
         self.y0 = [[]] # actual output
         self.y1 = None # predicted output
         self.lens = None # sequence lengths
@@ -42,18 +42,18 @@ class dataloader():
 
     @staticmethod
     def flatten(ls):
-        if HRE:
-            return [list(x) for x in ls for x in x]
-        return [list(*x) for x in ls]
+        if not HRE:
+            return [list(*x) for x in ls]
+        return [list(x) for x in ls for x in x]
 
     def split(self): # split into batches
         for i in range(0, len(self.y0), BATCH_SIZE):
             batch = dataset()
             j = i + min(BATCH_SIZE, len(self.x0) - i)
             batch.x0 = self.x0[i:j]
-            batch.x1 = self.x1[i:j] if HRE else self.flatten(self.x1[i:j])
-            batch.xc = self.xc[i:j] if HRE else self.flatten(self.xc[i:j])
-            batch.xw = self.xw[i:j] if HRE else self.flatten(self.xw[i:j])
+            batch.x1 = self.flatten(self.x1[i:j])
+            batch.xc = self.flatten(self.xc[i:j])
+            batch.xw = self.flatten(self.xw[i:j])
             batch.y0 = self.y0[i:j]
             batch.lens = list(map(len, batch.xw))
             yield batch
