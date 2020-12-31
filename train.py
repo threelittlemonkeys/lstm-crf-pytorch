@@ -13,14 +13,13 @@ def load_data(args):
     with open(args[4]) as fo:
         text = fo.read().strip().split("\n" * (HRE + 1))
     for block in text:
+        data.append_row()
         for line in block.split("\n"):
             x, y = line.split("\t")
             x = [x.split(":") for x in x.split(" ")]
-            y = [int(y)] if HRE else [int(x) for x in y.split(" ")]
+            y = list(map(int, y.split(" ")))
             xc, xw = zip(*[(list(map(int, xc.split("+"))), int(xw)) for xc, xw in x])
             data.append_item(xc = xc, xw = xw, y0 = y)
-        data.append_row()
-    data.strip()
     for _batch in data.split():
         xc, xw, y0, lens = _batch.xc, _batch.xw, _batch.y0, _batch.lens
         xc, xw = data.tensor(xc, xw, lens)

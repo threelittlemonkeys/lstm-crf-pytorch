@@ -1,60 +1,60 @@
 from utils import *
 
 class dataset:
+    _vars = ("x0", "x1", "xc", "xw", "y0")
+
     def __init__(self):
-        self.x0 = [[]] # input strings, raw
-        self.x1 = [[]] # input strings, tokenized
-        self.xc = [[]] # input indices, character-level
-        self.xw = [[]] # input indices, word-level
-        self.y0 = [[]] # actual output
+        self.x0 = [] # input strings, raw
+        self.x1 = [] # input strings, tokenized
+        self.xc = [] # input indices, character-level
+        self.xw = [] # input indices, word-level
+        self.y0 = [] # actual output
         self.y1 = None # predicted output
         self.lens = None # sequence lengths
         self.prob = None # probability
         self.attn = None # attention heatmap
 
-class dataloader():
-    def __init__(self):
-        for a, b in dataset().__dict__.items():
-            setattr(self, a, b)
+    '''
+    def sort(self):
+        self.idx = list(range(len(self.xw)))
+        self.idx.sort(key = lambda x: -len(self.xw[x]))
+        xc = [self.xc[i] for i in self.idx]
+        xw = [self.xw[i] for i in self.idx]
+        y0 = [self.y0[i] for i in self.idx]
+        lens = list(map(len, xw))
+        return xc, xw, y0, lens
 
-    def append_item(self, x0 = None, x1 = None, xc = None, xw = None, y0 = None):
-        if x0: self.x0[-1].append(x0)
-        if x1: self.x1[-1].append(x1)
-        if xc: self.xc[-1].append(xc)
-        if xw: self.xw[-1].append(xw)
-        if y0: self.y0[-1].extend(y0)
+    def unsort(self):
+        self.idx = sorted(range(len(self.x0)), key = lambda x: self.idx[x])
+        self.y1 = [self.y1[i] for i in self.idx]
+        if self.prob: self.prob = [self.prob[i] for i in self.idx]
+        if self.attn: self.attn = [self.attn[i] for i in self.idx]
+    '''
+
+class dataloader(dataset):
+    def __init__(self):
+        super().__init__()
 
     def append_row(self):
-        self.x0.append([])
-        self.x1.append([])
-        self.xc.append([])
-        self.xw.append([])
-        self.y0.append([])
+        for x in self._vars:
+            getattr(self, x).append([])
 
-    def strip(self):
-        if len(self.xw[-1]):
-            return
-        self.x0.pop()
-        self.x1.pop()
-        self.xc.pop()
-        self.xw.pop()
-        self.y0.pop()
+    def append_item(self, **kwargs):
+        for k, v in kwargs.items():
+            getattr(self, k)[-1].append(v)
 
     @staticmethod
-    def flatten(ls):
+    def flatten(ls): # -> [[], ...]
         if not HRE:
-            return [list(*x) for x in ls]
-        return [list(x) for x in ls for x in x]
+            return [list(*x) for x in ls] # [[()], ...]
+        return [list(x) for x in ls for x in x] # [[(), ...], ...]
 
     def split(self): # split into batches
         for i in range(0, len(self.y0), BATCH_SIZE):
             batch = dataset()
             j = i + min(BATCH_SIZE, len(self.x0) - i)
-            batch.x0 = self.x0[i:j]
-            batch.x1 = self.flatten(self.x1[i:j])
-            batch.xc = self.flatten(self.xc[i:j])
-            batch.xw = self.flatten(self.xw[i:j])
-            batch.y0 = self.y0[i:j]
+            for x in self._vars:
+                setattr(batch, x, self.flatten(getattr(self, x)[i:j]))
             batch.lens = list(map(len, batch.xw))
             yield batch
 

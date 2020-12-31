@@ -30,6 +30,7 @@ def predict(model, cti, wti, itt, filename):
     with open(filename) as fo:
         text = fo.read().strip().split("\n" * (HRE + 1))
     for block in text:
+        data.append_row()
         for x0 in block.split("\n"):
             if re.match("\S+/\S+( \S+/\S+)*$", x0): # word/tag
                 x0, y0 = zip(*[re.split("/(?=[^/]+$)", x) for x in x0.split(" ")])
@@ -42,9 +43,7 @@ def predict(model, cti, wti, itt, filename):
                 x1 = list(map(normalize, x0))
             xc = [[cti[c] if c in cti else UNK_IDX for c in w] for w in x1]
             xw = [wti[w] if w in wti else UNK_IDX for w in x1]
-            data.append_item(x0, x1, xc, xw, y0)
-        data.append_row()
-    data.strip()
+            data.append_item(x0 = x0, x1 = x1, xc = xc, xw = xw, y0 = y0)
     return run_model(model, data, itt)
 
 if __name__ == "__main__":
