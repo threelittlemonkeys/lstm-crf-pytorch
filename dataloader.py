@@ -59,9 +59,9 @@ class dataloader(dataset):
             yield batch
 
     def tensor(self, bc, bw, lens = None, sos = False, eos = False):
-        _p, _s, _e = [PAD_IDX], [SOS_IDX], [EOS_IDX]
+        p, s, e = [PAD_IDX], [SOS_IDX], [EOS_IDX]
         if HRE and lens:
-            d_len = max(lens) # document length (Ld)
+            dl = max(lens) # document length (Ld)
             i, _bc, _bw = 0, [], []
             for j in lens:
                 if sos:
@@ -69,21 +69,21 @@ class dataloader(dataset):
                     _bw.append([])
                 _bc += self.flatten(bc[i:i + j])
                 _bw += self.flatten(bw[i:i + j])
-                _bc += [[[]] for _ in range(d_len - j)]
-                _bw += [[] for _ in range(d_len - j)]
+                _bc += [[[]] for _ in range(dl - j)]
+                _bw += [[] for _ in range(dl - j)]
                 if eos:
                     _bc.append([[]])
                     _bw.append([])
                 i += j
             bc, bw = _bc, _bw # [B * Ld, ...]
         if bw:
-            s_len = max(map(len, bw)) # sentence length (Ls)
-            bw = [_s * sos + x + _e * eos + _p * (s_len - len(x)) for x in bw]
-            bw = LongTensor(bw) # [B * Ld, Ls]
+            sl = max(map(len, bw)) # sentence length (Ls)
+            bw = [s * sos + x + e * eos + p * (sl - len(x)) for x in bw]
+            bw = LongTensor(bw).transpose(0, 1) # [Ls, B * Ld]
         if bc:
-            w_len = max(max(map(len, x)) for x in bc) # word length (Lw)
-            w_pad = [_p * (w_len + 2)]
-            bc = [[_s + w + _e + _p * (w_len - len(w)) for w in x] for x in bc]
-            bc = [w_pad * sos + x + w_pad * (s_len - len(x) + eos) for x in bc]
-            bc = LongTensor(bc) # [B * Ld, Ls, Lw]
+            wl = max(max(map(len, x)) for x in bc) # word length (Lw)
+            wp = [p * (wl + 2)]
+            bc = [[s + w + e + p * (wl - len(w)) for w in x] for x in bc]
+            bc = [wp * sos + x + wp * (sl - len(x) + eos) for x in bc]
+            bc = LongTensor(bc).transpose(0, 1) # [Ls, B * Ld, Lw]
         return bc, bw
