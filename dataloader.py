@@ -44,36 +44,36 @@ class dataloader(dataset):
             getattr(self, k)[-1].append(v)
 
     @staticmethod
-    def flatten(ls): # -> [[], ...]
-        if not HRE:
-            return [list(*x) for x in ls] # [[()], ...]
-        return [list(x) for x in ls for x in x] # [[(), ...], ...]
+    def flatten(x): # [Ld, Ls, Lw] -> [Ld * Ls, Lw]
+        if HRE:
+            return [list(x) for x in x for x in x]
+        return [list(*x) for x in x]
 
     def split(self): # split into batches
+        if HRE:
+            self.y0 = [[tuple(x[0] for x in x)] for x in self.y0]
         for i in range(0, len(self.y0), BATCH_SIZE):
             batch = dataset()
             j = i + min(BATCH_SIZE, len(self.x0) - i)
+            batch.lens = list(map(len, self.xw[i:j]))
             for x in self._vars:
                 setattr(batch, x, self.flatten(getattr(self, x)[i:j]))
-            batch.lens = list(map(len, batch.xw))
             yield batch
 
-    def tensor(self, bc, bw, lens = None, sos = False, eos = False):
+    def tensor(self, bc = None, bw = None, lens = None, sos = False, eos = False):
         p, s, e = [PAD_IDX], [SOS_IDX], [EOS_IDX]
         if HRE and lens:
             dl = max(lens) # document length (Ld)
             i, _bc, _bw = 0, [], []
             for j in lens:
-                if sos:
-                    _bc.append([[]])
-                    _bw.append([])
-                _bc += self.flatten(bc[i:i + j])
-                _bw += self.flatten(bw[i:i + j])
-                _bc += [[[]] for _ in range(dl - j)]
-                _bw += [[] for _ in range(dl - j)]
-                if eos:
-                    _bc.append([[]])
-                    _bw.append([])
+                if bc:
+                    if sos: _bc.append([[]])
+                    _bc += bc[i:i + j] + [[[]] for _ in range(dl - j)]
+                    if eos: _bc.append([[]])
+                if bw:
+                    if sos: _bw.append([])
+                    _bw += bw[i:i + j] + [[] for _ in range(dl - j)]
+                    if eos: _bw.append([])
                 i += j
             bc, bw = _bc, _bw # [B * Ld, ...]
         if bw:
@@ -83,7 +83,7 @@ class dataloader(dataset):
         if bc:
             wl = max(max(map(len, x)) for x in bc) # word length (Lw)
             wp = [p * (wl + 2)]
-            bc = [[s + w + e + p * (wl - len(w)) for w in x] for x in bc]
+            bc = [[s + x + e + p * (wl - len(x)) for x in x] for x in bc]
             bc = [wp * sos + x + wp * (sl - len(x) + eos) for x in bc]
             bc = LongTensor(bc).transpose(0, 1) # [Ls, B * Ld, Lw]
         return bc, bw

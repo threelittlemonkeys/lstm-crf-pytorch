@@ -5,7 +5,7 @@ if __name__ == "__main__": # tokenize documents into blocks
     if len(sys.argv) != 3:
         sys.exit("Usage: %s sizes data" % sys.argv[0])
     fi = open(sys.argv[2])
-    fo = open(sys.argv[2] + ".block", "w")
+    fo = open(sys.argv[2] + ".blocks", "w")
     data = fi.read().strip().split("\n\n")
     sizes = list(map(int, sys.argv[1].split(",")))
     blocks = dict()

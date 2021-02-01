@@ -16,12 +16,12 @@ def run_model(model, data, itt):
         model.eval()
         for batch in data.split():
             xc, xw, lens = batch.xc, batch.xw, batch.lens
-            xc, xw = data.tensor(xc, xw, lens)
+            xc, xw = data.tensor(bc = xc, bw = xw, lens = lens)
             y1 = model.decode(xc, xw, lens)
             batch.y1 = [[itt[i] for i in x] for x in y1]
             for x0, y0, y1 in zip(batch.x0, batch.y0, batch.y1):
                 if not HRE:
-                    y0, y1 = [y0], [y1]
+                    x0, y0, y1 = [x0], [y0], [y1]
                 for x0, y0, y1 in zip(x0, y0, y1):
                     yield x0, y0, y1
 

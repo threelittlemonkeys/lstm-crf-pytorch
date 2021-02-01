@@ -31,7 +31,7 @@ class embed(nn.Module):
             hw = self.word_embed(xw)
         h = torch.cat([h for h in [hc, hw] if type(h) == torch.Tensor], 2)
         if self.hre:
-            h = self.sent_embed(h) if self.hre else h
+            h = self.sent_embed(h)
         return h
 
     class cnn(nn.Module):
@@ -52,27 +52,27 @@ class embed(nn.Module):
             self.fc = nn.Linear(len(kernel_sizes) * num_featmaps, embed_size)
 
         def forward(self, x):
-            b = x.size(0) # batch_size (B)
-            x = x.view(-1, x.size(2)) # [B * word_seq_len (Lw), char_seq_len (Lc)]
-            x = self.embed(x) # [B * Lw, Lc, dim]
-            x = x.unsqueeze(1) # [B * Lw, Ci, Lc, W]
-            h = [conv(x) for conv in self.conv] # [B * Lw, Co, Lc, 1] * K
-            h = [F.relu(k).squeeze(3) for k in h] # [B * Lw, Co, Lc] * K
-            h = [F.max_pool1d(k, k.size(2)).squeeze(2) for k in h] # [B * Lw, Co] * K
-            h = torch.cat(h, 1) # [B * Lw, Co * K]
+            b = x.size(1)
+            x = x.reshape(-1, x.size(2)) # [Ls * B, Lw]
+            x = self.embed(x) # [Ls * B, Lw, dim]
+            x = x.unsqueeze(1) # [Ls * B, Ci, Lw, W]
+            h = [conv(x) for conv in self.conv] # [Ls * B, Co, Lw, 1] * K
+            h = [F.relu(k).squeeze(3) for k in h] # [Ls * B, Co, Lw] * K
+            h = [F.max_pool1d(k, k.size(2)).squeeze(2) for k in h] # [Ls * B, Co] * K
+            h = torch.cat(h, 1) # [Ls * B, Co * K]
             h = self.dropout(h)
-            h = self.fc(h) # fully connected layer [B * Lw, embed_size]
-            h = h.view(b, -1, h.size(1)) # [B, Lw, embed_size]
+            h = self.fc(h) # fully connected layer [Ls * B, H]
+            h = h.view(-1, b, h.size(1)) # [Ls, B, H]
             return h
 
     class rnn(nn.Module):
-        def __init__(self, vocab_size, embed_size, embedded = False):
+        def __init__(self, vocab_size, embed_size, hre = False):
             super().__init__()
             self.dim = embed_size
             self.rnn_type = "GRU" # LSTM, GRU
             self.num_dirs = 2 # unidirectional: 1, bidirectional: 2
             self.num_layers = 2
-            self.embedded = embedded # True: sent_embed, False: word_embed
+            self.hre = hre
 
             # architecture
             self.embed = nn.Embedding(vocab_size, embed_size, padding_idx = PAD_IDX)
@@ -81,7 +81,6 @@ class embed(nn.Module):
                 hidden_size = self.dim // self.num_dirs,
                 num_layers = self.num_layers,
                 bias = True,
-                batch_first = True,
                 dropout = DROPOUT,
                 bidirectional = (self.num_dirs == 2)
             )
@@ -96,15 +95,15 @@ class embed(nn.Module):
             return hs
 
         def forward(self, x):
-            b = x.size(0) # batch_size (B)
-            s = self.init_state(b * (1 if self.embedded else x.size(1)))
-            if not self.embedded: # word_embed
-                x = x.view(-1, x.size(2)) # [B * word_seq_len (Lw), char_seq_len (Lc)]
-                x = self.embed(x) # [B * Lw, Lc, embed_size (H)]
+            b = x.size(1)
+            s = self.init_state(b * (1 if self.hre else x.size(0)))
+            if not self.hre:
+                x = x.reshape(-1, x.size(2)).transpose(0, 1) # [Lw, Ls * B]
+                x = self.embed(x) # [Lw, Ls * B, H]
             h, s = self.rnn(x, s)
             h = s if self.rnn_type == "GRU" else s[-1]
-            h = torch.cat([x for x in h[-self.num_dirs:]], 1) # final hidden state [B * Lw, H]
-            h = h.view(b, -1, h.size(1)) # [B, Lw, H]
+            h = torch.cat([x for x in h[-self.num_dirs:]], 1) # final hidden state
+            h = h.view(-1, b, h.size(1)) # [Ls, B, H]
             return h
 
     class sae(nn.Module): # self-attentive encoder
@@ -167,13 +166,13 @@ class embed(nn.Module):
             def attn_sdp(self, q, k, v, mask): # scaled dot-product attention
                 c = np.sqrt(self.Dk) # scale factor
                 a = torch.matmul(q, k.transpose(2, 3)) / c # compatibility function
-                a = a.masked_fill(mask, -10000) # masking in log space
+                a = a.masked_fill(mask, -10000)
                 a = F.softmax(a, 2)
                 a = torch.matmul(a, v)
                 return a # attention weights
 
             def forward(self, q, k, v, mask):
-                b = q.size(0) # batch_size (B)
+                b = q.size(0)
                 x = q # identity
                 q = self.Wq(q).view(b, -1, self.H, self.Dk).transpose(1, 2)
                 k = self.Wk(k).view(b, -1, self.H, self.Dk).transpose(1, 2)

@@ -17,13 +17,13 @@ def load_data(args):
         for line in block.split("\n"):
             x, y = line.split("\t")
             x = [x.split(":") for x in x.split(" ")]
-            y = list(map(int, y.split(" ")))
+            y = tuple(map(int, y.split(" ")))
             xc, xw = zip(*[(list(map(int, xc.split("+"))), int(xw)) for xc, xw in x])
             data.append_item(xc = xc, xw = xw, y0 = y)
     for _batch in data.split():
         xc, xw, y0, lens = _batch.xc, _batch.xw, _batch.y0, _batch.lens
-        xc, xw = data.tensor(xc, xw, lens)
-        _, y0 = data.tensor(None, y0, sos = True)
+        xc, xw = data.tensor(bc = xc, bw = xw, lens = lens)
+        _, y0 = data.tensor(bw = y0, sos = True)
         batch.append((xc, xw, y0))
     print("data size: %d" % len(data.y0))
     print("batch size: %d" % BATCH_SIZE)

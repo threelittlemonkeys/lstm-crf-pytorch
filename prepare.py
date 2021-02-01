@@ -25,7 +25,6 @@ def load_data():
         data = tmp[:-1]
     else:
         for line in fo:
-            line = line.strip()
             x, y = load_line(line, cti, wti, tti)
             data.append((x, y))
         data.sort(key = lambda x: -len(x[0])) # sort by source sequence length
