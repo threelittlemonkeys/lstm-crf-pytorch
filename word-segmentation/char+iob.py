@@ -1,4 +1,5 @@
 import sys
+import re
 
 if __name__ == "__main__": # BI(ES) tagging for character-based word segmentation
     if len(sys.argv) != 3 or sys.argv[1] not in ("BI", "BIES"):
@@ -7,6 +8,7 @@ if __name__ == "__main__": # BI(ES) tagging for character-based word segmentatio
     fi = open(sys.argv[2])
     fo = open(sys.argv[2] + "." + tagset, "w")
     for line in fi:
+        line = re.sub("[\s\xA0]+", " ", line)
         line = line.strip()
         line = line.split(" ")
         if tagset  == "BI":
