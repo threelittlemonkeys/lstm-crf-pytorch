@@ -18,7 +18,7 @@ def run_model(model, data, itt):
             xc, xw, lens = batch.xc, batch.xw, batch.lens
             xc, xw = data.tensor(bc = xc, bw = xw, lens = lens)
             y1 = model.decode(xc, xw, lens)
-            batch.y1 = [[itt[i] for i in x] for x in y1]
+            batch.y1 = [[itt[i] for i in y] for y in y1]
             for x0, y0, y1 in zip(batch.x0, batch.y0, batch.y1):
                 if not HRE:
                     x0, y0, y1 = [x0], [y0], [y1]
@@ -26,18 +26,18 @@ def run_model(model, data, itt):
                     yield x0, y0, y1
 
 def predict(model, cti, wti, itt, filename):
-    data = dataloader()
+    data = dataloader(HRE)
     with open(filename) as fo:
         text = fo.read().strip().split("\n" * (HRE + 1))
     for block in text:
         data.append_row()
-        for x0 in block.split("\n"):
-            if re.match("\S+/\S+( \S+/\S+)*$", x0): # word/tag
-                x0, y0 = zip(*[re.split("/(?=[^/]+$)", x) for x in x0.split(" ")])
+        for line in block.split("\n"):
+            if re.match("\S+/[^ /]+( \S+/[^ /]+)*$", line): # word/tag
+                x0, y0 = zip(*[re.split("/(?=[^/]+$)", w) for w in line.split(" ")])
                 x1 = list(map(normalize, x0))
             else:
-                y0 = []
-                if re.match("[^\t]+\t\S+$", x0): # sentence \t label
+                x0, y0 = line, []
+                if re.match("[^\t]+\t[^\t]+$", x0): # sentence \t label
                     x0, *y0 = x0.split("\t")
                 x0 = tokenize(x0)
                 x1 = list(map(normalize, x0))

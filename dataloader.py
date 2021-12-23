@@ -14,26 +14,10 @@ class dataset:
         self.prob = None # probability
         self.attn = None # attention heatmap
 
-    '''
-    def sort(self):
-        self.idx = list(range(len(self.xw)))
-        self.idx.sort(key = lambda x: -len(self.xw[x]))
-        xc = [self.xc[i] for i in self.idx]
-        xw = [self.xw[i] for i in self.idx]
-        y0 = [self.y0[i] for i in self.idx]
-        lens = list(map(len, xw))
-        return xc, xw, y0, lens
-
-    def unsort(self):
-        self.idx = sorted(range(len(self.x0)), key = lambda x: self.idx[x])
-        self.y1 = [self.y1[i] for i in self.idx]
-        if self.prob: self.prob = [self.prob[i] for i in self.idx]
-        if self.attn: self.attn = [self.attn[i] for i in self.idx]
-    '''
-
 class dataloader(dataset):
-    def __init__(self):
+    def __init__(self, hre = False):
         super().__init__()
+        self.hre = hre # hierarchical recurrent encoding
 
     def append_row(self):
         for x in self._vars:
@@ -43,15 +27,17 @@ class dataloader(dataset):
         for k, v in kwargs.items():
             getattr(self, k)[-1].append(v)
 
-    @staticmethod
-    def flatten(x): # [Ld, Ls, Lw] -> [Ld * Ls, Lw]
-        if HRE:
+    def flatten(self, x): # [Ld, Ls, Lw] -> [Ld * Ls, Lw]
+        if self.hre:
             return [list(x) for x in x for x in x]
-        return [list(*x) for x in x]
+        try:
+            return [x if type(x[0]) == str else list(*x) for x in x]
+        except:
+            return [x for x in x for x in x]
 
     def split(self): # split into batches
-        if HRE:
-            self.y0 = [[tuple(x[0] for x in x)] for x in self.y0]
+        if self.hre:
+            self.y0 = [[tuple(y[0] for y in y)] for y in self.y0]
         for i in range(0, len(self.y0), BATCH_SIZE):
             batch = dataset()
             j = i + min(BATCH_SIZE, len(self.x0) - i)
@@ -62,7 +48,7 @@ class dataloader(dataset):
 
     def tensor(self, bc = None, bw = None, lens = None, sos = False, eos = False):
         p, s, e = [PAD_IDX], [SOS_IDX], [EOS_IDX]
-        if HRE and lens:
+        if self.hre and lens:
             dl = max(lens) # document length (Ld)
             i, _bc, _bw = 0, [], []
             for j in lens:
@@ -77,9 +63,12 @@ class dataloader(dataset):
                 i += j
             bc, bw = _bc, _bw # [B * Ld, ...]
         if bw:
-            sl = max(map(len, bw)) # sentence length (Ls)
-            bw = [s * sos + x + e * eos + p * (sl - len(x)) for x in bw]
-            bw = LongTensor(bw).transpose(0, 1) # [Ls, B * Ld]
+            try:
+                sl = max(map(len, bw)) # sentence length (Ls)
+                bw = [s * sos + x + e * eos + p * (sl - len(x)) for x in bw]
+                bw = LongTensor(bw).transpose(0, 1) # [Ls, B * Ld]
+            except:
+                bw = LongTensor(bw)
         if bc:
             wl = max(max(map(len, x)) for x in bc) # word length (Lw)
             wp = [p * (wl + 2)]
