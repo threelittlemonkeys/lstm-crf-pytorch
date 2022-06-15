@@ -6,7 +6,7 @@ from parameters import *
 from collections import defaultdict
 
 def normalize(x):
-    # x = re.sub("[\uAC00-\uD7A3]+", "\uAC00", x) £ convert Hangeul to 가
+    # x = re.sub("[\uAC00-\uD7A3]+", "\uAC00", x) # convert Hangeul to 가
     # x = re.sub("[\u3040-\u30FF]+", "\u3042", x) # convert Hiragana and Katakana to あ
     # x = re.sub("[\u4E00-\u9FFF]+", "\u6F22", x) # convert CJK unified ideographs to 漢
     x = re.sub("\s+", " ", x)
@@ -92,7 +92,7 @@ def tag_to_txt(xs, ys):
             y = y[2:]
         _xs.append(x)
         _ys.append(y)
-    if TASK == "pos-tagging":
+    if TASK == "word-classification":
         return " ".join(x + "/" + y for x, y in zip(_xs, _ys))
     if TASK == "word-segmentation":
         return " ".join("".join(x) for x in _xs)

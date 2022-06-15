@@ -10,6 +10,7 @@ class embed(nn.Module):
         self.char_embed = None 
         self.word_embed = None 
         for model, dim in ls.items():
+            assert model in ("lookup", "cnn", "rnn", "sae")
             if model in ("cnn", "rnn"):
                 self.char_embed = getattr(self, model)(cti_size, dim)
             if model in ("lookup", "sae"):

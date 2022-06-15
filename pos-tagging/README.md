@@ -6,7 +6,7 @@ This is a simple tutorial for POS tagging using the scripts here.
 
 ```
 UNIT = "word"
-TASK = "pos-tagging"
+TASK = "word-classification"
 ```
 
 2. Split the data into training, test and validation sets and run `prepare.py` to make CSV and index files.
