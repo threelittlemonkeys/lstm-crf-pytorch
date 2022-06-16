@@ -36,17 +36,17 @@ def evaluate(result, summary = False):
     print("macro f1 = %f" % f1(avg["macro_pr"], avg["macro_rc"]))
     print("micro f1 = %f" % avg["micro_f1"])
 
-    if TASK == "word-segmentation":
+    if TASK in ("word-classification", "word-segmentation"):
         print()
-        evaluate_word_segmentation(result)
+        evaluate_word_classification(result)
 
-def evaluate_word_segmentation(result):
+def evaluate_word_classification(result):
     tp, tpfn, tpfp = 0, 0, 0
-    isbs = lambda x: x in ("B", "S")
+    isbs = lambda x: re.search("[BS]$", x)
     for _, Y0, Y1 in result:
-        i = 0
         tpfn += len(list(filter(isbs, Y0)))
         tpfp += len(list(filter(isbs, Y1)))
+        i = 0
         for j, (y0, y1) in enumerate(zip(Y0 + ["B"], Y1 + ["B"])):
             if j and isbs(y0) and isbs(y1):
                 tp += (Y0[i:j] == Y1[i:j])
