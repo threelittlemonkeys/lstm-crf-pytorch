@@ -32,6 +32,7 @@ def load_data():
     return data, cti, wti, tti
 
 def load_line(line, cti, wti, tti):
+    line = line.strip()
     x, y = [], []
     if HRE:
         line, y = line.split("\t")

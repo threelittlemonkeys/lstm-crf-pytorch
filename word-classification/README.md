@@ -1,8 +1,8 @@
-# Part-of-Speech (POS) Tagging
+# Word classification
 
-This is a simple tutorial for POS tagging using the scripts here.
+This is a simple tutorial for sequence labelling tasks such as part-of-speech (POS) tagging and named entity recognition (NER).
 
-1. Modify the following settings in `parameters.py` for a sequence labelling task.
+1. Modify the following settings in `parameters.py`.
 
 ```
 UNIT = "word"
