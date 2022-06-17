@@ -42,7 +42,7 @@ def evaluate(result, summary = False):
 
 def evaluate_word_classification(result):
     tp, tpfn, tpfp = 0, 0, 0
-    isbs = lambda x: re.search("[BS]$", x)
+    isbs = lambda x: re.match("[BS]", x)
     for _, Y0, Y1 in result:
         tpfn += len(list(filter(isbs, Y0)))
         tpfp += len(list(filter(isbs, Y1)))
