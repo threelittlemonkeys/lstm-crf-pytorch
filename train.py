@@ -41,11 +41,12 @@ def train(args):
     num_epochs = int(args[-1])
     batch, cti, wti, itt = load_data(args)
     model = rnn_crf(len(cti), len(wti), len(itt))
+    print(model)
+
     optim = torch.optim.Adam(model.parameters(), lr = LEARNING_RATE)
     epoch = load_checkpoint(args[0], model) if isfile(args[0]) else 0
     filename = re.sub("\.epoch[0-9]+$", "", args[0])
 
-    print(model)
     print("training model...")
 
     for ei in range(epoch + 1, epoch + num_epochs + 1):

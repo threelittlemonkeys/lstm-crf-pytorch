@@ -9,8 +9,8 @@ class embed(nn.Module):
         self.hre = hre # hierarchical recurrent encoding
 
         # architecture
-        self.char_embed = None 
-        self.word_embed = None 
+        self.char_embed = None
+        self.word_embed = None
 
         for model, dim in ls.items():
             assert model in ("lookup", "cnn", "rnn", "sae")

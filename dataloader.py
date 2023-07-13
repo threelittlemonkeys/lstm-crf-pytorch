@@ -6,10 +6,10 @@ class dataset:
 
     def __init__(self):
 
-        self.x0 = [] # input strings, raw
-        self.x1 = [] # input strings, tokenized
-        self.xc = [] # input indices, character-level
-        self.xw = [] # input indices, word-level
+        self.x0 = [] # text input, raw
+        self.x1 = [] # text input, tokenized
+        self.xc = [] # indexed input, character-level
+        self.xw = [] # indexed input, word-level
         self.y0 = [] # actual output
         self.y1 = None # predicted output
         self.lens = None # sequence lengths
