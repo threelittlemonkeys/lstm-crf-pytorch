@@ -2,13 +2,16 @@ from utils import *
 from embedding import embed
 
 class rnn_crf(nn.Module):
+
     def __init__(self, cti_size, wti_size, num_tags):
+
         super().__init__()
         self.rnn = rnn(cti_size, wti_size, num_tags)
         self.crf = crf(num_tags)
         if CUDA: self = self.cuda()
 
     def forward(self, xc, xw, y0): # for training
+
         self.zero_grad()
         self.rnn.batch_size = y0.size(1)
         self.crf.batch_size = y0.size(1)
@@ -19,6 +22,7 @@ class rnn_crf(nn.Module):
         return torch.mean(Z - score) # NLL loss
 
     def decode(self, xc, xw, lens): # for inference
+
         self.rnn.batch_size = len(lens)
         self.crf.batch_size = len(lens)
         if HRE:
@@ -30,7 +34,9 @@ class rnn_crf(nn.Module):
         return self.crf.decode(h, mask)
 
 class rnn(nn.Module):
+
     def __init__(self, cti_size, wti_size, num_tags):
+
         super().__init__()
         self.batch_size = 0
 
@@ -47,6 +53,7 @@ class rnn(nn.Module):
         self.out = nn.Linear(HIDDEN_SIZE, num_tags) # RNN output to tag
 
     def init_state(self): # initialize RNN states
+
         n = NUM_LAYERS * NUM_DIRS
         b = self.batch_size
         h = HIDDEN_SIZE // NUM_DIRS
@@ -57,6 +64,7 @@ class rnn(nn.Module):
         return hs
 
     def forward(self, xc, xw, mask):
+
         hs = self.init_state()
         x = self.embed(xc, xw)
         if HRE: # [B * Ld, 1, H] -> [Ld, B, H]
@@ -70,7 +78,9 @@ class rnn(nn.Module):
         return h
 
 class crf(nn.Module):
+
     def __init__(self, num_tags):
+
         super().__init__()
         self.batch_size = 0
         self.num_tags = num_tags
@@ -85,6 +95,7 @@ class crf(nn.Module):
         self.trans.data[PAD_IDX, PAD_IDX] = 0
 
     def forward(self, h, mask): # forward algorithm
+
         score = Tensor(self.batch_size, self.num_tags).fill_(-10000)
         score[:, SOS_IDX] = 0.
         trans = self.trans.unsqueeze(0) # [1, C, C]
@@ -98,6 +109,7 @@ class crf(nn.Module):
         return score # partition function
 
     def score(self, h, y0, mask):
+
         score = Tensor(self.batch_size).fill_(0.)
         h = h.unsqueeze(3) # [L, B, C, 1]
         trans = self.trans.unsqueeze(2) # [C, C, 1]
@@ -110,6 +122,7 @@ class crf(nn.Module):
         return score
 
     def decode(self, h, mask): # Viterbi decoding
+
         bptr = LongTensor()
         score = Tensor(self.batch_size, self.num_tags).fill_(-10000)
         score[:, SOS_IDX] = 0.
