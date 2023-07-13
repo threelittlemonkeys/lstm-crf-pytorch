@@ -1,7 +1,9 @@
 from utils import *
 
 def load_data():
+
     data = []
+
     if KEEP_IDX:
         cti = load_tkn_to_idx(sys.argv[1] + ".char_to_idx")
         wti = load_tkn_to_idx(sys.argv[1] + ".word_to_idx")
@@ -10,6 +12,7 @@ def load_data():
         cti = {PAD: PAD_IDX, SOS: SOS_IDX, EOS: EOS_IDX, UNK: UNK_IDX}
         wti = {PAD: PAD_IDX, SOS: SOS_IDX, EOS: EOS_IDX, UNK: UNK_IDX}
         tti = {PAD: PAD_IDX, SOS: SOS_IDX, EOS: EOS_IDX}
+
     fo = open(sys.argv[1])
     if HRE:
         tmp = []
@@ -29,16 +32,20 @@ def load_data():
             data.append((x, y))
         data.sort(key = lambda x: -len(x[0])) # sort by source sequence length
     fo.close()
+
     return data, cti, wti, tti
 
 def load_line(line, cti, wti, tti):
+
     line = line.strip()
     x, y = [], []
+
     if HRE:
         line, y = line.split("\t")
         if y not in tti:
             tti[y] = len(tti)
         y = [str(tti[y])]
+
     for w in line.split(" "):
         w, tag = (w, None) if HRE else re.split("/(?=[^/]+$)", w)
         w0 = normalize(w) # for character embedding
@@ -54,13 +61,17 @@ def load_line(line, cti, wti, tti):
         x.append("+".join(str(cti[c]) for c in w0) + ":%d" % wti[w1])
         if tag:
             y.append(str(tti[tag]))
+
     return x, y
 
 if __name__ == "__main__":
+
     if len(sys.argv) != 2:
         sys.exit("Usage: %s training_data" % sys.argv[0])
+
     data, cti, wti, tti = load_data()
     save_data(sys.argv[1] + ".csv", data)
+
     if not KEEP_IDX:
         save_tkn_to_idx(sys.argv[1] + ".char_to_idx", cti)
         save_tkn_to_idx(sys.argv[1] + ".word_to_idx", wti)
