@@ -2,6 +2,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from parameters import *
 
 UNIT = "word" # unit of tokenization (char, char+space, word, sent)
 TASK = None # task (None, word-classification, word-segmentation, sentence-segmentation)
@@ -26,11 +27,6 @@ UNK, UNK_IDX = "<UNK>", 3 # unknown token
 CUDA = torch.cuda.is_available()
 torch.manual_seed(0) # for reproducibility
 # torch.cuda.set_device(0)
-
-Tensor = torch.cuda.FloatTensor if CUDA else torch.FloatTensor
-LongTensor = torch.cuda.LongTensor if CUDA else torch.LongTensor
-randn = lambda *x: torch.randn(*x).cuda() if CUDA else torch.randn
-zeros = lambda *x: torch.zeros(*x).cuda() if CUDA else torch.zeros
 
 KEEP_IDX = False # use the existing indices when adding more training data
 NUM_DIGITS = 4 # number of decimal places to print

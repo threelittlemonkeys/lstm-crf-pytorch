@@ -2,8 +2,13 @@ import sys
 import re
 from time import time
 from os.path import isfile
-from parameters import *
 from collections import defaultdict
+from parameters import *
+
+Tensor = torch.cuda.FloatTensor if CUDA else torch.FloatTensor
+LongTensor = torch.cuda.LongTensor if CUDA else torch.LongTensor
+randn = lambda *x: torch.randn(*x).cuda() if CUDA else torch.randn
+zeros = lambda *x: torch.zeros(*x).cuda() if CUDA else torch.zeros
 
 def normalize(x):
 
