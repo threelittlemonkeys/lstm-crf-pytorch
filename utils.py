@@ -89,7 +89,7 @@ def save_checkpoint(filename, model, epoch, loss, time):
 def log_sum_exp(x):
 
     m = torch.max(x, -1)[0]
-    return m + torch.log(torch.sum(torch.exp(x - m.unsqueeze(-1)), -1))
+    return m + (x - m.unsqueeze(-1)).exp().sum(-1).log()
 
 def tag_to_txt(xs, ys):
 
