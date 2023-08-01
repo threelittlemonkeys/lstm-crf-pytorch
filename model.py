@@ -13,24 +13,22 @@ class rnn_crf(nn.Module):
     def forward(self, xc, xw, y0): # for training
 
         self.zero_grad()
-        self.rnn.batch_size = y0.size(1)
-        self.crf.batch_size = y0.size(1)
         mask = y0[1:].gt(PAD_IDX).float()
         h = self.rnn(xc, xw, mask)
         Z = self.crf.forward(h, mask)
         score = self.crf.score(h, y0, mask)
+
         return torch.mean(Z - score) # NLL loss
 
     def decode(self, xc, xw, lens): # for inference
 
-        self.rnn.batch_size = len(lens)
-        self.crf.batch_size = len(lens)
         if HRE:
             mask = [[1] * x + [PAD_IDX] * (lens[0] - x) for x in lens]
             mask = Tensor(mask).transpose(0, 1)
         else:
             mask = xw.gt(PAD_IDX).float()
         h = self.rnn(xc, xw, mask)
+
         return self.crf.decode(h, mask)
 
 class rnn(nn.Module):
@@ -38,7 +36,6 @@ class rnn(nn.Module):
     def __init__(self, cti_size, wti_size, num_tags):
 
         super().__init__()
-        self.batch_size = 0
 
         # architecture
         self.embed = embed(EMBED, cti_size, wti_size, HRE)
@@ -52,23 +49,22 @@ class rnn(nn.Module):
         )
         self.out = nn.Linear(HIDDEN_SIZE, num_tags) # RNN output to tag
 
-    def init_state(self): # initialize RNN states
+    def init_state(self, b): # initialize RNN states
 
         n = NUM_LAYERS * NUM_DIRS
-        b = self.batch_size
         h = HIDDEN_SIZE // NUM_DIRS
         hs = zeros(n, b, h) # hidden state
-        if RNN_TYPE == "LSTM":
-            cs = zeros(n, b, h) # LSTM cell state
-            return (hs, cs)
-        return hs
+        if RNN_TYPE == "GRU":
+            return hs
+        cs = zeros(n, b, h) # LSTM cell state
+        return (hs, cs)
 
     def forward(self, xc, xw, mask):
 
-        hs = self.init_state()
+        hs = self.init_state(xw.size(1))
         x = self.embed(xc, xw)
         if HRE: # [B * Ld, 1, H] -> [Ld, B, H]
-            x = x.view(-1, self.batch_size, EMBED_SIZE)
+            x = x.view(-1, xw.size(1), EMBED_SIZE)
         lens = mask.sum(0).int().cpu()
         x = nn.utils.rnn.pack_padded_sequence(x, lens, enforce_sorted = False)
         h, _ = self.rnn(x, hs)
@@ -82,7 +78,6 @@ class crf(nn.Module):
     def __init__(self, num_tags):
 
         super().__init__()
-        self.batch_size = 0
         self.num_tags = num_tags
 
         # transition scores from j to i
@@ -96,7 +91,7 @@ class crf(nn.Module):
 
     def forward(self, h, mask): # forward algorithm
 
-        score = Tensor(self.batch_size, self.num_tags).fill_(-10000)
+        score = Tensor(h.size(1), self.num_tags).fill_(-10000)
         score[:, SOS_IDX] = 0.
         trans = self.trans.unsqueeze(0) # [1, C, C]
         for _h, _mask in zip(h, mask):
@@ -110,7 +105,7 @@ class crf(nn.Module):
 
     def score(self, h, y0, mask):
 
-        score = Tensor(self.batch_size).fill_(0.)
+        score = Tensor(h.size(1)).fill_(0.)
         h = h.unsqueeze(3) # [L, B, C, 1]
         trans = self.trans.unsqueeze(2) # [C, C, 1]
         for t, (_h, _mask) in enumerate(zip(h, mask)):
@@ -124,7 +119,7 @@ class crf(nn.Module):
     def decode(self, h, mask): # Viterbi decoding
 
         bptr = LongTensor()
-        score = Tensor(self.batch_size, self.num_tags).fill_(-10000)
+        score = Tensor(h.size(1), self.num_tags).fill_(-10000)
         score[:, SOS_IDX] = 0.
         for _h, _mask in zip(h, mask):
             _mask = _mask.unsqueeze(1)
@@ -139,7 +134,7 @@ class crf(nn.Module):
         # back-tracking
         bptr = bptr.tolist()
         best_path = [[i] for i in best_tag.tolist()]
-        for b in range(self.batch_size):
+        for b in range(h.size(1)):
             i = best_tag[b]
             j = mask[:, b].sum().int()
             for _bptr in reversed(bptr[b][:j]):
