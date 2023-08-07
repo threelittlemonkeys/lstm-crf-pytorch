@@ -25,7 +25,7 @@ def load_data(args):
             xc, xw = zip(*[(list(map(int, xc.split("+"))), int(xw)) for xc, xw in x])
             data.append_item(xc = xc, xw = xw, y0 = y)
 
-    for _batch in data.split():
+    for _batch in data.split(BATCH_SIZE):
         xc, xw, y0, lens = _batch.xc, _batch.xw, _batch.y0, _batch.lens
         xc, xw = data.tensor(bc = xc, bw = xw, lens = lens)
         _, y0 = data.tensor(bw = y0, sos = True)

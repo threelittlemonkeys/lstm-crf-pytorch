@@ -16,6 +16,7 @@ class dataset():
         self.lens = None # sequence lengths (for HRE)
         self.prob = None # output probabilities
         self.attn = None # attention weights
+        self.copy = None # copy weights
 
     def sort(self):
 
@@ -64,14 +65,14 @@ class dataloader(dataset):
         except:
             return [x for x in x for x in x]
 
-    def split(self): # split into batches
+    def split(self, batch_size): # split into batches
 
         if self.hre:
             self.y0 = [[tuple(y[0] for y in y)] for y in self.y0]
 
-        for i in range(0, len(self.y0), BATCH_SIZE):
+        for i in range(0, len(self.y0), batch_size):
             batch = dataset()
-            j = i + min(BATCH_SIZE, len(self.x0) - i)
+            j = i + min(batch_size, len(self.x0) - i)
             batch.lens = list(map(len, self.xw[i:j]))
             for x in self._vars:
                 setattr(batch, x, self.flatten(getattr(self, x)[i:j]))
@@ -100,6 +101,8 @@ class dataloader(dataset):
             sl = max(map(len, bw)) # sentence length (Ls)
             bw = [s * sos + x + e * eos + p * (sl - len(x)) for x in bw]
             bw = LongTensor(bw) # [B * Ld, Ls]
+            if not self.batch_first:
+                bw = bw.transpose(0, 1)
 
         if bc:
             wl = max(max(map(len, x)) for x in bc) # word length (Lw)
@@ -107,9 +110,7 @@ class dataloader(dataset):
             bc = [[s + x + e + p * (wl - len(x)) for x in x] for x in bc]
             bc = [wp * sos + x + wp * (sl - len(x) + eos) for x in bc]
             bc = LongTensor(bc) # [B * Ld, Ls, Lw]
-
-        if not self.batch_first:
-            bc = bc.transpose(0, 1)
-            bw = bw.transpose(0, 1)
+            if not self.batch_first:
+                bc = bc.transpose(0, 1)
 
         return bc, bw

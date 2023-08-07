@@ -20,7 +20,7 @@ def run_model(model, data, itt):
     with torch.no_grad():
         model.eval()
 
-        for batch in data.split():
+        for batch in data.split(BATCH_SIZE):
 
             xc, xw, lens = batch.xc, batch.xw, batch.lens
             xc, xw = data.tensor(bc = xc, bw = xw, lens = lens)
