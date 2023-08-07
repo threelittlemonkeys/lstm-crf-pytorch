@@ -1,26 +1,47 @@
 from utils import *
 
-class dataset:
+class dataset():
 
     _vars = ("x0", "x1", "xc", "xw", "y0")
 
     def __init__(self):
 
+        self.idx = None # input index
         self.x0 = [] # text input, raw
         self.x1 = [] # text input, tokenized
         self.xc = [] # indexed input, character-level
         self.xw = [] # indexed input, word-level
         self.y0 = [] # actual output
         self.y1 = None # predicted output
-        self.lens = None # sequence lengths
-        self.prob = None # probability
+        self.lens = None # sequence lengths (for HRE)
+        self.prob = None # output probabilities
         self.attn = None # attention weights
+
+    def sort(self):
+
+        self.idx = list(range(len(self.xw)))
+        self.idx.sort(key = lambda x: -len(self.xw[x]))
+        xc = [self.xc[i] for i in self.idx]
+        xw = [self.xw[i] for i in self.idx]
+        y0 = [self.y0[i] for i in self.idx]
+        lens = list(map(len, xw))
+        return xc, xw, y0, lens
+
+    def unsort(self):
+
+        self.idx = sorted(range(len(self.x0)), key = lambda x: self.idx[x])
+        self.y1 = [self.y1[i] for i in self.idx]
+        if self.prob:
+            self.prob = [self.prob[i] for i in self.idx]
+        if self.attn:
+            self.attn = [self.attn[i] for i in self.idx]
 
 class dataloader(dataset):
 
-    def __init__(self, hre = False):
+    def __init__(self, batch_first = False, hre = False):
 
         super().__init__()
+        self.batch_first = batch_first
         self.hre = hre # hierarchical recurrent encoding
 
     def append_row(self):
@@ -76,18 +97,19 @@ class dataloader(dataset):
             bc, bw = _bc, _bw # [B * Ld, ...]
 
         if bw:
-            try:
-                sl = max(map(len, bw)) # sentence length (Ls)
-                bw = [s * sos + x + e * eos + p * (sl - len(x)) for x in bw]
-                bw = LongTensor(bw).transpose(0, 1) # [Ls, B * Ld]
-            except:
-                bw = LongTensor(bw)
+            sl = max(map(len, bw)) # sentence length (Ls)
+            bw = [s * sos + x + e * eos + p * (sl - len(x)) for x in bw]
+            bw = LongTensor(bw) # [B * Ld, Ls]
 
         if bc:
             wl = max(max(map(len, x)) for x in bc) # word length (Lw)
             wp = [p * (wl + 2)]
             bc = [[s + x + e + p * (wl - len(x)) for x in x] for x in bc]
             bc = [wp * sos + x + wp * (sl - len(x) + eos) for x in bc]
-            bc = LongTensor(bc).transpose(0, 1) # [Ls, B * Ld, Lw]
+            bc = LongTensor(bc) # [B * Ld, Ls, Lw]
+
+        if not self.batch_first:
+            bc = bc.transpose(0, 1)
+            bw = bw.transpose(0, 1)
 
         return bc, bw
