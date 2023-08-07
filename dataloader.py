@@ -14,7 +14,7 @@ class dataset:
         self.y1 = None # predicted output
         self.lens = None # sequence lengths
         self.prob = None # probability
-        self.attn = None # attention heatmap
+        self.attn = None # attention weights
 
 class dataloader(dataset):
 
