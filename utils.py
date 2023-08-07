@@ -18,14 +18,17 @@ def normalize(x):
     x = re.sub("\s+", " ", x)
     x = re.sub("^ | $", "", x)
     x = x.lower()
+
     return x
 
 def tokenize(x):
 
     if UNIT == "char":
         return list(re.sub(" ", "", x))
+
     if UNIT == "char+space":
         return [x.replace("_", "__").replace(" ", "_") for x in x]
+
     if UNIT in ("word", "sent"):
         return x.split(" ")
 
@@ -45,6 +48,7 @@ def load_tkn_to_idx(filename):
         line = line[:-1]
         tkn_to_idx[line] = len(tkn_to_idx)
     fo.close()
+
     return tkn_to_idx
 
 def load_idx_to_tkn(filename):
@@ -56,9 +60,11 @@ def load_idx_to_tkn(filename):
         line = line[:-1]
         idx_to_tkn.append(line)
     fo.close()
+
     return idx_to_tkn
 
 def save_tkn_to_idx(filename, tkn_to_idx):
+
     fo = open(filename, "w")
     for tkn, _ in sorted(tkn_to_idx.items(), key = lambda x: x[1]):
         fo.write("%s\n" % tkn)
@@ -73,6 +79,7 @@ def load_checkpoint(filename, model = None):
     epoch = checkpoint["epoch"]
     loss = checkpoint["loss"]
     print("epoch = %d, loss = %f" % (checkpoint["epoch"], checkpoint["loss"]))
+
     return epoch
 
 def save_checkpoint(filename, model, epoch, loss, time):
@@ -89,6 +96,7 @@ def save_checkpoint(filename, model, epoch, loss, time):
 def log_sum_exp(x):
 
     m = torch.max(x, -1)[0]
+
     return m + (x - m.unsqueeze(-1)).exp().sum(-1).log()
 
 def tag_to_txt(xs, ys):
@@ -106,10 +114,13 @@ def tag_to_txt(xs, ys):
             y = y[2:]
         _xs.append(x)
         _ys.append(y)
+
     if TASK == "word-classification":
         return " ".join(x + "/" + y for x, y in zip(_xs, _ys))
+
     if TASK == "word-segmentation":
         return " ".join("".join(x) for x in _xs)
+
     if TASK == "sentence-segmentation":
         return "\n".join(" ".join(x) for x in _xs)
 
