@@ -6,7 +6,7 @@ class rnn_crf(nn.Module):
     def __init__(self, cti_size, wti_size, num_tags):
 
         super().__init__()
-        self.rnn = rnn(cti_size, wti_size, num_tags)
+        self.rnn = rnn_encoder(cti_size, wti_size, num_tags)
         self.crf = crf(num_tags)
         if CUDA: self = self.cuda()
 
@@ -14,7 +14,7 @@ class rnn_crf(nn.Module):
 
         self.zero_grad()
         mask = y0[1:].gt(PAD_IDX).float()
-        h = self.rnn(xc, xw, mask)
+        h = self.rnn(y0.size(1), xc, xw, mask)
         Z = self.crf.forward(h, mask)
         score = self.crf.score(h, y0, mask)
 
@@ -27,18 +27,19 @@ class rnn_crf(nn.Module):
             mask = Tensor(mask).transpose(0, 1)
         else:
             mask = xw.gt(PAD_IDX).float()
-        h = self.rnn(xc, xw, mask)
+        h = self.rnn(len(lens), xc, xw, mask)
+        y = self.crf.decode(h, mask)
 
-        return self.crf.decode(h, mask)
+        return y
 
-class rnn(nn.Module):
+class rnn_encoder(nn.Module):
 
     def __init__(self, cti_size, wti_size, num_tags):
 
         super().__init__()
 
         # architecture
-        self.embed = embed(EMBED, cti_size, wti_size, HRE)
+        self.embed = embed(EMBED, cti_size, wti_size, hre = HRE)
         self.rnn = getattr(nn, RNN_TYPE)(
             input_size = EMBED_SIZE,
             hidden_size = HIDDEN_SIZE // NUM_DIRS,
@@ -59,18 +60,17 @@ class rnn(nn.Module):
         cs = zeros(n, b, h) # LSTM cell state
         return (hs, cs)
 
-    def forward(self, xc, xw, mask):
+    def forward(self, b, xc, xw, mask):
 
-        hs = self.init_state(xw.size(1))
-        x = self.embed(xc, xw)
-        if HRE: # [B * Ld, 1, H] -> [Ld, B, H]
-            x = x.view(-1, xw.size(1), EMBED_SIZE)
+        s = self.init_state(xw.size(1))
+        x = self.embed(b, xc, xw)
         lens = mask.sum(0).int().cpu()
         x = nn.utils.rnn.pack_padded_sequence(x, lens, enforce_sorted = False)
-        h, _ = self.rnn(x, hs)
+        h, _ = self.rnn(x, s)
         h, _ = nn.utils.rnn.pad_packed_sequence(h)
         h = self.out(h)
         h *= mask.unsqueeze(2)
+
         return h
 
 class crf(nn.Module):
@@ -94,13 +94,16 @@ class crf(nn.Module):
         score = Tensor(h.size(1), self.num_tags).fill_(-10000)
         score[:, SOS_IDX] = 0.
         trans = self.trans.unsqueeze(0) # [1, C, C]
+
         for _h, _mask in zip(h, mask):
             _mask = _mask.unsqueeze(1)
             _emit = _h.unsqueeze(2) # [B, C, 1]
             _score = score.unsqueeze(1) + _emit + trans # [B, 1, C] -> [B, C, C]
             _score = log_sum_exp(_score) # [B, C, C] -> [B, C]
             score = _score * _mask + score * (1 - _mask)
+
         score = log_sum_exp(score + self.trans[EOS_IDX])
+
         return score # partition function
 
     def score(self, h, y0, mask):
@@ -108,12 +111,15 @@ class crf(nn.Module):
         score = Tensor(h.size(1)).fill_(0.)
         h = h.unsqueeze(3) # [L, B, C, 1]
         trans = self.trans.unsqueeze(2) # [C, C, 1]
+
         for t, (_h, _mask) in enumerate(zip(h, mask)):
             _emit = torch.cat([_h[y0] for _h, y0 in zip(_h, y0[t + 1])])
             _trans = torch.cat([trans[x] for x in zip(y0[t + 1], y0[t])])
             score += (_emit + _trans) * _mask
+
         last_tag = y0.gather(0, mask.sum(0).long().unsqueeze(0)).squeeze(0)
         score += self.trans[EOS_IDX, last_tag]
+
         return score
 
     def decode(self, h, mask): # Viterbi decoding

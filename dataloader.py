@@ -39,10 +39,9 @@ class dataset():
 
 class dataloader(dataset):
 
-    def __init__(self, batch_first = False, hre = False):
+    def __init__(self, hre = False):
 
         super().__init__()
-        self.batch_first = batch_first
         self.hre = hre # hierarchical recurrent encoding
 
     def append_row(self):
@@ -59,7 +58,6 @@ class dataloader(dataset):
 
         if self.hre:
             return [list(x) for x in x for x in x]
-
         try:
             return [x if type(x[0]) == str else list(*x) for x in x]
         except:
@@ -68,7 +66,8 @@ class dataloader(dataset):
     def split(self, batch_size): # split into batches
 
         if self.hre:
-            self.y0 = [[tuple(y[0] for y in y)] for y in self.y0]
+            self.x0 = [[x] for x in self.x0]
+            self.y0 = [[[y[0] if y else None for y in y]] for y in self.y0]
 
         for i in range(0, len(self.y0), batch_size):
             batch = dataset()
@@ -100,17 +99,13 @@ class dataloader(dataset):
         if bw:
             sl = max(map(len, bw)) # sentence length (Ls)
             bw = [s * sos + x + e * eos + p * (sl - len(x)) for x in bw]
-            bw = LongTensor(bw) # [B * Ld, Ls]
-            if not self.batch_first:
-                bw = bw.transpose(0, 1)
+            bw = LongTensor(bw).transpose(0, 1) # [Ls, B * Ld]
 
         if bc:
             wl = max(max(map(len, x)) for x in bc) # word length (Lw)
             wp = [p * (wl + 2)]
             bc = [[s + x + e + p * (wl - len(x)) for x in x] for x in bc]
             bc = [wp * sos + x + wp * (sl - len(x) + eos) for x in bc]
-            bc = LongTensor(bc) # [B * Ld, Ls, Lw]
-            if not self.batch_first:
-                bc = bc.transpose(0, 1)
+            bc = LongTensor(bc).transpose(0, 1) # [Ls, B * Ld, Lw]
 
         return bc, bw

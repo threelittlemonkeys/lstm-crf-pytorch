@@ -11,6 +11,7 @@ class embed(nn.Module):
         # architecture
         self.char_embed = None
         self.word_embed = None
+        self.sent_embed = None
 
         for model, dim in ls.items():
             assert model in ("lookup", "cnn", "rnn", "sae")
@@ -20,20 +21,26 @@ class embed(nn.Module):
                 self.word_embed = getattr(self, model)(wti_size, dim)
 
         if self.hre:
-            self.sent_embed = self.rnn(self.dim, self.dim, True)
+            self.sent_embed = self.rnn(self.dim, self.dim, hre = True)
 
         self = self.cuda() if CUDA else self
 
-    def forward(self, xc, xw):
+    def forward(self, b, xc, xw):
 
         hc, hw = None, None
+
         if self.char_embed:
-            hc = self.char_embed(xc)
+            hc = self.char_embed(xc) # [Ls, B * Ld, Lw] -> [Ls, B * Ld, Hc]
+
         if self.word_embed:
-            hw = self.word_embed(xw)
+            hw = self.word_embed(xw) # [Ls, B * Ld] -> [Ls, B * Ld, Hw]
+
         h = torch.cat([h for h in [hc, hw] if type(h) == torch.Tensor], 2)
-        if self.hre:
-            h = self.sent_embed(h)
+
+        if self.sent_embed:
+            h = self.sent_embed(h) # [1, B * Ld, H]
+            h = h.view(-1, b, h.size(2)) # [Ld, B, H]
+
         return h
 
     class lookup(nn.Module):
@@ -45,7 +52,7 @@ class embed(nn.Module):
 
         def forward(self, x):
 
-            return self.embed(x) # [Ls, B, H]
+            return self.embed(x) # [Ls, B * Ld, H]
 
     class cnn(nn.Module):
 
@@ -68,17 +75,16 @@ class embed(nn.Module):
 
         def forward(self, x):
 
-            b = x.size(1)
-            x = x.reshape(-1, x.size(2)) # [Ls * B, Lw]
-            x = self.embed(x) # [Ls * B, Lw, dim]
-            x = x.unsqueeze(1) # [Ls * B, Ci, Lw, W]
-            h = [conv(x) for conv in self.conv] # [Ls * B, Co, Lw, 1] * K
-            h = [F.relu(k).squeeze(3) for k in h] # [Ls * B, Co, Lw] * K
-            h = [F.max_pool1d(k, k.size(2)).squeeze(2) for k in h] # [Ls * B, Co] * K
-            h = torch.cat(h, 1) # [Ls * B, Co * K]
+            b = x.size(1) # B' = B * Ld
+            x = x.view(-1, x.size(2)) # [B' * Ls, Lw]
+            x = self.embed(x).unsqueeze(1) # [B' * Ls, Ci = 1, Lw, dim]
+            h = [conv(x) for conv in self.conv] # [B' * Ls, Co, Lw, 1] * K
+            h = [F.relu(k).squeeze(3) for k in h] # [B' * Ls, Co, Lw] * K
+            h = [F.max_pool1d(k, k.size(2)).squeeze(2) for k in h] # [B' * Ls, Co] * K
+            h = torch.cat(h, 1) # [B' * Ls, Co * K]
             h = self.dropout(h)
-            h = self.fc(h) # fully connected layer [Ls * B, H]
-            h = h.view(-1, b, h.size(1)) # [Ls, B, H]
+            h = self.fc(h) # fully connected layer [B' * Ls, H]
+            h = h.view(-1, b, h.size(1)) # [Ls, B', H]
             return h
 
     class rnn(nn.Module):
@@ -108,22 +114,22 @@ class embed(nn.Module):
             n = self.num_layers * self.num_dirs
             h = self.dim // self.num_dirs
             hs = zeros(n, b, h) # hidden state
-            if self.rnn_type == "LSTM":
-                cs = zeros(n, b, h) # LSTM cell state
-                return (hs, cs)
-            return hs
+            if self.rnn_type == "GRU":
+                return hs
+            cs = zeros(n, b, h) # LSTM cell state
+            return (hs, cs)
 
         def forward(self, x):
 
             b = x.size(1)
             s = self.init_state(b * (1 if self.hre else x.size(0)))
-            if not self.hre:
-                x = x.reshape(-1, x.size(2)).transpose(0, 1) # [Lw, Ls * B]
-                x = self.embed(x) # [Lw, Ls * B, H]
+            if not self.hre: # [Ls, B, Lw] -> [Lw, B * Ls, H]
+                x = x.view(-1, x.size(2)).transpose(0, 1)
+                x = self.embed(x)
             h, s = self.rnn(x, s)
             h = s if self.rnn_type == "GRU" else s[-1]
             h = torch.cat([x for x in h[-self.num_dirs:]], 1) # final hidden state
-            h = h.view(-1, b, h.size(1)) # [Ls, B, H]
+            h = h.view(-1, b, h.size(1)) # [Ls, B * Ld, H]
             return h
 
     class sae(nn.Module): # self-attentive encoder

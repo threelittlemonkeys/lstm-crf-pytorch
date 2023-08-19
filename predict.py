@@ -35,7 +35,7 @@ def run_model(model, data, itt):
 
 def predict(model, cti, wti, itt, filename):
 
-    data = dataloader(HRE)
+    data = dataloader(hre = HRE)
     with open(filename) as fo:
         text = fo.read().strip().split("\n" * (HRE + 1))
 

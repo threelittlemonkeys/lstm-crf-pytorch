@@ -5,7 +5,7 @@ from dataloader import *
 
 def load_data(args):
 
-    data = dataloader(HRE)
+    data = dataloader(hre = HRE)
     batch = []
     cti = load_tkn_to_idx(args[1]) # char_to_idx
     wti = load_tkn_to_idx(args[2]) # word_to_idx
