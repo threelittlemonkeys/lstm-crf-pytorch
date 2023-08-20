@@ -1,6 +1,6 @@
-from model import *
 from utils import *
 from dataloader import *
+from rnn_crf import *
 
 def load_model(args):
 

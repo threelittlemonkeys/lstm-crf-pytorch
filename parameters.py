@@ -4,7 +4,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from parameters import *
 
-UNIT = "word" # unit of tokenization (char, char+space, word, sent)
+UNIT = "char" # unit of tokenization (char, char+space, word, sent)
 TASK = None # task (None, word-classification, word-segmentation, sentence-segmentation)
 RNN_TYPE = "GRU" # LSTM or GRU
 NUM_DIRS = 2 # unidirectional: 1, bidirectional: 2

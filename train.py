@@ -1,7 +1,7 @@
-from model import *
 from utils import *
-from evaluate import *
 from dataloader import *
+from rnn_crf import *
+from evaluate import *
 
 def load_data(args):
 
