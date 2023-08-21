@@ -16,38 +16,46 @@ class crf(nn.Module):
         self.trans.data[PAD_IDX, EOS_IDX] = 0
         self.trans.data[PAD_IDX, PAD_IDX] = 0
 
-    def forward(self, h, mask): # forward algorithm
-
-        score = Tensor(h.size(1), self.num_tags).fill_(-10000)
-        score[:, SOS_IDX] = 0.
-        trans = self.trans.unsqueeze(0) # [1, C, C]
-
-        for _h, _mask in zip(h, mask):
-            _mask = _mask.unsqueeze(1)
-            _emit = _h.unsqueeze(2) # [B, C, 1]
-            _score = score.unsqueeze(1) + _emit + trans # [B, 1, C] -> [B, C, C]
-            _score = log_sum_exp(_score) # [B, C, C] -> [B, C]
-            score = _score * _mask + score * (1 - _mask)
-
-        score = log_sum_exp(score + self.trans[EOS_IDX])
-
-        return score # partition function
-
     def score(self, h, y0, mask):
 
-        score = Tensor(h.size(1)).fill_(0.)
+        S = Tensor(h.size(1)).fill_(0.)
         h = h.unsqueeze(3) # [L, B, C, 1]
         trans = self.trans.unsqueeze(2) # [C, C, 1]
 
         for t, (_h, _mask) in enumerate(zip(h, mask)):
             _emit = torch.cat([_h[y0] for _h, y0 in zip(_h, y0[t + 1])])
             _trans = torch.cat([trans[x] for x in zip(y0[t + 1], y0[t])])
-            score += (_emit + _trans) * _mask
+            S += (_emit + _trans) * _mask
 
         last_tag = y0.gather(0, mask.sum(0).long().unsqueeze(0)).squeeze(0)
-        score += self.trans[EOS_IDX, last_tag]
+        S += self.trans[EOS_IDX, last_tag]
 
-        return score
+        return S
+
+    def partition(self, h, mask):
+
+        Z = Tensor(h.size(1), self.num_tags).fill_(-10000)
+        Z[:, SOS_IDX] = 0.
+        trans = self.trans.unsqueeze(0) # [1, C, C]
+
+        for _h, _mask in zip(h, mask): # forward algorithm
+            _mask = _mask.unsqueeze(1)
+            _emit = _h.unsqueeze(2) # [B, C, 1]
+            _Z = Z.unsqueeze(1) + _emit + trans # [B, 1, C] -> [B, C, C]
+            _Z = log_sum_exp(_Z) # [B, C, C] -> [B, C]
+            Z = _Z * _mask + Z * (1 - _mask)
+
+        Z = log_sum_exp(Z + self.trans[EOS_IDX])
+
+        return Z # partition function
+
+    def forward(self, h, y0, mask): # for training
+
+        S = self.score(h, y0, mask)
+        Z = self.partition(h, mask)
+        L = torch.mean(Z - S) # NLL loss
+
+        return L
 
     def decode(self, h, mask): # Viterbi decoding
 
