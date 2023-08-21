@@ -39,9 +39,10 @@ class dataset():
 
 class dataloader(dataset):
 
-    def __init__(self, hre = False):
+    def __init__(self, batch_first = False, hre = False):
 
         super().__init__()
+        self.batch_first = batch_first
         self.hre = hre # hierarchical recurrent encoding
 
     def append_row(self):
@@ -99,13 +100,18 @@ class dataloader(dataset):
         if bw:
             sl = max(map(len, bw)) # sentence length (Ls)
             bw = [s * sos + x + e * eos + p * (sl - len(x)) for x in bw]
-            bw = LongTensor(bw).transpose(0, 1) # [Ls, B * Ld]
+            bw = LongTensor(bw) # [B * Ld, Ls]
+            if not self.batch_first:
+                bw.transpose_(0, 1)
+
 
         if bc:
             wl = max(max(map(len, x)) for x in bc) # word length (Lw)
             wp = [p * (wl + 2)]
             bc = [[s + x + e + p * (wl - len(x)) for x in x] for x in bc]
             bc = [wp * sos + x + wp * (sl - len(x) + eos) for x in bc]
-            bc = LongTensor(bc).transpose(0, 1) # [Ls, B * Ld, Lw]
+            bc = LongTensor(bc) # [B * Ld, Ls, Lw]
+            if not self.batch_first:
+                bc.transpose_(0, 1)
 
         return bc, bw
