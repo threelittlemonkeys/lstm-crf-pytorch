@@ -12,7 +12,6 @@ NUM_LAYERS = 2
 BATCH_SIZE = 64
 HRE = (UNIT == "sent") # hierarchical recurrent encoding
 EMBED = {"lookup": 300} # embeddings (lookup, cnn, rnn, sae)
-EMBED_SIZE = sum(EMBED.values())
 HIDDEN_SIZE = 1000
 DROPOUT = 0.5
 LEARNING_RATE = 2e-4
