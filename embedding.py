@@ -31,10 +31,8 @@ class embed(nn.Module):
 
         if self.char_embed:
             hc = self.char_embed(xc) # [Ls, B * Ld, Lw] -> [Ls, B * Ld, Hc]
-
         if self.word_embed:
             hw = self.word_embed(xw) # [Ls, B * Ld] -> [Ls, B * Ld, Hw]
-
         h = torch.cat([h for h in [hc, hw] if type(h) == torch.Tensor], 2)
 
         if self.sent_embed:

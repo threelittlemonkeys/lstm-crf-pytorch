@@ -23,10 +23,11 @@ class rnn_crf(nn.Module):
     def decode(self, xc, xw, lens): # for inference
 
         if HRE:
-            mask = [[1] * x + [PAD_IDX] * (lens[0] - x) for x in lens]
+            mask = [[i > j for j in range(lens[0])] for i in lens]
             mask = Tensor(mask).transpose(0, 1)
         else:
             mask = xw.gt(PAD_IDX).float()
+
         h = self.rnn(len(lens), xc, xw, mask)
         y = self.crf.decode(h, mask)
 

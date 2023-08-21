@@ -31,7 +31,7 @@ class rnn_encoder(nn.Module):
 
     def forward(self, b, xc, xw, mask):
 
-        s = self.init_state(xw.size(1))
+        s = self.init_state(b)
         x = self.embed(b, xc, xw)
         lens = mask.sum(0).int().cpu()
         x = nn.utils.rnn.pack_padded_sequence(x, lens)
