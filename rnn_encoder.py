@@ -29,11 +29,13 @@ class rnn_encoder(nn.Module):
         cs = zeros(n, b, h) # LSTM cell state
         return (hs, cs)
 
-    def forward(self, b, xc, xw, mask):
+    def forward(self, xc, xw, mask):
 
+        b = mask.size(1)
         s = self.init_state(b)
-        x = self.embed(b, xc, xw)
         lens = mask.sum(0).int().cpu()
+
+        x = self.embed(b, xc, xw)
         x = nn.utils.rnn.pack_padded_sequence(x, lens, enforce_sorted = False)
         h, _ = self.rnn(x, s)
         h, _ = nn.utils.rnn.pad_packed_sequence(h)
