@@ -74,7 +74,7 @@ class embed(nn.Module):
         def forward(self, x):
 
             b = x.size(1) # B' = B * Ld
-            x = x.view(-1, x.size(2)) # [B' * Ls, Lw]
+            x = x.reshape(-1, x.size(2)) # [B' * Ls, Lw]
             x = self.embed(x).unsqueeze(1) # [B' * Ls, Ci = 1, Lw, dim]
             h = [conv(x) for conv in self.conv] # [B' * Ls, Co, Lw, 1] * K
             h = [F.relu(k).squeeze(3) for k in h] # [B' * Ls, Co, Lw] * K
@@ -122,7 +122,7 @@ class embed(nn.Module):
             b = x.size(1)
             s = self.init_state(b * (1 if self.hre else x.size(0)))
             if not self.hre: # [Ls, B, Lw] -> [Lw, B * Ls, H]
-                x = x.view(-1, x.size(2)).transpose(0, 1)
+                x = x.reshape(-1, x.size(2)).transpose(0, 1)
                 x = self.embed(x)
             h, s = self.rnn(x, s)
             h = s if self.rnn_type == "GRU" else s[-1]
