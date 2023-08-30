@@ -15,17 +15,17 @@ def load_data():
 
     fo = open(sys.argv[1])
     if HRE:
-        tmp = []
         txt = fo.read().strip().split("\n\n")
         for doc in txt:
             data.append([])
             for line in doc.split("\n"):
                 x, y = load_line(line, cti, wti, tti)
                 data[-1].append((x, y))
+        _data = []
         for doc in sorted(data, key = lambda x: -len(x)):
-            tmp.extend(doc)
-            tmp.append(None)
-        data = tmp[:-1]
+            _data.extend(doc)
+            _data.append(None)
+        data = _data[:-1]
     else:
         for line in fo:
             x, y = load_line(line, cti, wti, tti)
