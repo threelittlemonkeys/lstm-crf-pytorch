@@ -64,6 +64,24 @@ def load_line(line, cti, wti, tti):
 
     return x, y
 
+def save_data(filename, data):
+
+    fo = open(filename, "w")
+    for seq in data:
+        if not seq:
+            print(file = fo)
+            continue
+        print(*seq[0], end = "\t", file = fo)
+        print(*seq[1], file = fo)
+    fo.close()
+
+def save_tkn_to_idx(filename, tkn_to_idx):
+
+    fo = open(filename, "w")
+    for tkn, _ in sorted(tkn_to_idx.items(), key = lambda x: x[1]):
+        fo.write("%s\n" % tkn)
+    fo.close()
+
 if __name__ == "__main__":
 
     if len(sys.argv) != 2:
