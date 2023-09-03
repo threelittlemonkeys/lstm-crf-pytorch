@@ -2,11 +2,11 @@ from utils import *
 
 class embed(nn.Module):
 
-    def __init__(self, ls, cti_size, wti_size, hre = False):
+    def __init__(self, ls, cti, wti, batch_first = False, hre = False):
 
         super().__init__()
         self.dim = sum(ls.values())
-        self.hre = hre # hierarchical recurrent encoding
+        self.batch_first = batch_first
 
         # architecture
         self.char_embed = None
@@ -16,11 +16,11 @@ class embed(nn.Module):
         for model, dim in ls.items():
             assert model in ("lookup", "cnn", "rnn", "sae")
             if model in ("cnn", "rnn"):
-                self.char_embed = getattr(self, model)(cti_size, dim)
+                self.char_embed = getattr(self, model)(len(cti), dim)
             if model in ("lookup", "sae"):
-                self.word_embed = getattr(self, model)(wti_size, dim)
+                self.word_embed = getattr(self, model)(len(wti), dim)
 
-        if self.hre:
+        if hre:
             self.sent_embed = self.rnn(self.dim, self.dim, hre = True)
 
         self = self.cuda() if CUDA else self
@@ -33,11 +33,16 @@ class embed(nn.Module):
             hc = self.char_embed(xc) # [Ls, B * Ld, Lw] -> [Ls, B * Ld, Hc]
         if self.word_embed:
             hw = self.word_embed(xw) # [Ls, B * Ld] -> [Ls, B * Ld, Hw]
+
         h = torch.cat([h for h in [hc, hw] if type(h) == torch.Tensor], 2)
 
         if self.sent_embed:
-            h = self.sent_embed(h) # [1, B * Ld, H]
+            if self.batch_first:
+                h.transpose_(0, 1)
+            h = self.sent_embed(h) # [Lw, B * Ld, H] -> [1, B * Ld, H]
             h = h.view(-1, b, h.size(2)) # [Ld, B, H]
+            if self.batch_first:
+                h.transpose_(0, 1)
 
         return h
 
@@ -120,15 +125,16 @@ class embed(nn.Module):
 
         def forward(self, x):
 
-            b = x.size(1)
+            b = x.size(1) # B' = B * Ld
             s = self.init_state(b * (1 if self.hre else x.size(0)))
-            if not self.hre:
+            if not self.hre: # [Ls, B', Lw] -> [Lw, B' * Ls, H]
                 x = x.reshape(-1, x.size(2)).transpose(0, 1)
-                x = self.embed(x) # [Ls, B, Lw] -> [Lw, B * Ls, H]
+                x = self.embed(x)
+
             h, s = self.rnn(x, s)
             h = s if self.rnn_type == "GRU" else s[-1]
             h = torch.cat([x for x in h[-self.num_dirs:]], 1) # final hidden state
-            h = h.view(-1, b, h.size(1)) # [Ls, B * Ld, H]
+            h = h.view(-1, b, h.size(1)) # [Ls, B', H]
 
             return h
 
@@ -152,6 +158,7 @@ class embed(nn.Module):
             h = x + self.pe[:x.size(1)]
             for layer in self.layers:
                 h = layer(h, mask)
+
             return h
 
         def positional_encoding(self, dim, maxlen = 1000): # positional encoding

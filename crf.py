@@ -53,9 +53,9 @@ class crf(nn.Module):
 
         S = self.score(h, y0, mask)
         Z = self.partition(h, mask)
-        L = torch.mean(Z - S) # NLL loss
+        loss = torch.mean(Z - S) # NLL loss
 
-        return L
+        return loss
 
     def decode(self, h, mask): # Viterbi decoding
 

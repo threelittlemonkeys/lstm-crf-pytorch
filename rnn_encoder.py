@@ -3,12 +3,12 @@ from embedding import *
 
 class rnn_encoder(nn.Module):
 
-    def __init__(self, cti_size, wti_size, num_tags):
+    def __init__(self, cti, wti, num_tags):
 
         super().__init__()
 
         # architecture
-        self.embed = embed(EMBED, cti_size, wti_size, hre = HRE)
+        self.embed = embed(EMBED, cti, wti, hre = HRE)
         self.rnn = getattr(nn, RNN_TYPE)(
             input_size = self.embed.dim,
             hidden_size = HIDDEN_SIZE // NUM_DIRS,

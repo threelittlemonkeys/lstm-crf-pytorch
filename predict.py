@@ -8,7 +8,7 @@ def load_model(args):
     wti = load_tkn_to_idx(args[2]) # word_to_idx
     itt = load_idx_to_tkn(args[3]) # idx_to_tag
 
-    model = rnn_crf(len(cti), len(wti), len(itt))
+    model = rnn_crf(cti, wti, len(itt))
     print(model)
 
     load_checkpoint(args[0], model)

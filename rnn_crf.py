@@ -4,22 +4,22 @@ from crf import *
 
 class rnn_crf(nn.Module):
 
-    def __init__(self, cti_size, wti_size, num_tags):
+    def __init__(self, cti, wti, num_tags):
 
         super().__init__()
-        self.rnn = rnn_encoder(cti_size, wti_size, num_tags)
+        self.rnn = rnn_encoder(cti, wti, num_tags)
         self.crf = crf(num_tags)
         if CUDA: self = self.cuda()
 
     def forward(self, xc, xw, y0): # for training
 
-        mask = y0[1:].gt(PAD_IDX).float()
         self.zero_grad()
+        mask = y0[1:].gt(PAD_IDX).float()
 
         h = self.rnn(xc, xw, mask)
-        L = self.crf(h, y0, mask)
+        loss = self.crf(h, y0, mask)
 
-        return L
+        return loss
 
     def decode(self, xc, xw, lens): # for inference
 

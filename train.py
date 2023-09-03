@@ -39,7 +39,7 @@ def train(args):
 
     num_epochs = int(args[-1])
     batch, cti, wti, itt = load_data(args)
-    model = rnn_crf(len(cti), len(wti), len(itt))
+    model = rnn_crf(cti, wti, len(itt))
     print(model)
 
     optim = torch.optim.Adam(model.parameters(), lr = LEARNING_RATE)
