@@ -54,6 +54,7 @@ def train(args):
         timer = time()
 
         for xc, xw, y0 in batch:
+
             loss = model(xc, xw, y0) # forward pass and compute loss
             loss.backward() # compute gradients
             optim.step() # update parameters
