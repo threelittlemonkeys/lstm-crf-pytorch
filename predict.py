@@ -20,10 +20,10 @@ def run_model(model, data, itt):
     with torch.no_grad():
         model.eval()
 
-        for batch in data.split(BATCH_SIZE):
+        for batch in data.batchify(BATCH_SIZE):
 
             xc, xw, lens = batch.xc, batch.xw, batch.lens
-            xc, xw = data.tensor(bc = xc, bw = xw, lens = lens)
+            xc, xw = data.to_tensor(bc = xc, bw = xw, lens = lens)
             y1 = model.decode(xc, xw, lens)
             batch.y1 = [[itt[i] for i in y] for y in y1]
 
