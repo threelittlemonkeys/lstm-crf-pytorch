@@ -107,4 +107,4 @@ def tag_to_txt(xs, ys):
 
 def f1(p, r):
 
-    return 2 * p * r / (p + r) if p + r else 0
+    return 2 * (p * r) / (p + r) if p + r else 0
