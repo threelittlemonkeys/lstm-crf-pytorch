@@ -40,8 +40,8 @@ class embed(nn.Module):
             if self.batch_first:
                 h.transpose_(0, 1)
             h = self.sent_embed(h) # [Lw, B * Ld, H] -> [1, B * Ld, H]
-            h = h.view(-1, b, h.size(2)) # [Ld, B, H]
-            if self.batch_first:
+            h = h.view(b, -1, h.size(2)) # [B, Ld, H]
+            if not self.batch_first:
                 h.transpose_(0, 1)
 
         return h
@@ -148,7 +148,7 @@ class embed(nn.Module):
 
             # architecture
             self.embed = nn.Embedding(vocab_size, dim, padding_idx = PAD_IDX)
-            self.pe = self.positional_encoding(dim)
+            self.pe = self.pos_encoder(dim)
             self.layers = nn.ModuleList([self.layer(dim) for _ in range(num_layers)])
 
         def forward(self, x):
@@ -161,7 +161,7 @@ class embed(nn.Module):
 
             return h
 
-        def positional_encoding(self, dim, maxlen = 1000): # positional encoding
+        def pos_encoder(self, dim, maxlen = 1000): # positional encoding
 
             pe = Tensor(maxlen, dim)
             pos = torch.arange(0, maxlen, 1.).unsqueeze(1)
@@ -178,7 +178,7 @@ class embed(nn.Module):
                 super().__init__()
 
                 # architecture
-                self.attn = embed.sae.attn_mh(dim)
+                self.attn = embed.sae.mh_attn(dim)
                 self.ffn = embed.sae.ffn(dim)
 
             def forward(self, x, mask):
@@ -188,7 +188,7 @@ class embed(nn.Module):
 
                 return z
 
-        class attn_mh(nn.Module): # multi-head attention
+        class mh_attn(nn.Module): # multi-head attention
 
             def __init__(self, dim):
 
@@ -200,16 +200,16 @@ class embed(nn.Module):
 
                 # architecture
                 self.Wq = nn.Linear(self.D, self.H * self.Dk) # query
-                self.Wk = nn.Linear(self.D, self.H * self.Dk) # key for attention distribution
-                self.Wv = nn.Linear(self.D, self.H * self.Dv) # value for context representation
+                self.Wk = nn.Linear(self.D, self.H * self.Dk) # key
+                self.Wv = nn.Linear(self.D, self.H * self.Dv) # value
                 self.Wo = nn.Linear(self.H * self.Dv, self.D)
                 self.dropout = nn.Dropout(DROPOUT)
                 self.norm = nn.LayerNorm(self.D)
 
-            def attn_sdp(self, q, k, v, mask): # scaled dot-product attention
+            def sdp_attn(self, q, k, v, mask): # scaled dot-product attention
 
-                c = np.sqrt(self.Dk) # scale factor
-                a = torch.matmul(q, k.transpose(2, 3)) / c # compatibility function
+                c = np.sqrt(self.Dk)
+                a = torch.matmul(q, k.transpose(2, 3)) / c
                 a = a.masked_fill(mask, -10000)
                 a = F.softmax(a, 2)
                 a = torch.matmul(a, v)
@@ -219,11 +219,11 @@ class embed(nn.Module):
             def forward(self, q, k, v, mask):
 
                 b = q.size(0)
-                x = q # identity
+                x = q
                 q = self.Wq(q).view(b, -1, self.H, self.Dk).transpose(1, 2)
                 k = self.Wk(k).view(b, -1, self.H, self.Dk).transpose(1, 2)
                 v = self.Wv(v).view(b, -1, self.H, self.Dv).transpose(1, 2)
-                z = self.attn_sdp(q, k, v, mask)
+                z = self.sdp_attn(q, k, v, mask)
                 z = z.transpose(1, 2).contiguous().view(b, -1, self.H * self.Dv)
                 z = self.Wo(z)
                 z = self.norm(x + self.dropout(z)) # residual connection and dropout
