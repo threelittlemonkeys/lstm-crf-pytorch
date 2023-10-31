@@ -148,7 +148,7 @@ class embed(nn.Module):
 
             # architecture
             self.embed = nn.Embedding(vocab_size, dim, padding_idx = PAD_IDX)
-            self.pe = self.pos_encoder(dim)
+            self.pe = self.pos_encoding(dim)
             self.layers = nn.ModuleList([self.layer(dim) for _ in range(num_layers)])
 
         def forward(self, x):
@@ -161,7 +161,7 @@ class embed(nn.Module):
 
             return h
 
-        def pos_encoder(self, dim, maxlen = 1000): # positional encoding
+        def pos_encoding(self, dim, maxlen = 1000): # positional encoding
 
             pe = Tensor(maxlen, dim)
             pos = torch.arange(0, maxlen, 1.).unsqueeze(1)
