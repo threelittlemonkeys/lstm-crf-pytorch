@@ -109,7 +109,6 @@ class dataloader(dataset):
             if not self.batch_first:
                 bw.transpose_(0, 1)
 
-
         if bc:
             wl = max(max(map(len, x)) for x in bc) # word length (Lw)
             wp = [p * (wl + 2)]
